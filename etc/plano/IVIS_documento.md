@@ -56,15 +56,14 @@ Link do diagrama original: https://canva.link/obupwdeokzl3ggs
 | Camada | Stakeholder | Papel em relação ao IVIS |
 |---|---|---|
 | Núcleo | IVIS | O próprio sistema/produto |
+| Infraestrutura | NVIDIA NGC | Provável provedor de infraestrutura/modelos de IA |
 | Usuário direto | Alunos | Utilizam a plataforma para treinar entrevistas |
 | Operação interna | Gestão Suporte | Suporte técnico/atendimento aos alunos |
 | Operação interna | Gestão ADM | Gestão administrativa e de negócio do produto |
 | Parceiros | Instituição de Ensino | Oferece o IVIS via consórcio aos seus alunos |
-| Reguladores/Órgãos externos | ANPD | Regulação de proteção de dados (LGPD) |
-| Reguladores/Órgãos externos | PROCON | Defesa do consumidor |
-| Reguladores/Órgãos externos | Alacuna, PRAMP | Parceiros/referências de mercado (plataformas de mock interview) |
-| Infraestrutura | NVIDIA NGC | Provável provedor de infraestrutura/modelos de IA |
-| Referência de mercado | interviewing.io | Concorrente/inspiração de produto |
+| Agência reguladora | ANPD | Regulação de proteção de dados (LGPD) |
+| Órgão regulador | PROCON | Defesa do consumidor |
+| Referências de mercado | Alacuna, PRAMP, interviewing.io | Concorrentes/referências de mercado (plataformas de mock interview) |
 
 > ⚠️ Confirmar se ANPD e PROCON entram como *stakeholders regulatórios* (compliance) ou apenas como referência de contexto legal.
 
