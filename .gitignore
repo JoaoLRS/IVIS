@@ -4,6 +4,8 @@ node_modules/
 
 # Frontend build output
 frontend/dist/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
 
 # Local environment files
 .env

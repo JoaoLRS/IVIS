@@ -4,17 +4,31 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "dev": "vite --config configuracao.vite.ts --host 0.0.0.0",
+    "build": "vue-tsc --noEmit -p tsconfig.json && vite build --config configuracao.vite.ts",
+    "preview": "vite preview --config configuracao.vite.ts --host 0.0.0.0",
+    "testar:e2e": "cypress run --config-file configuracao.cypress.ts",
+    "formatar": "prettier --write \"src/**/*.{vue,ts}\"",
+    "verificar-estilo": "eslint --config configuracao.eslint.js src"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^5.0.0",
-    "vite": "^7.0.0",
-    "typescript": "^5.8.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "lucide-react": "^0.468.0"
+    "@vitejs/plugin-vue": "^6.0.1",
+    "axios": "^1.11.0",
+    "bootstrap": "^5.3.8",
+    "lucide-vue-next": "^0.468.0",
+    "pinia": "^3.0.3",
+    "vite": "^7.3.7",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/node": "^22.18.3",
+    "cypress": "^15.1.0",
+    "eslint": "^9.35.0",
+    "eslint-plugin-vue": "^10.4.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.43.0",
+    "vue-tsc": "^3.0.6"
+  }
 }

@@ -1,24 +1,19 @@
-# IVIS — Intelligent Virtual Interview System
+# IVIS — Frontend
 
-O **IVIS (Intelligent Virtual Interview System)** é uma aplicação web baseada em Inteligência Artificial desenvolvida para apoiar a realização de **entrevistas de emprego de forma automatizada e interativa**.
+Módulo frontend independente do IVIS, desenvolvido com Vue 3, TypeScript, Composition API, Vite, Vue Router, Pinia e Bootstrap. O escopo desta entrega está limitado aos requisitos funcionais RF03, RF06, RF07, RF08 e RF10 descritos em `etc/` e nas imagens fornecidas.
 
-O sistema conduz o candidato durante a entrevista, apresenta perguntas de acordo com a configuração definida e processa suas respostas utilizando recursos de Inteligência Artificial, proporcionando uma experiência semelhante a uma entrevista técnica real.
+O protótipo cobre edição do perfil de habilidades, gerenciamento de vagas de interesse, simulação textual de entrevista, visualização do feedback demonstrativo e consulta ao histórico local. Não contém backend, autenticação, persistência remota nem integração com serviço de IA. Por isso, o isolamento real do histórico por aluno depende da implementação futura de autenticação e autorização no backend.
 
-Este projeto está sendo **desenvolvido e continuamente aprimorado na disciplina de Engenharia de Software**, tendo como foco a aplicação prática de conceitos de **engenharia, arquitetura, qualidade, testes, manutenção e evolução de software**.
+## Iniciar com Docker
 
-Além da funcionalidade de entrevistas inteligentes, o IVIS também serve como objeto de estudo para a avaliação de aspectos como **desempenho, escalabilidade e comportamento do sistema sob diferentes cargas de utilização**, permitindo integrar conhecimentos de Engenharia de Software, Modelagem e Simulação de Sistemas Computacionais e Inteligência Artificial.
+Na raiz do repositório:
 
-## Objetivos
+```bash
+docker compose up --build
+```
 
-* Desenvolver uma plataforma de entrevistas virtuais utilizando IA;
-* Automatizar etapas do processo de entrevista;
-* Proporcionar uma experiência interativa ao candidato;
-* Aplicar boas práticas de Engenharia de Software;
-* Evoluir a arquitetura e a qualidade do sistema de forma incremental;
-* Avaliar o comportamento e o desempenho da aplicação em diferentes cenários de utilização.
+Acesse `http://localhost:8080`. Para instruções de execução local, IntelliJ IDEA e encerramento do container, consulte [`etc/como rodar.md`](etc/como%20rodar.md).
 
-## Status
+## Módulo
 
-🚧 **Em desenvolvimento e evolução contínua.**
-
-O projeto será incrementado ao longo da disciplina, incorporando novas funcionalidades, melhorias arquiteturais, testes e mecanismos de avaliação da qualidade do software.
+O projeto IntelliJ reconhece `frontend/package.json` como módulo Node.js. Os arquivos da aplicação em `frontend/src/` usam nomes em português. O diretório `node_modules/` é ignorado pelo Git e não deve ser commitado.

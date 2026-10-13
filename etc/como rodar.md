@@ -1,6 +1,8 @@
 # Como rodar o IVIS
 
-Este repositório contém o módulo de frontend em `frontend/`. A interface usa dados de demonstração no navegador; autenticação, persistência, IA e pagamentos ainda dependem de serviços de backend.
+Este repositório contém somente o módulo frontend em `frontend/`, desenvolvido com Vue 3, Composition API, TypeScript, Vite e Bootstrap. O protótipo cobre RF03 (perfil de habilidades), RF06 (vagas de interesse), RF07 (simulação textual), RF08 (feedback) e RF10 (histórico), conforme as imagens fornecidas.
+
+Os dados ficam em memória no navegador. Perguntas, resultado e feedback são demonstrativos: não há conexão com uma IA real nem persistência no servidor. A restrição de acesso ao histórico por aluno precisa de autenticação e autorização em um backend futuro.
 
 ## Rodar com Docker
 
@@ -41,11 +43,11 @@ Abra o endereço exibido pelo Vite no terminal, normalmente [http://localhost:51
 
 ## Abrir no IntelliJ IDEA
 
-Abra a pasta raiz `IVIS` no IntelliJ IDEA. O diretório `frontend/` contém um `package.json`, que identifica o módulo JavaScript/Node.js. Caso o IntelliJ solicite, configure o Node.js como runtime do projeto e instale as dependências com npm.
+Abra a pasta raiz `IVIS` no IntelliJ IDEA. O diretório `frontend/` contém um `package.json`, que identifica o módulo JavaScript/Node.js. Caso o IntelliJ solicite, configure o Node.js como runtime do projeto e instale as dependências com npm. O código usa Vue 3, Composition API e TypeScript.
 
 ## Estrutura do módulo
 
-- `frontend/src/`: telas e estilos da aplicação.
+- `frontend/src/`: páginas, componentes e serviços da aplicação em português.
 - `frontend/Dockerfile`: imagem de produção do frontend.
 - `frontend/nginx.conf`: configuração do servidor web.
 - `docker-compose.yml`: execução do frontend a partir da raiz do repositório na porta `8080`.
