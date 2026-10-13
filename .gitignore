@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Frontend build output
+frontend/dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example

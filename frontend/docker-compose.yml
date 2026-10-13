@@ -1,0 +1,9 @@
+services:
+  ivis-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ivis-frontend
+    ports:
+      - "8080:80"
+    restart: unless-stopped

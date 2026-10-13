@@ -22,3 +22,13 @@ Além da funcionalidade de entrevistas inteligentes, o IVIS também serve como o
 🚧 **Em desenvolvimento e evolução contínua.**
 
 O projeto será incrementado ao longo da disciplina, incorporando novas funcionalidades, melhorias arquiteturais, testes e mecanismos de avaliação da qualidade do software.
+
+## Frontend
+
+O módulo web está em [`frontend/`](frontend/README.md). Para iniciar o frontend usando Docker a partir da raiz do repositório:
+
+```bash
+docker compose up --build
+```
+
+Depois acesse `http://localhost:8080`. Para desenvolvimento local, veja as instruções em `frontend/README.md`.
