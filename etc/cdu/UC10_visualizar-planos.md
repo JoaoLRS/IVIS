@@ -19,3 +19,14 @@
 
 **Pós-condições:** Nenhuma alteração ou autenticação obrigatória para visualizar.  
 **Implementação observada:** Não há Home comercial ou catálogo de planos no frontend.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Visitante, Aluno ou Instituição"])
+    ator --> acao1["Visualizar planos disponíveis"]
+    ator --> acao2["Comparar preços, benefícios e limites"]
+    ator --> acao3["Selecionar uma oferta"]
+```

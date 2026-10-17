@@ -24,3 +24,14 @@
 
 **Pós-condições de sucesso:** Conta criada com tipo de usuário definido; credencial protegida segundo as decisões de segurança do backend.  
 **Implementação observada:** Não há tela, rota ou serviço de cadastro no frontend atual.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Visitante"])
+    ator --> acao1["Escolher tipo de conta"]
+    ator --> acao2["Informar dados de cadastro"]
+    ator --> acao3["Confirmar criação da conta"]
+```

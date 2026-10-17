@@ -20,3 +20,15 @@
 
 **Pós-condições:** Evento rastreável, com integridade e retenção segundo RNF09. Prazo mínimo e perfis de consulta pendem de definição jurídica/operacional.  
 **Implementação observada:** Não há backend, trilha de auditoria ou visualizador de logs no repositório atual.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Sistema IVIS"])
+    ator --> acao1["Registrar contratação"]
+    ator --> acao2["Registrar pagamento"]
+    ator --> acao3["Registrar inclusão ou remoção de vínculo"]
+    ator --> acao4["Proteger e disponibilizar registros a perfis autorizados"]
+```

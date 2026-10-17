@@ -24,3 +24,16 @@
 
 **Pós-condições de sucesso:** Plano institucional ativo para a instituição e capacidade contratada registrada; início da gestão no UC14.  
 **Implementação observada:** Não há contas institucionais, contratação, pagamento ou gestão de vagas no código atual. Regras de preço, mínimo/máximo de vagas e vigência dependem da definição comercial.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Instituição de Ensino"])
+    ator --> acao1["Selecionar plano institucional"]
+    ator --> acao2["Definir quantidade de vagas"]
+    ator --> acao3["Revisar condições"]
+    ator --> acao4["Confirmar contratação"]
+    ator --> acao5["Efetuar pagamento simulado"]
+```

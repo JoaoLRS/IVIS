@@ -21,3 +21,14 @@
 
 **Pós-condições:** Decisão de acesso aplicada e sem exposição de dados de outra instituição.  
 **Implementação observada:** O frontend não tem autenticação, papéis ou autorização; menu e rotas atuais não demonstram controles por modalidade.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Usuário autenticado"])
+    ator --> acao1["Acessar recurso permitido pela modalidade"]
+    ator --> acao2["Consultar permissões do plano ou vínculo"]
+    ator --> acao3["Solicitar ação dentro do próprio escopo"]
+```

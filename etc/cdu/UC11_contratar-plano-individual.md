@@ -22,3 +22,15 @@
 
 **Pós-condições de sucesso:** Plano individual ativo e associado ao Aluno Pagante; auditoria registrada.  
 **Implementação observada:** Não há fluxo de contratação ou controle de modalidade no frontend.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno Pagante"])
+    ator --> acao1["Selecionar plano individual"]
+    ator --> acao2["Revisar preço, período e benefícios"]
+    ator --> acao3["Confirmar contratação"]
+    ator --> acao4["Efetuar pagamento simulado"]
+```

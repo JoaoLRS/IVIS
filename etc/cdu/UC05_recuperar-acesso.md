@@ -23,3 +23,14 @@
 
 **Pós-condições:** Credencial atualizada com hash; token invalidado. Política de validade, limitação e revogação de sessões precisa ser definida.  
 **Implementação observada:** Não há recuperação de senha no código atual.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Usuário sem acesso"])
+    ator --> acao1["Solicitar recuperação pelo e-mail cadastrado"]
+    ator --> acao2["Abrir link de redefinição"]
+    ator --> acao3["Definir nova senha"]
+```

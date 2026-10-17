@@ -20,3 +20,14 @@
 
 **Pós-condições de sucesso:** Sessão ativa e identidade/perfil carregados sob a política de sessão definida pelo backend.  
 **Implementação observada:** Não há autenticação ou controle de sessão no frontend atual.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno ou Instituição de Ensino"])
+    ator --> acao1["Informar e-mail e senha"]
+    ator --> acao2["Iniciar sessão"]
+    ator --> acao3["Solicitar recuperação de acesso"]
+```

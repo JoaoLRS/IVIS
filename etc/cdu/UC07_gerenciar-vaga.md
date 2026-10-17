@@ -21,3 +21,15 @@
 
 **Pós-condições:** Vaga criada/alterada/removida; dados de contexto de treinos já iniciados não mudam retroativamente.  
 **Implementação observada:** CRUD local, busca e bloqueio de exclusão da vaga atualmente selecionada para o treino existem. Não há persistência, autenticação nem proteção completa de edição.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno"])
+    ator --> acao1["Consultar vagas de interesse"]
+    ator --> acao2["Cadastrar vaga"]
+    ator --> acao3["Editar vaga"]
+    ator --> acao4["Excluir vaga"]
+```

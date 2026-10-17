@@ -21,3 +21,15 @@
 
 **Pós-condições:** Perfil atualizado para uso em novos treinos; treinos anteriores preservam seu contexto histórico.  
 **Implementação observada:** Tela e operações locais de adicionar/editar/remover existem; os dados são demonstrativos e mantidos em memória, sem autenticação ou persistência no servidor.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno"])
+    ator --> acao1["Consultar habilidades"]
+    ator --> acao2["Adicionar habilidade"]
+    ator --> acao3["Editar habilidade"]
+    ator --> acao4["Remover habilidade"]
+```

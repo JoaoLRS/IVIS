@@ -19,3 +19,14 @@
 
 **Pós-condições:** Nenhuma alteração; apenas consulta autorizada.  
 **Implementação observada:** Não há conta nem tela de plano no frontend.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno ou Instituição de Ensino"])
+    ator --> acao1["Consultar modalidade do plano"]
+    ator --> acao2["Consultar situação e validade"]
+    ator --> acao3["Consultar benefícios e limites"]
+```

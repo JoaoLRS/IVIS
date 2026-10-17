@@ -24,3 +24,14 @@
 **Pós-condições:** Transação registrada com identificador, estado e referência ao contrato; ativação delegada ao caso de contratação após confirmação.  
 **Restrições:** O cartão de teste é fictício; não persistir PAN/CVV nem encaminhar seus dados ao gateway real no modo de apresentação (ver ADR-0008).  
 **Implementação observada:** Simulador ainda não implementado. Provedor e métodos para eventual cobrança real ainda não foram definidos. A interface precisa informar que a compra apresentada é simulada.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno Pagante ou Instituição de Ensino"])
+    ator --> acao1["Consultar valor e opções disponíveis"]
+    ator --> acao2["Informar dados fictícios do cartão de teste"]
+    ator --> acao3["Enviar solicitação de pagamento"]
+```

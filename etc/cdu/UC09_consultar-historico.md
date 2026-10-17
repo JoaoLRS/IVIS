@@ -19,3 +19,14 @@
 
 **Pós-condições:** Nenhuma alteração. A autorização deve isolar os registros por aluno.  
 **Implementação observada:** Lista e navegação para feedback existem com dados locais de demonstração; estatísticas são fixas e não representam cálculo confiável; não há isolamento entre contas por inexistir autenticação.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno"])
+    ator --> acao1["Consultar lista dos próprios treinamentos"]
+    ator --> acao2["Selecionar um treinamento"]
+    ator --> acao3["Consultar detalhes e feedback"]
+```

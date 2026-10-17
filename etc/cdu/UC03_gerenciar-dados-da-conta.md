@@ -21,3 +21,14 @@
 
 **Pós-condições:** Dados válidos atualizados somente na conta do ator.  
 **Implementação observada:** Não há tela/serviço de conta no frontend. Foto/logo e os campos editáveis devem respeitar o tipo de perfil e ser confirmados pela equipe.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno ou Instituição de Ensino"])
+    ator --> acao1["Consultar dados da própria conta"]
+    ator --> acao2["Editar dados cadastrais"]
+    ator --> acao3["Alterar senha"]
+```

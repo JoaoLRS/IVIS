@@ -24,3 +24,14 @@
 
 **Pós-condições:** Vínculos e contagens consistentes; acesso do aluno ajustado segundo UC15; auditoria gravada.  
 **Implementação observada:** Não há painel institucional ou vínculo de alunos no frontend. Critérios de transferência, remoção, expiração e reuso da vaga precisam de decisão.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Instituição de Ensino"])
+    ator --> acao1["Consultar alunos vinculados e vagas"]
+    ator --> acao2["Vincular aluno"]
+    ator --> acao3["Remover vínculo de aluno"]
+```

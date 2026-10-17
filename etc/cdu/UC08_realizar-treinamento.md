@@ -26,3 +26,15 @@
 
 **Pós-condições:** Treino concluído com resultado persistido e disponível no UC09; ou estado explícito de interrupção/pendência.  
 **Implementação observada:** Há entrevista local com perguntas fixas, respostas em memória e feedback com nota/texto demonstrativos. Não há chamada de IA, autenticação, plano, persistência durável nem garantia de salvamento.
+
+
+## Diagrama de ações do ator
+
+```mermaid
+flowchart LR
+    ator(["🧍 Aluno"])
+    ator --> acao1["Escolher habilidades ou vaga como contexto"]
+    ator --> acao2["Responder perguntas da entrevista"]
+    ator --> acao3["Concluir treinamento"]
+    ator --> acao4["Consultar feedback gerado"]
+```
