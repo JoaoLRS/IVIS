@@ -259,37 +259,25 @@ Ator: Aluno / Instituição de Ensino. Controle de perfil da conta: edição de 
 
 ## 9. Requisitos Funcionais (RF)
 
-**Acesso e Perfil**
-- **RF01**: O sistema deve permitir que Aluno e Instituição de Ensino criem conta e façam login.
-- **RF02**: O sistema deve permitir que Aluno e Instituição de Ensino gerenciem os dados da própria conta (controle de perfil: dados pessoais/institucionais, foto/logo, senha).
-- **RF03**: O sistema deve permitir que o Aluno gerencie seu perfil de habilidades técnicas.
+Os códigos e descrições vigentes são mantidos em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). O planejamento aprovado contém 20 RF: 14 na lista de requisitos e 6 em andamento.
 
-**Treinamento**
-- **RF04**: O sistema deve permitir que o Aluno gerencie (cadastre, edite e exclua) vagas de interesse para treinamento.
-- **RF05**: O sistema deve realizar a simulação de entrevista (treinamento) processando as respostas via IA.
-- **RF06**: O sistema deve gerar um feedback/avaliação de desempenho ao final de cada treino.
-- **RF07**: O sistema deve armazenar o histórico de treinos realizados por aluno.
+| Situação no quadro | RF |
+|---|---|
+| Lista de requisitos (14) | RF01, RF02, RF04, RF05, RF11, RF12, RF13, RF14, RF15, RF16, RF17, RF18, RF19, RF20 |
+| Em andamento (6) | RF03, RF06, RF07, RF08, RF09, RF10 |
 
-**Planos e Contratação**
-- **RF08**: O sistema deve exibir uma Home com os planos disponíveis (individual e institucional/consórcio), incluindo preço e benefícios.
-- **RF09**: O sistema deve permitir que o Aluno Pagante contrate um plano individual diretamente pela plataforma.
-- **RF10**: O sistema deve permitir que a Instituição de Ensino contrate um plano de consórcio, definindo a quantidade de vagas.
-- **RF11**: O sistema deve processar pagamentos de contratação de planos por meio de um gateway de pagamento externo.
-- **RF12**: O sistema deve permitir que a Instituição de Ensino cadastre/vincule e remova alunos dentro do limite de vagas do plano de consórcio contratado.
-- **RF13**: O sistema deve diferenciar o acesso de AlunoConsórcio e AlunoPagante conforme o plano contratado/vinculado.
-- **RF14** *(sugerido)*: O sistema deve permitir que a Instituição de Ensino visualize a quantidade de vagas do plano já utilizadas e disponíveis.
+No modo de apresentação acadêmica, o RF15 é atendido por um simulador de pagamento controlado pelo backend, sem cobrança real. Consulte o [ADR-0008](adr/ADR-0008-pagamento-simulado-para-demonstracao.md).
 
 ## 10. Requisitos Não Funcionais (RNF)
 
-- **RNF01**: O sistema deve ser acessível via navegador web (Aplicação Web).
-- **RNF02** *(sugerido)*: O sistema deve estar em conformidade com a LGPD, dado o tratamento de dados pessoais de alunos e instituições (relevante frente à ANPD como stakeholder).
-- **RNF03** *(sugerido)*: O tempo de resposta da IA durante a simulação de entrevista não deve comprometer a fluidez da conversa (definir SLA, ex.: resposta em até X segundos).
-- **RNF04** *(sugerido)*: O sistema deve ser responsivo, funcionando em desktop e dispositivos móveis.
-- **RNF05** *(sugerido)*: O sistema deve garantir disponibilidade adequada para uso educacional (definir % de uptime esperado).
-- **RNF06** *(sugerido)*: O sistema não deve armazenar diretamente dados sensíveis de pagamento (ex.: número de cartão), delegando o processamento a um gateway certificado (PCI-DSS).
-- **RNF07** *(sugerido)*: O sistema deve garantir que apenas a própria Instituição de Ensino visualize/gerencie os alunos vinculados ao seu plano (isolamento de dados entre instituições).
+O conjunto aprovado contém **4 RNF**. Seus textos completos estão em [`IVIS_Requisitos.md`](IVIS_Requisitos.md).
 
-> ⚠️ Todos os itens marcados como "sugerido" são propostas para a equipe validar, ajustar ou descartar — não substituem a definição formal do time.
+| Código | Requisito |
+|---|---|
+| RNF01 | Aplicação Web |
+| RNF03 | Tempo de resposta da IA |
+| RNF07 | Isolamento de dados entre instituições |
+| RNF09 | Proteção e retenção dos logs de auditoria |
 
 ---
 
@@ -326,9 +314,9 @@ Ator: Aluno / Instituição de Ensino. Controle de perfil da conta: edição de 
 
 ## 13. Próximos Passos Sugeridos
 
-1. Validar com o time o escopo do MVP (seção 2.3/2.4), especialmente o fluxo de pagamento e contratação de plano.
+1. Validar com o time os detalhes de contratação dos planos institucionais e o ciclo de vida das vagas.
 2. Revisar e priorizar as 20 Histórias de Usuário (seção 8) para os próximos Sprints.
-3. Detalhar os RF/RNF sugeridos e transformá-los em critérios de aceite.
+3. Definir critérios de aceite verificáveis para os RF e RNF aprovados em [`IVIS_Requisitos.md`](IVIS_Requisitos.md).
 4. Definir wireframes de baixa fidelidade para as telas mapeadas, priorizando Home, Contratação de Plano e Gerenciamento de Alunos Vinculados.
-5. Definir qual provedor de IA (ex.: NVIDIA NGC) e qual gateway de pagamento serão usados, avaliando custo, latência e requisitos de segurança (RNF06).
+5. Detalhar o contrato de integração entre o backend e a API de IA em Python/NVIDIA NGC e definir a meta de latência associada ao RNF03.
 6. Detalhar as regras de negócio do plano de consórcio (quantidade de vagas, o que ocorre ao esgotar/cancelar/renovar o plano).

@@ -116,48 +116,48 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 
 ## 📋 Requisitos do Sistema
 
-O projeto possui atualmente **20 Requisitos Funcionais (RF)** e **9 Requisitos Não Funcionais (RNF)**.
+O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na lista de requisitos e 6 em andamento — e **4 Requisitos Não Funcionais (RNF)**.
 
-### Requisitos Funcionais
+### Requisitos Funcionais — lista de requisitos (14)
 
-| Código | Categoria     | Descrição                                     |
-| ------ | ------------- | --------------------------------------------- |
-| RF01   | Acesso        | Cadastro e login de Aluno e Instituição       |
-| RF02   | Perfil        | Gerenciamento dos dados da conta              |
-| RF03   | Perfil        | Gerenciamento das habilidades técnicas        |
-| RF04   | Segurança     | Recuperação de acesso por e-mail              |
-| RF05   | Planos        | Visualização dos detalhes do plano vigente    |
-| RF06   | Treinamento   | Gerenciamento de vagas de interesse           |
-| RF07   | Treinamento   | Simulação de entrevista com IA                |
-| RF08   | Treinamento   | Geração de feedback de desempenho             |
-| RF09   | Treinamento   | Armazenamento do histórico de treinos         |
-| RF10   | Treinamento   | Consulta ao histórico de treinos              |
-| RF11   | Planos        | Exibição dos planos disponíveis               |
-| RF12   | Planos        | Acesso público à Home de planos               |
-| RF13   | Contratação   | Contratação de plano individual               |
-| RF14   | Contratação   | Contratação de plano institucional            |
-| RF15   | Pagamento     | Processamento via gateway externo             |
-| RF16   | Institucional | Gerenciamento de alunos vinculados            |
-| RF17   | Acesso        | Diferenciação dos tipos de aluno              |
-| RF18   | Institucional | Controle de vagas utilizadas/disponíveis      |
-| RF19   | Contratação   | Restrição do plano individual ao AlunoPagante |
-| RF20   | Auditoria     | Registro de ações sensíveis                   |
+| Código | Requisito | Descrição |
+| ------ | --------- | --------- |
+| RF01 | Cadastro e login de usuários | Permitir que Alunos e Instituições de Ensino criem conta e façam login com acesso correspondente ao perfil. |
+| RF02 | Gerenciamento da conta | Permitir consultar e alterar os dados da própria conta, respeitando o tipo de usuário. |
+| RF04 | Recuperação de senha | Permitir recuperar o acesso usando o e-mail cadastrado. Na apresentação, as mensagens são capturadas pelo Mailpit. |
+| RF05 | Visualização do plano vigente | Exibir tipo, validade e benefícios do plano associado à conta. |
+| RF11 | Exibição dos planos disponíveis na Home | Apresentar planos individuais e institucionais, preços e benefícios. |
+| RF12 | Visualização dos planos sem autenticação | Permitir que visitantes consultem a Home e os planos antes de criar conta ou fazer login. |
+| RF13 | Contratação de plano individual | Permitir que o Aluno Pagante contrate um plano individual pela plataforma. |
+| RF14 | Contratação de plano institucional | Permitir que a Instituição de Ensino contrate um plano e defina a quantidade de vagas. |
+| RF15 | Processamento de pagamentos via gateway | Processar a contratação. Para a apresentação acadêmica, usar o simulador de pagamento controlado pelo backend, sem cobrança real; ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
+| RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos dentro do limite do plano institucional. |
+| RF17 | Controle de acesso por tipo de aluno | Aplicar acesso conforme o plano individual ou o vínculo institucional. |
+| RF18 | Controle de vagas do plano institucional | Exibir vagas contratadas, utilizadas e disponíveis. |
+| RF19 | Restrição de contratação para AlunoConsórcio | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
+| RF20 | Registro de logs de auditoria | Registrar ações sensíveis com responsável e data/hora, protegendo os registros contra alteração indevida. |
+
+### Requisitos Funcionais — em andamento (6)
+
+| Código | Requisito | Descrição |
+| ------ | --------- | --------- |
+| RF03 | Perfil de habilidades técnicas | Permitir que o Aluno cadastre, edite e remova habilidades e níveis de domínio. |
+| RF06 | Gerenciamento de vagas de interesse | Permitir que o Aluno cadastre, edite e remova vagas para contextualizar os treinos. |
+| RF07 | Simulação de entrevista com IA | Conduzir entrevista textual usando o perfil ou uma vaga como contexto e processar perguntas/respostas pela API de IA. |
+| RF08 | Feedback de desempenho do treinamento | Apresentar a avaliação e os pontos fortes e de melhoria ao fim do treino. |
+| RF09 | Armazenamento do histórico de treinos | Persistir cada treino e associá-lo ao Aluno correspondente. |
+| RF10 | Consulta ao histórico de treinos | Exibir data, contexto e resultado dos treinos do Aluno. |
 
 ### Requisitos Não Funcionais
 
-| Código | Categoria       | Requisito                                                |
-| ------ | --------------- | -------------------------------------------------------- |
-| RNF01  | Acessibilidade  | Aplicação acessível via navegador web                    |
-| RNF02  | Segurança       | Conformidade com a LGPD                                  |
-| RNF03  | Desempenho      | Tempo de resposta adequado durante a entrevista com IA   |
-| RNF04  | Usabilidade     | Interface responsiva para desktop e dispositivos móveis  |
-| RNF05  | Disponibilidade | Disponibilidade adequada para uso educacional            |
-| RNF06  | Segurança       | Não armazenamento direto de dados sensíveis de pagamento |
-| RNF07  | Segurança       | Isolamento de dados entre instituições                   |
-| RNF08  | Segurança       | Hash de senhas e encerramento automático de sessão       |
-| RNF09  | Auditoria       | Proteção e retenção dos registros de auditoria           |
+| Código | Requisito | Descrição |
+| ------ | --------- | --------- |
+| RNF01 | Aplicação Web | O sistema deve ser acessível por navegador web. |
+| RNF03 | Tempo de resposta da IA | A IA deve responder sem comprometer a fluidez do treino; o limite mensurável ainda precisa ser definido. |
+| RNF07 | Isolamento de dados entre instituições | Cada Instituição de Ensino só pode visualizar e gerenciar os próprios alunos vinculados. |
+| RNF09 | Proteção e retenção dos logs de auditoria | Proteger os registros contra alteração e mantê-los pelo período definido com a equipe responsável. |
 
-> **Total:** 29 requisitos — 20 funcionais e 9 não funcionais.
+> **Total:** 24 requisitos — 20 funcionais (14 na lista e 6 em andamento) e 4 não funcionais.
 
 ---
 

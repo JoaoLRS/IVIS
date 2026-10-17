@@ -1,5 +1,11 @@
 # IVIS: Requisitos Funcionais e Não Funcionais
 
+O quadro de planejamento aprovado contém **20 RF e 4 RNF**. Os RF03 e RF06–RF10 estão em andamento; os demais 14 RF estão na lista de requisitos. Os quatro RNF selecionados são RNF01, RNF03, RNF07 e RNF09.
+
+| Situação no quadro | Códigos RF |
+|---|---|
+| Lista de requisitos (14) | RF01, RF02, RF04, RF05, RF11–RF20 |
+| Em andamento (6) | RF03, RF06–RF10 |
 
 ## Requisitos Funcionais (RF)
 
@@ -43,16 +49,15 @@
 |---|---|---|
 | **RF20**: O sistema deve registrar um log de auditoria das ações sensíveis (contratação de plano, vínculo/remoção de aluno, pagamento), incluindo quem realizou a ação e quando. | As ações sensíveis (contratação de plano, vínculo ou remoção de aluno e pagamento) geram registros de auditoria com quem executou a ação e quando. Isso dá rastreabilidade e apoia a resolução de disputas. | Média |
 
+> **Modo de apresentação acadêmica (RF15):** a instância publicada para apresentação deve oferecer um simulador de pagamento controlado pelo backend, com cartão de teste fictício padrão IVIS (`4242 4242 4242 4242`, validade `12/30`, CVV `123`). A compra simulada não gera cobrança nem encaminha os dados a um gateway real. O backend não persiste PAN/CVV e é quem valida e registra o resultado como simulado. Uma futura cobrança real exigirá gateway externo e configuração própria; não pode ocorrer por fallback do simulador.
+
 ## Requisitos Não Funcionais (RNF)
 
 | Requisito | Minitexto | Prioridade |
 |---|---|---|
 | **RNF01**: O sistema deve ser acessível via navegador web (Aplicação Web). | O IVIS é uma aplicação web, acessada pelo navegador, sem necessidade de instalar nada. Isso facilita a adoção por alunos e instituições. | Alta |
-| **RNF02**: O sistema deve estar em conformidade com a LGPD, dado o tratamento de dados pessoais de alunos e instituições (relevante frente à ANPD como stakeholder). | Como o sistema trata dados pessoais de alunos e instituições, deve estar em conformidade com a LGPD. A ANPD, como stakeholder, reforça a importância de tratar esses dados com base legal, transparência e segurança. | Alta |
 | **RNF03**: O tempo de resposta da IA durante a simulação de entrevista não deve comprometer a fluidez da conversa (definir SLA, ex.: resposta em até X segundos). | A IA precisa responder rápido o bastante para que a simulação pareça uma conversa natural. O tempo máximo de resposta (X segundos) ainda precisa ser definido como SLA. | Alta |
-| **RNF04**: O sistema deve ser responsivo, funcionando em desktop e dispositivos móveis. | A interface é responsiva e funciona bem tanto em desktop quanto em dispositivos móveis, para que o aluno possa treinar de onde estiver. | Média |
-| **RNF05**: O sistema deve garantir disponibilidade adequada para uso educacional (definir % de uptime esperado). | O sistema deve ter disponibilidade adequada ao uso educacional, sem indisponibilidades frequentes em horários de aula ou de treino. O percentual de uptime esperado ainda precisa ser definido. | Média |
-| **RNF06**: O sistema não deve armazenar diretamente dados sensíveis de pagamento (ex.: número de cartão), delegando o processamento a um gateway certificado (PCI-DSS). | O IVIS não armazena diretamente dados sensíveis de pagamento, como número de cartão. O processamento fica com um gateway certificado PCI-DSS, o que reduz o risco e a responsabilidade do sistema. | Alta |
 | **RNF07**: O sistema deve garantir que apenas a própria Instituição de Ensino visualize/gerencie os alunos vinculados ao seu plano (isolamento de dados entre instituições). | Cada Instituição de Ensino só visualiza e gerencia os alunos vinculados ao seu próprio plano. Há isolamento de dados entre instituições, o que impede acesso cruzado a informações. | Alta |
-| **RNF08**: O sistema deve armazenar senhas de forma criptografada (hash) e encerrar a sessão do usuário automaticamente após um período de inatividade. | As senhas são armazenadas de forma criptografada (hash), nunca em texto puro. A sessão é encerrada automaticamente após um período de inatividade, o que protege contas em dispositivos compartilhados ou esquecidos abertos. | Alta |
 | **RNF09**: Os registros de auditoria (RF20) devem ser mantidos por um prazo mínimo, a ser definido com a equipe jurídica, e protegidos contra alteração. | Os registros de auditoria (RF20) são mantidos por um prazo mínimo, a definir com a equipe jurídica, e protegidos contra alteração. Assim continuam confiáveis como evidência. | Média |
+
+> **Total aprovado:** 24 requisitos — 20 RF (14 na lista e 6 em andamento) e 4 RNF. Outros atributos de segurança, privacidade e usabilidade podem orientar o projeto, mas não são RNF aprovados nesta lista.
