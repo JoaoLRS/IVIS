@@ -55,21 +55,30 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
         ><small class="d-block">Treinamento</small></span
       ><span class="text-secondary">⌄</span>
     </button>
-    <nav class="sidebar-nav flex-grow-1">
-      <div v-for="grupo in grupos" :key="grupo.rotulo" class="nav-section">
-        <div class="nav-section-title">{{ grupo.rotulo }}</div>
-        <RouterLink
-          v-for="link in grupo.links"
-          :key="link.rota"
-          :to="`/${link.rota}`"
-          class="sidebar-link btn w-100 d-flex align-items-center gap-2 text-start"
-          active-class="active"
-          @click="emit('fechar')"
-          ><component :is="link.icone" :size="17" /><span>{{
-            link.rotulo
-          }}</span></RouterLink
-        >
-      </div>
+        <nav class="sidebar-nav flex-grow-1">
+      <details
+        v-for="grupo in grupos"
+        :key="grupo.rotulo"
+        class="nav-section nav-section-menu"
+      >
+        <summary class="nav-section-title">
+          {{ grupo.rotulo }}
+        </summary>
+
+        <div class="nav-section-links">
+          <RouterLink
+            v-for="link in grupo.links"
+            :key="link.rota"
+            :to="`/${link.rota}`"
+            class="sidebar-link btn w-100 d-flex align-items-center gap-2 text-start"
+            active-class="active"
+            @click="emit('fechar')"
+          >
+            <component :is="link.icone" :size="17" />
+            <span>{{ link.rotulo }}</span>
+          </RouterLink>
+        </div>
+      </details>
     </nav>
     <div class="user-profile d-flex align-items-center gap-2">
       <span class="user-avatar">A</span>

@@ -2107,3 +2107,114 @@ body{
 *.public-home* *.offer-card* ul{
   margin-top:17px
 }
+
+/* Menu superior recolhido que se expande ao passar o mouse ou receber foco */
+.app-sidebar.app-top-menu {
+  position: fixed;
+  inset: 0 0 auto;
+  width: auto;
+  max-height: 58px;
+  overflow: hidden;
+  padding: 12px 20px;
+  border-right: 0;
+  border-bottom: 1px solid var(--ivis-border);
+  transform: none !important;
+  transition: max-height 0.25s ease;
+}
+
+.app-top-menu .workspace-switch,
+.app-top-menu .sidebar-nav,
+.app-top-menu .user-profile {
+  display: none;
+}
+
+.app-top-menu:hover,
+.app-top-menu:focus-within,
+.app-top-menu.show {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.app-top-menu:hover .workspace-switch,
+.app-top-menu:focus-within .workspace-switch,
+.app-top-menu.show .workspace-switch,
+.app-top-menu:hover .user-profile,
+.app-top-menu:focus-within .user-profile,
+.app-top-menu.show .user-profile {
+  display: flex;
+}
+
+.app-top-menu:hover .sidebar-nav,
+.app-top-menu:focus-within .sidebar-nav,
+.app-top-menu.show .sidebar-nav {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 20px;
+  overflow: visible;
+}
+
+.app-top-menu .nav-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.app-top-menu .sidebar-link {
+  width: auto !important;
+  white-space: nowrap;
+}
+
+.app-top-menu .user-profile {
+  margin-left: auto;
+  border-top: 0 !important;
+}
+
+.main-area {
+  margin-left: 0;
+  padding-top: 58px;
+}
+
+/* Links dos grupos aparecem ao passar o mouse, focar ou abrir o rótulo */
+.app-top-menu .nav-section-menu {
+  position: relative;
+  display: block;
+  margin: 0;
+}
+
+.app-top-menu .nav-section-title {
+  margin: 0;
+  padding: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  list-style: none;
+}
+
+.app-top-menu .nav-section-title::-webkit-details-marker {
+  display: none;
+}
+
+.app-top-menu .nav-section-links {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1040;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--ivis-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 30px #24204418;
+}
+
+.app-top-menu .nav-section-menu:hover .nav-section-links,
+.app-top-menu .nav-section-menu:focus-within .nav-section-links,
+.app-top-menu .nav-section-menu[open] .nav-section-links {
+  display: grid;
+  gap: 4px;
+}
+
+.app-top-menu .nav-section-links .sidebar-link {
+  width: 100% !important;
+}
