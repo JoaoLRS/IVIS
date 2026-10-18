@@ -15,7 +15,7 @@ O quadro de planejamento aprovado contém **20 RF e 4 RNF**. Os RF03 e RF06–RF
 |---|---|---|
 | **RF01**: O sistema deve permitir que Aluno e Instituição de Ensino criem conta e façam login. | Alunos e Instituições de Ensino precisam de uma identidade própria na plataforma. Por isso o sistema oferece cadastro e login para os dois perfis, o que garante acesso individualizado e é a base para todas as demais funcionalidades. | Alta |
 | **RF02**: O sistema deve permitir que Aluno e Instituição de Ensino gerenciem os dados da própria conta (dados pessoais/institucionais, senha). | Depois de criada a conta, o usuário deve poder mantê-la atualizada. O sistema permite editar dados pessoais ou institucionais e alterar a senha, sem depender de suporte. | Média |
-| **RF03**: O sistema deve permitir que o Aluno gerencie seu perfil de habilidades técnicas. | O Aluno pode montar e atualizar seu perfil de habilidades técnicas, informando em que áreas atua ou quer se desenvolver. Esse perfil serve de referência para direcionar os treinos. | Média |
+| **RF03**: O sistema deve permitir que o Aluno gerencie seu perfil de habilidades técnicas. | O Aluno pode montar e atualizar seu perfil de habilidades técnicas, informando em que áreas atua ou quer se desenvolver. Esse perfil serve de referência para direcionar os treinos. | Alta |
 | **RF04**: O sistema deve permitir que o usuário recupere o acesso à conta em caso de esquecimento de senha ("esqueci minha senha"), via e-mail cadastrado. | Se o usuário esquecer a senha, pode recuperar o acesso pela opção "esqueci minha senha", com um procedimento de redefinição enviado ao e-mail cadastrado. Isso evita bloqueio permanente da conta. | Média |
 | **RF05**: O sistema deve permitir que Aluno e Instituição de Ensino visualizem os detalhes do plano vigente (tipo de plano, validade e benefícios inclusos). | Aluno e Instituição de Ensino podem consultar os detalhes do plano vigente: tipo de plano, validade e benefícios inclusos. Assim sabem o que estão usando e quando precisam renovar. | Baixa |
 
@@ -61,3 +61,7 @@ O quadro de planejamento aprovado contém **20 RF e 4 RNF**. Os RF03 e RF06–RF
 | **RNF09**: Os registros de auditoria (RF20) devem ser mantidos por um prazo mínimo, a ser definido com a equipe jurídica, e protegidos contra alteração. | Os registros de auditoria (RF20) são mantidos por um prazo mínimo, a definir com a equipe jurídica, e protegidos contra alteração. Assim continuam confiáveis como evidência. | Média |
 
 > **Total aprovado:** 24 requisitos — 20 RF (14 na lista e 6 em andamento) e 4 RNF. Outros atributos de segurança, privacidade e usabilidade podem orientar o projeto, mas não são RNF aprovados nesta lista.
+
+## Prioridade e ordem de entrega dos requisitos em andamento
+
+O RF03 passou de Média para **Alta**, pois o perfil de habilidades é o contexto mais simples para iniciar um treino (UC08, A2). A ordem sugerida de implementação é RF01 (somente Aluno, como dependência), RF03, RF06, RF07 e RF08, RF09 e RF10. A justificativa, as etapas e os critérios estão em [`Ordem_de_Entrega_MVP.md`](Ordem_de_Entrega_MVP.md).

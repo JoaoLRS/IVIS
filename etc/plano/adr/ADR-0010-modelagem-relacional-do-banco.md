@@ -1,7 +1,7 @@
 # ADR-0010 — Modelagem relacional inicial do banco
 
-- **Status:** Em andamento
-- **Data:**
+- **Status:*Aprovado**
+- **Data:*17/10/2026**
 - **Decisores:** Pendente de validação da equipe IVIS
 - **Relacionados:** [ADR-0001](ADR-0001-arquitetura-modular.md), [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md), [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md), [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md)
 

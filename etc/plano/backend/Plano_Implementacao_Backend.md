@@ -10,6 +10,8 @@ O backend implementará as regras de negócio, autenticação e autorização do
 - Usar nomes próprios em português brasileiro em pacotes, classes, funções e métodos, sem acentos nos identificadores. Classes em `PascalCase`; métodos e funções em `camelCase`.
 - Nunca registrar senhas, tokens de recuperação, dados completos de cartão ou segredos em logs.
 
+> **Primeira fase do MVP:** a sequência de entrega de RF01 (Aluno), RF03 e RF06–RF10, com endpoints e critérios por etapa, está em [`../Ordem_de_Entrega_MVP.md`](../Ordem_de_Entrega_MVP.md). A autenticação proposta está no [ADR-0011](../adr/ADR-0011-autenticacao-do-mvp.md).
+
 ## Etapas
 
 ### 1. Preparar o esqueleto executável

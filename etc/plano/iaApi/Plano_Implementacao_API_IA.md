@@ -10,6 +10,8 @@ A API de IA será um módulo Python separado, integrado à NVIDIA NGC e consumid
 - Gerenciar credenciais NVIDIA por configuração segura no serviço, nunca no frontend ou repositório.
 - Usar nomes próprios de classes, funções e métodos em português brasileiro, sem acentos nos identificadores; classes em `PascalCase` e funções/métodos em `snake_case` conforme convenção Python.
 
+> **Contrato proposto:** a primeira versão das operações, limites e erros está em [`Contrato_API_IA_v1.md`](Contrato_API_IA_v1.md), pendente de validação da equipe.
+
 ## Etapas
 
 ### 1. Definir contrato e limites de dados

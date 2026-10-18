@@ -1,7 +1,7 @@
 # ADR-0003 — Comunicação entre módulos
 
-- **Status:** Em andamento
-- **Data:**
+- **Status:*Aprovado**
+- **Data:*17/10/2026**
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0001](ADR-0001-arquitetura-modular.md), [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md)
 
