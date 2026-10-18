@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRoute } from "vue-router";
-import MenuLateral from "./componentes/MenuLateral.vue";
+import MenuLateral from "./componentes/MenuSuperior.vue";
 import BarraSuperior from "./componentes/BarraSuperior.vue";
 
 const rota = useRoute();
