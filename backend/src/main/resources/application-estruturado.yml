@@ -1,0 +1,5 @@
+# Ative com SPRING_PROFILES_ACTIVE=estruturado para logs em JSON (formato ECS).
+logging:
+  structured:
+    format:
+      console: ecs
