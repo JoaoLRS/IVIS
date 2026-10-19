@@ -3,23 +3,20 @@ import {
   Activity,
   BriefcaseBusiness,
   Code2,
-  LayoutDashboard,
   MessageSquareText,
-  Sparkles,
+  UserRound,
 } from "lucide-vue-next";
 import { RouterLink } from "vue-router";
 import type { Component } from "vue";
+import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 
 defineProps<{ aberto: boolean }>();
 const emit = defineEmits<{ fechar: [] }>();
+const estado = useEstadoAplicacao();
 type LinkMenu = { rota: string; rotulo: string; icone: Component };
 const grupos: { rotulo: string; links: LinkMenu[] }[] = [
   {
-    rotulo: "VISÃO GERAL",
-    links: [{ rota: "inicio", rotulo: "Início", icone: LayoutDashboard }],
-  },
-  {
-    rotulo: "SEU DESENVOLVIMENTO",
+    rotulo: "Seu desenvolvimento",
     links: [
       { rota: "treinos", rotulo: "Meus treinos", icone: MessageSquareText },
       { rota: "vagas", rotulo: "Vagas de interesse", icone: BriefcaseBusiness },
@@ -37,25 +34,22 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
     aria-label="Fechar menu"
     @click="emit('fechar')"
   />
-  <aside class="app-sidebar app-top-menu d-flex flex-column" :class="{ show: aberto }">
+  <aside class="app-sidebar app-top-menu" :class="{ show: aberto }">
     <RouterLink
-      class="brand d-flex align-items-center gap-2 text-decoration-none"
+      class="brand d-flex align-items-center text-decoration-none"
       to="/inicio"
       @click="emit('fechar')"
-      ><span class="brand-icon"><Sparkles :size="18" /></span
-      ><span>ivis<span class="brand-period">.</span></span
-      ><span class="brand-label">ALUNO</span></RouterLink
     >
-    <button
-      class="workspace-switch btn btn-light d-flex align-items-center text-start gap-2"
-    >
-      <span class="workspace-avatar">A</span
-      ><span class="flex-grow-1"
-        ><strong>Minha jornada</strong
-        ><small class="d-block">Treinamento</small></span
-      ><span class="text-secondary">⌄</span>
-    </button>
-        <nav class="sidebar-nav flex-grow-1">
+      IVIS
+    </RouterLink>
+    <nav class="sidebar-nav">
+      <RouterLink
+        class="top-menu-text-link"
+        to="/treinos"
+        @click="emit('fechar')"
+      >
+        Iniciar treinamento
+      </RouterLink>
       <details
         v-for="grupo in grupos"
         :key="grupo.rotulo"
@@ -80,12 +74,14 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
         </div>
       </details>
     </nav>
-    <div class="user-profile d-flex align-items-center gap-2">
-      <span class="user-avatar">A</span>
-      <span
-        ><strong>Área do aluno</strong
-        ><small class="d-block">Demonstração local</small></span
-      >
-    </div>
+    <RouterLink
+      class="top-menu-profile"
+      to="/conta"
+      aria-label="Editar dados do aluno"
+      @click="emit('fechar')"
+    >
+      <UserRound :size="18" aria-hidden="true" />
+      <span>Aluno - {{ estado.nomeAluno }}</span>
+    </RouterLink>
   </aside>
 </template>

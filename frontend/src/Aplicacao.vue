@@ -13,6 +13,7 @@ const titulos: Record<string, string> = {
   treinos: "Meus treinos",
   historico: "Histórico",
   feedback: "Seu feedback",
+  conta: "Dados do aluno",
 };
 function notificar() {
   window.alert("Você está em dia!");
@@ -26,7 +27,6 @@ function notificar() {
       <BarraSuperior
         :titulo="titulos[String(rota.name)] ?? 'IVIS'"
         @abrir-menu="menuAberto = true"
-        @notificar="notificar"
       />
       <div class="page-content container-fluid">
         <RouterView v-slot="{ Component }"
