@@ -37,6 +37,11 @@ const roteador = createRouter({
       name: "feedback",
       component: () => import("../paginas/Feedback.vue"),
     },
+    {
+      path: "/conta",
+      name: "conta",
+      component: () => import("../paginas/Conta.vue"),
+    },
     { path: "/:caminho(.*)*", redirect: "/inicio" },
   ],
 });

@@ -11,6 +11,8 @@ import {
 } from "../dados/dadosDemonstracao";
 
 export const useEstadoAplicacao = defineStore("aplicacao", () => {
+  const nomeAluno = ref("Nome do aluno");
+  const emailAluno = ref("aluno@exemplo.com");
   const vagas = ref<Vaga[]>([...vagasIniciais]);
   const habilidades = ref<Habilidade[]>([...habilidadesIniciais]);
   const historico = ref<Treino[]>([...historicoInicial]);
@@ -21,6 +23,11 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   const vagaEmTreinamento = ref<string | null>(null);
   const perguntasDoTreino = ref<string[]>([]);
   const feedbackAtual = ref<Treino | null>(null);
+
+  function atualizarDadosAluno(dados: { nome: string; email: string }) {
+    nomeAluno.value = dados.nome.trim();
+    emailAluno.value = dados.email.trim();
+  }
 
   function adicionarVaga(vaga: Vaga) {
     vagas.value.unshift(vaga);
@@ -91,6 +98,8 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   }
 
   return {
+    nomeAluno,
+    emailAluno,
     vagas,
     habilidades,
     historico,
@@ -100,6 +109,7 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     contextoTreino,
     vagaEmTreinamento,
     feedbackAtual,
+    atualizarDadosAluno,
     perguntasDemonstracao,
     perguntasDoTreino,
     adicionarVaga,

@@ -5,7 +5,6 @@ import {
   Code2,
   History,
   MessageSquareText,
-  Sparkles,
 } from "lucide-vue-next";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
@@ -18,11 +17,7 @@ const estado = useEstadoAplicacao();
     eyebrow="MÓDULO FRONTEND · DEMONSTRAÇÃO"
     titulo="Treine para sua próxima entrevista"
     descricao="Gerencie seu perfil técnico e suas vagas de interesse, pratique entrevistas por texto e consulte seus resultados."
-  >
-    <RouterLink class="btn btn-primary" to="/treinos"
-      ><Sparkles :size="16" /> Iniciar treinamento</RouterLink
-    >
-  </CabecalhoPagina>
+  />
   <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
       <RouterLink to="/habilidades" class="card h-100 text-decoration-none"
