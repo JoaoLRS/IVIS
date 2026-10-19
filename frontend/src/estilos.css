@@ -974,6 +974,341 @@ body{
   color:#90919d
 }
 
+.training-setup{
+  padding:22px;
+  border:1px solid #e7e8ef;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 8px 24px #24213d08
+}
+
+.training-context-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px
+}
+
+.context-card{
+  min-width:0;
+  padding:17px;
+  border:1px solid #e8e9f0;
+  border-radius:12px;
+  background:#fff;
+  transition:border-color .18s ease,box-shadow .18s ease
+}
+
+.context-card-selected{
+  border-color:#a99df0;
+  box-shadow:0 0 0 3px #7162dd12
+}
+
+.context-card:not(.context-card-selected){
+  border-color:#e4e5eb;
+  background:#f2f3f6
+}
+
+.context-card:not(.context-card-selected) .skill-chip,
+.context-card:not(.context-card-selected) .vacancy-option{
+  background:#f8f8fa
+}
+
+.context-card:not(.context-card-selected) .context-card-icon{
+  background:#e9eaf0;
+  color:#858695
+}
+
+.context-card:not(.context-card-selected) input.form-check-input{
+  border-color:#cfd1d9;
+  background-color:#e5e6eb;
+  background-image:none!important;
+  box-shadow:none
+}
+
+.context-card-heading{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  cursor:pointer
+}
+
+.context-card-heading .form-check-input{
+  flex:0 0 auto;
+  margin:0;
+  accent-color:#7162dd
+}
+
+.context-card-heading .form-check-input:disabled{
+  cursor:not-allowed
+}
+
+.context-card-icon{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#f1efff;
+  color:#6c5cdb
+}
+
+.context-card-title{
+  display:grid;
+  gap:4px;
+  min-width:0;
+  flex:1
+}
+
+.context-card-title strong{
+  color:#272638;
+  font-size:12px
+}
+
+.context-card-title small{
+  color:#858594;
+  font-size:10px;
+  line-height:1.45
+}
+
+.context-count{
+  min-width:27px;
+  padding:4px 8px;
+  border-radius:20px;
+  background:#f4f3f8;
+  color:#696879;
+  font-size:10px;
+  font-weight:700;
+  text-align:center
+}
+
+.skill-picker,.vacancy-picker{
+  margin-top:17px;
+  padding-top:15px;
+  border-top:1px solid #f0f0f4
+}
+
+.skill-picker-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  color:#777786;
+  font-size:10px;
+  font-weight:700
+}
+
+.skill-picker-heading>div{
+  display:flex;
+  gap:10px
+}
+
+.skill-picker-heading button{
+  padding:0;
+  border:0;
+  background:none;
+  color:#6757d7;
+  font-size:9px;
+  font-weight:600
+}
+
+.skill-chip-list,.vacancy-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px
+}
+
+.skill-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 10px;
+  border:1px solid #e5e5ec;
+  border-radius:8px;
+  background:#fff;
+  color:#585866;
+  font-size:10px;
+  transition:all .16s ease
+}
+
+.skill-chip:hover{
+  border-color:#a99df0;
+  color:#5f50cd
+}
+
+.skill-chip-selected{
+  border-color:#8273e3;
+  background:#f3f1ff;
+  color:#5142bd
+}
+
+.skill-chip small{
+  color:#9291a1;
+  font-size:9px
+}
+
+.context-manage-link{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-top:13px;
+  color:#6757d7;
+  font-size:10px;
+  text-decoration:none
+}
+
+.context-manage-link:hover{
+  color:#4938b8;
+  text-decoration:underline
+}
+
+.vacancy-picker{
+  display:grid;
+  gap:8px
+}
+
+.vacancy-option{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:11px;
+  border:1px solid #e9e9ef;
+  border-radius:9px;
+  cursor:pointer;
+  transition:all .16s ease
+}
+
+.vacancy-option:hover{
+  border-color:#b6aef0;
+  background:#fcfbff
+}
+
+.vacancy-option-selected{
+  border-color:#8273e3;
+  background:#f7f5ff
+}
+
+.vacancy-option>.form-check-input{
+  flex:0 0 auto;
+  margin:2px 0 0;
+  accent-color:#7162dd
+}
+
+.vacancy-option-copy{
+  display:grid;
+  gap:4px;
+  min-width:0;
+  flex:1
+}
+
+.vacancy-option-copy>strong{
+  color:#302f40;
+  font-size:10px
+}
+
+.vacancy-option-copy>small{
+  color:#858594;
+  font-size:9px
+}
+
+.vacancy-tags{
+  margin-top:3px
+}
+
+.vacancy-tags>span{
+  padding:3px 6px;
+  border-radius:5px;
+  background:#f0eff6;
+  color:#727182;
+  font-size:8px
+}
+
+.vacancy-target{
+  flex:0 0 auto;
+  margin:2px 1px 0 0;
+  color:#8273e3
+}
+
+.context-empty{
+  margin-top:16px;
+  padding:15px;
+  border-radius:9px;
+  background:#f8f8fb;
+  color:#777786;
+  font-size:10px
+}
+
+.context-empty p{
+  margin:0 0 7px
+}
+
+.context-empty a{
+  color:#6757d7;
+  font-weight:600;
+  text-decoration:none
+}
+
+.training-setup-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-top:20px;
+  padding-top:17px;
+  border-top:1px solid #eeeef3
+}
+
+.training-context-summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#7162dd
+}
+
+.training-context-summary>span{
+  display:grid;
+  gap:4px
+}
+
+.training-context-summary small{
+  color:#9291a0;
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.6px
+}
+
+.training-context-summary strong{
+  color:#41404f;
+  font-size:10px
+}
+
+.training-start-actions{
+  display:flex;
+  align-items:center;
+  gap:14px
+}
+
+.training-start-actions>small{
+  color:#9291a0;
+  font-size:9px
+}
+
+.training-start-actions .btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap
+}
+
+.training-start-actions .btn:disabled{
+  cursor:not-allowed;
+  opacity:.55
+}
+
+.interview-detail .d-flex{
+  align-items:center
+}
+
 .option-symbol.orange{
   background:#fff2e7;
   color:#d48845
@@ -2351,5 +2686,31 @@ body{
     position: static;
     margin-top: 4px;
     box-shadow: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .training-setup {
+    padding: 15px;
+  }
+
+  .training-context-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .training-setup-footer,
+  .training-start-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .training-start-actions {
+    gap: 10px;
+  }
+
+  .training-start-actions .btn {
+    justify-content: center;
+    width: 100%;
   }
 }

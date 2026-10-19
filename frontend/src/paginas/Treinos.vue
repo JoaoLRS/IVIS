@@ -2,11 +2,13 @@
 import { computed, ref } from "vue";
 import {
   ArrowRight,
+  BriefcaseBusiness,
   Check,
   ChevronLeft,
   Clock3,
   Code2,
   MessageSquareText,
+  Plus,
   Target,
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
@@ -20,15 +22,49 @@ const modo = ref<"habilidades" | "vaga">(
   estado.vagaEmTreinamento ? "vaga" : "habilidades",
 );
 const vagaSelecionada = ref(estado.vagas[0]?.titulo ?? "");
+const habilidadesSelecionadas = ref(
+  estado.habilidades.map((habilidade) => habilidade.nome),
+);
 const perguntas = computed(() => estado.perguntasDoTreino);
-const emit = defineEmits<{ notificar: [mensagem: string] }>();
+const resumoContexto = computed(() => {
+  if (modo.value === "vaga") {
+    const vaga = estado.vagas.find(
+      (item) => item.titulo === vagaSelecionada.value,
+    );
+    return vaga
+      ? `${vaga.titulo} · ${vaga.empresa}`
+      : "Selecione uma vaga para continuar";
+  }
+  return habilidadesSelecionadas.value.length
+    ? `${habilidadesSelecionadas.value.length} habilidade${habilidadesSelecionadas.value.length === 1 ? "" : "s"} selecionada${habilidadesSelecionadas.value.length === 1 ? "" : "s"}`
+    : "Selecione pelo menos uma habilidade para continuar";
+});
+
+function alternarHabilidade(nome: string) {
+  modo.value = "habilidades";
+  habilidadesSelecionadas.value = habilidadesSelecionadas.value.includes(nome)
+    ? habilidadesSelecionadas.value.filter((habilidade) => habilidade !== nome)
+    : [...habilidadesSelecionadas.value, nome];
+}
+
+function selecionarTodasHabilidades() {
+  modo.value = "habilidades";
+  habilidadesSelecionadas.value = estado.habilidades.map(
+    (habilidade) => habilidade.nome,
+  );
+}
+
+function limparSelecaoHabilidades() {
+  modo.value = "habilidades";
+  habilidadesSelecionadas.value = [];
+}
 
 function iniciar() {
   const vaga =
     modo.value === "vaga"
       ? estado.vagas.find((item) => item.titulo === vagaSelecionada.value)
       : undefined;
-  estado.iniciarTreino(vaga);
+  estado.iniciarTreino(vaga, habilidadesSelecionadas.value);
 }
 
 function encerrar() {
@@ -48,79 +84,150 @@ function responder(evento: SubmitEvent) {
 <template>
   <template v-if="!estado.treinoAtivo">
     <CabecalhoPagina
-      eyebrow="RF07 · SIMULAÇÃO DE ENTREVISTA"
-      titulo="Treinamento"
-      descricao="Escolha o contexto para iniciar uma entrevista técnica por texto."
+      eyebrow="NOVO TREINO"
+      titulo="Prepare seu treino"
+      descricao="Escolha o contexto que será usado para personalizar suas perguntas."
     >
       <RouterLink class="btn btn-outline-secondary" to="/historico"
         ><Clock3 :size="15" /> Histórico</RouterLink
       >
     </CabecalhoPagina>
-    <section class="card mb-3">
-      <div class="card-body">
-        <h2 class="panel-title">Como deseja se preparar?</h2>
-        <p class="text-secondary">
-          A entrevista demonstrativa apresenta perguntas e permite registrar
-          suas respostas nesta sessão.
-        </p>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="training-option card h-100 p-3"
-              ><span class="d-flex align-items-center gap-2"
-                ><input
-                  v-model="modo"
-                  class="form-check-input"
-                  type="radio"
-                  value="habilidades"
-                /><Code2 :size="18" /><strong
-                  >Usar meu perfil de habilidades</strong
-                ></span
-              ><small class="mt-2">{{
-                estado.habilidades.map((item) => item.nome).join(", ") ||
-                "Nenhuma habilidade cadastrada"
-              }}</small></label
-            >
-          </div>
-          <div class="col-md-6">
-            <label class="training-option card h-100 p-3"
-              ><span class="d-flex align-items-center gap-2"
-                ><input
-                  v-model="modo"
-                  class="form-check-input"
-                  type="radio"
-                  value="vaga"
-                  :disabled="!estado.vagas.length"
-                /><Target :size="18" /><strong
-                  >Usar uma vaga de interesse</strong
-                ></span
-              ><select
-                v-model="vagaSelecionada"
-                class="form-select mt-3"
-                :disabled="modo !== 'vaga' || !estado.vagas.length"
-              >
-                <option
-                  v-for="vaga in estado.vagas"
-                  :key="vaga.titulo"
-                  :value="vaga.titulo"
-                >
-                  {{ vaga.titulo }} · {{ vaga.empresa }}
-                </option>
-              </select></label
-            >
-          </div>
-        </div>
-        <button
-          class="btn btn-primary mt-3"
-          :disabled="modo === 'vaga' && !vagaSelecionada"
-          @click="iniciar"
+    <section class="training-setup">
+      <div class="training-context-grid">
+        <article
+          class="context-card"
+          :class="{ 'context-card-selected': modo === 'habilidades' }"
         >
-          Iniciar entrevista
-        </button>
-        <p class="small text-secondary mt-3 mb-0">
-          Esta versão contém somente o frontend. As perguntas, respostas e
-          feedback são demonstrativos; não há processamento por IA real nem
-          persistência em servidor.
-        </p>
+          <label class="context-card-heading">
+            <input
+              v-model="modo"
+              class="form-check-input"
+              type="radio"
+              value="habilidades"
+            />
+            <span class="context-card-icon"><Code2 :size="18" /></span>
+            <span class="context-card-title">
+              <strong>Treinar com habilidades</strong>
+              <small>
+                Ideal para praticar temas específicos. Selecione as habilidades
+                do seu perfil e as perguntas serão criadas com base nelas.
+              </small>
+            </span>
+            <span class="context-count">{{ estado.habilidades.length }}</span>
+          </label>
+
+          <div v-if="estado.habilidades.length" class="skill-picker">
+            <div class="skill-picker-heading">
+              <span>Habilidades do perfil</span>
+              <div>
+                <button type="button" @click="selecionarTodasHabilidades">
+                  Selecionar todas
+                </button>
+                <button type="button" @click="limparSelecaoHabilidades">
+                  Limpar
+                </button>
+              </div>
+            </div>
+            <div class="skill-chip-list">
+              <button
+                v-for="habilidade in estado.habilidades"
+                :key="habilidade.nome"
+                type="button"
+                class="skill-chip"
+                :class="{
+                  'skill-chip-selected': habilidadesSelecionadas.includes(habilidade.nome),
+                }"
+                :aria-pressed="habilidadesSelecionadas.includes(habilidade.nome)"
+                @click="alternarHabilidade(habilidade.nome)"
+              >
+                {{ habilidade.nome }}
+                <small>{{ habilidade.nivel }}/5</small>
+              </button>
+            </div>
+            <RouterLink class="context-manage-link" to="/habilidades">
+              <Plus :size="14" /> Gerenciar habilidades
+            </RouterLink>
+          </div>
+          <div v-else class="context-empty">
+            <p>Seu perfil ainda não tem habilidades cadastradas.</p>
+            <RouterLink to="/habilidades">Adicionar habilidades</RouterLink>
+          </div>
+        </article>
+
+        <article
+          class="context-card"
+          :class="{ 'context-card-selected': modo === 'vaga' }"
+        >
+          <label class="context-card-heading">
+            <input
+              v-model="modo"
+              class="form-check-input"
+              type="radio"
+              value="vaga"
+              :disabled="!estado.vagas.length"
+            />
+            <span class="context-card-icon"><BriefcaseBusiness :size="18" /></span>
+            <span class="context-card-title">
+              <strong>Treinar para uma vaga</strong>
+              <small>
+                Ideal para se preparar para uma oportunidade. As perguntas vão
+                considerar o cargo e os requisitos da vaga escolhida.
+              </small>
+            </span>
+            <span class="context-count">{{ estado.vagas.length }}</span>
+          </label>
+
+          <div v-if="estado.vagas.length" class="vacancy-picker">
+            <label
+              v-for="vaga in estado.vagas"
+              :key="vaga.titulo"
+              class="vacancy-option"
+              :class="{
+                'vacancy-option-selected': vagaSelecionada === vaga.titulo,
+              }"
+            >
+              <input
+                v-model="vagaSelecionada"
+                class="form-check-input"
+                type="radio"
+                :value="vaga.titulo"
+                @change="modo = 'vaga'"
+              />
+              <span class="vacancy-option-copy">
+                <strong>{{ vaga.titulo }}</strong>
+                <small>{{ vaga.empresa }} · {{ vaga.nivel }}</small>
+                <span class="vacancy-tags">
+                  <span v-for="habilidade in vaga.habilidades.slice(0, 3)" :key="habilidade">
+                    {{ habilidade }}
+                  </span>
+                </span>
+              </span>
+              <Target :size="16" class="vacancy-target" />
+            </label>
+          </div>
+          <div v-else class="context-empty">
+            <p>Você ainda não cadastrou vagas de interesse.</p>
+            <RouterLink to="/vagas">Cadastrar uma vaga</RouterLink>
+          </div>
+        </article>
+      </div>
+
+      <div class="training-setup-footer">
+        <div class="training-context-summary">
+          <Target :size="17" />
+          <span><small>CONTEXTO DO TREINO</small><strong>{{ resumoContexto }}</strong></span>
+        </div>
+        <div class="training-start-actions">
+          <button
+            class="btn btn-primary"
+            :disabled="modo === 'habilidades'
+              ? habilidadesSelecionadas.length === 0
+              : !estado.vagas.length || !vagaSelecionada"
+            @click="iniciar"
+          >
+            Iniciar entrevista <ArrowRight :size="15" />
+          </button>
+        </div>
       </div>
     </section>
   </template>
@@ -250,11 +357,11 @@ function responder(evento: SubmitEvent) {
               <small>HABILIDADES DO PERFIL</small>
               <div class="d-flex flex-wrap gap-2">
                 <Etiqueta
-                  v-for="habilidade in estado.habilidades"
-                  :key="habilidade.nome"
+                  v-for="habilidade in estado.habilidadesDoTreino"
+                  :key="habilidade"
                   tom="purple"
-                  >{{ habilidade.nome }}</Etiqueta
-                ><span v-if="!estado.habilidades.length" class="text-secondary"
+                  >{{ habilidade }}</Etiqueta
+                ><span v-if="!estado.habilidadesDoTreino.length" class="text-secondary"
                   >Nenhuma habilidade cadastrada</span
                 >
               </div>
