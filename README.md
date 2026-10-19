@@ -309,6 +309,8 @@ etc/
 
 Esse documento contém a especificação inicial de visão, escopo, stakeholders, atores, casos de uso, histórias de usuário, requisitos e prototipação.
 
+A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10) está em `etc/plano/Ordem_de_Entrega_MVP.md`.
+
 ---
 
 ## 📌 Status do Projeto

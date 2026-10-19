@@ -1,7 +1,7 @@
 # ADR-0009 — Backend como autoridade de negócio e segurança
 
-- **Status:** Em andamento
-- **Data:**
+- **Status:*Aprovado**
+- **Data:*17/10/2026**
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0001](ADR-0001-arquitetura-modular.md), [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md), [ADR-0006](ADR-0006-frontend-web.md), [ADR-0008](ADR-0008-pagamento-simulado-para-demonstracao.md)
 

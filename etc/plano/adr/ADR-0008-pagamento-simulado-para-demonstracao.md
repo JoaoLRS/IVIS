@@ -1,7 +1,7 @@
 # ADR-0008 — Pagamento simulado para demonstração
 
-- **Status:** Em andamento
-- **Data:**
+- **Status:*Aprovado**
+- **Data:*17/10/2026**
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md), [ADR-0003](ADR-0003-comunicacao-entre-modulos.md), [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md), [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md)
 
