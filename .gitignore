@@ -11,3 +11,8 @@ frontend/cypress/screenshots/
 .env
 .env.*
 !.env.example
+
+# Backend build output
+backend/build/
+backend/.gradle/
+backend/out/

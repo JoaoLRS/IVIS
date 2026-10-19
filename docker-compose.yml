@@ -1,4 +1,40 @@
 services:
+  ivis-banco:
+    image: postgres:17-alpine
+    container_name: ivis-banco
+    environment:
+      POSTGRES_DB: ivis
+      POSTGRES_USER: ${IVIS_BD_USUARIO:-ivis}
+      # Valor padrão apenas para desenvolvimento local; defina outro no .env fora dele.
+      POSTGRES_PASSWORD: ${IVIS_BD_SENHA:-ivis_local}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ivis-banco-dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  ivis-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ivis-backend
+    environment:
+      IVIS_BD_URL: jdbc:postgresql://ivis-banco:5432/ivis
+      IVIS_BD_USUARIO: ${IVIS_BD_USUARIO:-ivis}
+      IVIS_BD_SENHA: ${IVIS_BD_SENHA:-ivis_local}
+      IVIS_CORS_ORIGENS: ${IVIS_CORS_ORIGENS:-http://localhost:8080,http://localhost:5173}
+    ports:
+      - "8081:8081"
+    depends_on:
+      ivis-banco:
+        condition: service_healthy
+    restart: unless-stopped
+
   ivis-frontend:
     build:
       context: ./frontend
@@ -7,3 +43,6 @@ services:
     ports:
       - "8080:80"
     restart: unless-stopped
+
+volumes:
+  ivis-banco-dados:
