@@ -1007,16 +1007,6 @@ body{
   border-bottom:1px solid #f0f0f4
 }
 
-.ai-avatar{
-  width:37px;
-  height:37px;
-  border-radius:11px;
-  background:linear-gradient(145deg,#897bed,#5e4bcf);
-  display:grid;
-  place-items:center;
-  color:#fff
-}
-
 .interview-heading strong{
   font-size:11px
 }
@@ -1041,37 +1031,41 @@ body{
 }
 
 .chat-thread{
-  min-height:245px;
-  max-height:370px;
+  min-height:270px;
+  max-height:430px;
   overflow:auto;
-  padding:8px 1px
+  padding:16px;
+  background-color:#efeae2;
+  background-image:radial-gradient(#d6d0c833 1px,transparent 1px),radial-gradient(#d6d0c822 1px,transparent 1px);
+  background-position:0 0,12px 12px;
+  background-size:24px 24px
+}
+
+.chat-panel{
+  overflow:hidden;
+  border:1px solid #d9d5ce;
+  border-radius:14px;
+  background:#efeae2
 }
 
 .chat-message{
   display:flex;
   align-items:flex-start;
-  gap:9px;
-  margin:12px 0
+  margin:10px 0
 }
 
 .chat-message>div{
-  flex:1
-}
-
-.chat-avatar{
-  width:25px;
-  height:25px;
-  flex:none;
-  border-radius:8px;
-  background:#f0edff;
-  color:#6756db;
-  display:grid;
-  place-items:center
+  max-width:82%;
+  padding:10px 12px;
+  border:1px solid #e9e6e0;
+  border-radius:4px 13px 13px 13px;
+  background:#fff;
+  box-shadow:0 1px 1px #28251f0d
 }
 
 .chat-message strong{
-  font-size:9px;
-  color:#444550
+  font-size:10px;
+  color:#6757df
 }
 
 .chat-message strong small{
@@ -1081,9 +1075,9 @@ body{
 }
 
 .chat-message p{
-  font-size:10px;
-  line-height:1.75;
-  color:#666774;
+  font-size:12px;
+  line-height:1.6;
+  color:#34343a;
   margin:5px 0 0
 }
 
@@ -1092,15 +1086,32 @@ body{
 }
 
 .user-message>div{
-  max-width:78%;
-  background:#f6f5fd;
-  border:1px solid #efedf9;
-  padding:9px 11px;
-  border-radius:9px
+  border-color:#d2e8c8;
+  border-radius:13px 4px 13px 13px;
+  background:#d9fdd3
+}
+
+.user-message strong{
+  color:#267a4b
+}
+
+.chat-composer{
+  padding:12px;
+  border-top:1px solid #d9d5ce;
+  background:#f0f2f5
+}
+
+.chat-composer-finished{
+  display:flex;
+  justify-content:flex-end
 }
 
 .answer-input{
-  font-size:10px;
+  min-height:48px;
+  border-color:#dce0e5;
+  border-radius:10px;
+  background:#fff;
+  font-size:12px;
   resize:vertical
 }
 

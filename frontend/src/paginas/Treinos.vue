@@ -7,7 +7,6 @@ import {
   Clock3,
   Code2,
   MessageSquareText,
-  Sparkles,
   Target,
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
@@ -115,7 +114,7 @@ function responder(evento: SubmitEvent) {
           :disabled="modo === 'vaga' && !vagaSelecionada"
           @click="iniciar"
         >
-          <Sparkles :size="16" /> Iniciar entrevista
+          Iniciar entrevista
         </button>
         <p class="small text-secondary mt-3 mb-0">
           Esta versão contém somente o frontend. As perguntas, respostas e
@@ -139,7 +138,6 @@ function responder(evento: SubmitEvent) {
         <section class="card interview-card">
           <div class="card-body">
             <div class="d-flex align-items-center gap-2 interview-heading">
-              <span class="ai-avatar"><Sparkles :size="20" /></span>
               <div class="flex-grow-1">
                 <strong>IVIS <Etiqueta tom="purple">Simulação</Etiqueta></strong
                 ><small class="d-block">{{ estado.contextoTreino }}</small>
@@ -163,68 +161,77 @@ function responder(evento: SubmitEvent) {
                 />
               </div>
             </div>
-            <div class="chat-thread">
-              <div
+            <div class="chat-panel">
+              <div class="chat-thread">
+                <div
+                  v-for="(resposta, indice) in estado.respostas"
+                  :key="indice"
+                >
+                  <div v-if="perguntas[indice]" class="chat-message">
+                    <div>
+                      <strong>IVIS <small>pergunta</small></strong>
+                      <p>{{ perguntas[indice] }}</p>
+                    </div>
+                  </div>
+                  <div class="chat-message user-message">
+                    <div>
+                      <strong
+                        >Você <small>resposta {{ indice + 1 }}</small></strong
+                      >
+                      <p>{{ resposta }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  v-if="estado.perguntaAtual < perguntas.length"
+                  class="chat-message"
+                >
+                  <div>
+                    <strong>IVIS <small>pergunta</small></strong>
+                    <p>{{ perguntas[estado.perguntaAtual] }}</p>
+                  </div>
+                </div>
+                <div
+                  v-if="estado.perguntaAtual >= perguntas.length"
+                  class="chat-message"
+                >
+                  <div>
+                    <strong>IVIS <small>concluído</small></strong>
+                    <p>
+                      Você respondeu às perguntas da simulação. Finalize para
+                      registrar o resultado demonstrativo e consultar o feedback.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <form
                 v-if="estado.perguntaAtual < perguntas.length"
-                class="chat-message"
+                class="chat-composer"
+                @submit.prevent="responder"
               >
-                <span class="chat-avatar"><Sparkles :size="14" /></span>
-                <div>
-                  <strong>IVIS <small>pergunta</small></strong>
-                  <p>{{ perguntas[estado.perguntaAtual] }}</p>
+                <textarea
+                  class="form-control answer-input"
+                  name="resposta"
+                  rows="2"
+                  required
+                  placeholder="Escreva sua resposta aqui..."
+                />
+                <div
+                  class="d-flex justify-content-between align-items-center mt-2"
+                >
+                  <small class="text-secondary"
+                    >Resposta mantida apenas nesta sessão.</small
+                  ><button class="btn btn-primary btn-sm">
+                    Enviar resposta <ArrowRight :size="14" />
+                  </button>
                 </div>
-              </div>
-              <div
-                v-for="(resposta, indice) in estado.respostas"
-                :key="indice"
-                class="chat-message user-message"
-              >
-                <div>
-                  <strong
-                    >Você <small>resposta {{ indice + 1 }}</small></strong
-                  >
-                  <p>{{ resposta }}</p>
-                </div>
-                <span class="user-avatar">A</span>
-              </div>
-              <div
-                v-if="estado.perguntaAtual >= perguntas.length"
-                class="chat-message"
-              >
-                <span class="chat-avatar"><Sparkles :size="14" /></span>
-                <div>
-                  <strong>IVIS <small>concluído</small></strong>
-                  <p>
-                    Você respondeu às perguntas da simulação. Finalize para
-                    registrar o resultado demonstrativo e consultar o feedback.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <form
-              v-if="estado.perguntaAtual < perguntas.length"
-              @submit.prevent="responder"
-            >
-              <textarea
-                class="form-control answer-input"
-                name="resposta"
-                rows="3"
-                required
-                placeholder="Escreva sua resposta aqui..."
-              />
-              <div
-                class="d-flex justify-content-between align-items-center mt-2"
-              >
-                <small class="text-secondary"
-                  >Resposta mantida apenas nesta sessão.</small
-                ><button class="btn btn-primary btn-sm">
-                  Enviar resposta <ArrowRight :size="14" />
+              </form>
+              <div v-else class="chat-composer chat-composer-finished">
+                <button class="btn btn-primary" @click="encerrar">
+                  <Check :size="16" /> Finalizar e ver feedback
                 </button>
               </div>
-            </form>
-            <button v-else class="btn btn-primary mt-3" @click="encerrar">
-              <Check :size="16" /> Finalizar e ver feedback
-            </button>
+            </div>
           </div>
         </section>
       </div>

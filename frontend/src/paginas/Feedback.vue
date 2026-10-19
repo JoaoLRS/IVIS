@@ -4,7 +4,6 @@ import {
   Check,
   CheckCircle2,
   Clock3,
-  Sparkles,
 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -87,14 +86,14 @@ const treino = computed(() => {
       </section>
     </div>
   </div>
-  <div class="d-flex justify-content-end gap-2 mt-3">
+  <div class="d-flex justify-content-start gap-2 mt-4">
     <button
       class="btn btn-outline-secondary"
       @click="roteador.push('/historico')"
     >
       Ver histórico</button
     ><button class="btn btn-primary" @click="roteador.push('/treinos')">
-      <Sparkles :size="15" /> Fazer outro treino
+      Fazer outro treino
     </button>
   </div>
 </template>
