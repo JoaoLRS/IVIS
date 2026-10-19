@@ -21,6 +21,7 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   const respostas = ref<string[]>([]);
   const contextoTreino = ref("Perfil de habilidades");
   const vagaEmTreinamento = ref<string | null>(null);
+  const habilidadesDoTreino = ref<string[]>([]);
   const perguntasDoTreino = ref<string[]>([]);
   const feedbackAtual = ref<Treino | null>(null);
 
@@ -47,17 +48,19 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   function editarHabilidade(indice: number, habilidade: Habilidade) {
     habilidades.value.splice(indice, 1, habilidade);
   }
-  function iniciarTreino(vaga?: Vaga) {
+  function iniciarTreino(vaga?: Vaga, habilidadesSelecionadas?: string[]) {
     treinoAtivo.value = true;
     perguntaAtual.value = 0;
     respostas.value = [];
     vagaEmTreinamento.value = vaga?.titulo ?? null;
-    contextoTreino.value = vaga
-      ? `Vaga: ${vaga.titulo} · ${vaga.empresa}`
-      : `Habilidades: ${habilidades.value.map((item) => item.nome).join(", ") || "nenhuma habilidade cadastrada"}`;
     const temas = vaga
       ? vaga.habilidades
-      : habilidades.value.map((habilidade) => habilidade.nome);
+      : (habilidadesSelecionadas ??
+          habilidades.value.map((habilidade) => habilidade.nome));
+    habilidadesDoTreino.value = [...temas];
+    contextoTreino.value = vaga
+      ? `Vaga: ${vaga.titulo} · ${vaga.empresa}`
+      : `Habilidades: ${temas.join(", ") || "nenhuma habilidade cadastrada"}`;
     perguntasDoTreino.value = temas.length
       ? temas
           .slice(0, 3)
@@ -108,6 +111,7 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     respostas,
     contextoTreino,
     vagaEmTreinamento,
+    habilidadesDoTreino,
     feedbackAtual,
     atualizarDadosAluno,
     perguntasDemonstracao,
