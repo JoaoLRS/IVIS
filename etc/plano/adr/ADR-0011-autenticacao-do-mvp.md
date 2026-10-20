@@ -1,6 +1,6 @@
 # ADR-0011 — Autenticação e sessão do MVP
 
-- **Status:** Proposto
+- **Status:** Aprovado
 - **Data:** 2026-10-18
 - **Decisores:** Pendente de validação da equipe IVIS
 - **Relacionados:** [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md), [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md), [ADR-0010](ADR-0010-modelagem-relacional-do-banco.md)
