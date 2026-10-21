@@ -15,9 +15,6 @@ const titulos: Record<string, string> = {
   feedback: "Seu feedback",
   conta: "Dados do aluno",
 };
-function notificar() {
-  window.alert("Você está em dia!");
-}
 </script>
 
 <template>
@@ -30,7 +27,7 @@ function notificar() {
       />
       <div class="page-content container-fluid">
         <RouterView v-slot="{ Component }"
-          ><component :is="Component" @notificar="notificar"
+          ><component :is="Component"
         /></RouterView>
       </div>
     </main>
