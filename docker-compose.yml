@@ -43,6 +43,7 @@ services:
     environment:
       IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
       IVIS_IA_USAR_STUB: ${IVIS_IA_USAR_STUB:-true}
+      IVIS_IA_STUB_FALHA: ${IVIS_IA_STUB_FALHA:-nenhuma}
     ports:
       - "127.0.0.1:8000:8000"
     restart: unless-stopped

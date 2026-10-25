@@ -1,6 +1,6 @@
 # Contrato da API de IA — versão 1 (proposta)
 
-Este documento propõe o contrato entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). Detalha o que o [plano da API de IA](Plano_Implementacao_API_IA.md) pede ("especificar operações, campos mínimos, formato de saída e escala"). Está **pendente de validação** da equipe e deve ser implementado primeiro por um **stub** determinístico, depois pela integração com a NVIDIA NGC, sem mudar o contrato.
+Este documento define o contrato v1 entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). O contrato foi aprovado para orientar o stub e a integração posterior com NVIDIA NGC, sem mudança das rotas ou dos formatos HTTP.
 
 Identificadores em português brasileiro, sem acentos, conforme o [glossário](../Glossario_IVIS.md).
 
@@ -119,9 +119,9 @@ Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação e
 ## Comportamento do stub
 
 - Gera perguntas a partir de um conjunto fixo, variando pelo tema (habilidade ou requisito) e pelo `numero_pergunta`.
-- Calcula `nota` de forma determinística a partir do tamanho das respostas (por exemplo, respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**.
+- Calcula `nota` de forma determinística a partir do tamanho das respostas (respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**. Essa nota não representa uma avaliação qualitativa.
 - Devolve `versao_modelo: "stub-1"`. Um treino avaliado pelo stub é identificável pela versão persistida em `avaliacoes_treinamento`.
-- Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição).
+- Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição); a readiness fica indisponível quando a simulação de falha está ativa.
 
 ## Pendências
 

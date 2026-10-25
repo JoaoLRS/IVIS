@@ -20,7 +20,10 @@ async def saude() -> dict[str, str]:
 
 @app.get("/pronto")
 async def pronto() -> dict[str, str]:
-    if not configuracoes.usar_stub:
+    if (
+        not configuracoes.usar_stub
+        or configuracoes.falha_stub != "nenhuma"
+    ):
         raise HTTPException(
             status_code=503,
             detail={

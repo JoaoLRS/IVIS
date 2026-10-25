@@ -1,10 +1,8 @@
 # API de IA do IVIS
 
-Serviço Python interno do IVIS. No Marco 1, oferece configuração por ambiente,
-schemas do contrato v1, autenticação entre serviços, liveness e readiness. As
-operações de pergunta e avaliação já exigem autenticação, mas respondem
-`501 nao_implementado` até a entrega do stub no Marco 2. Nenhuma credencial da
-NVIDIA é necessária ou utilizada nesta etapa.
+Serviço Python interno do IVIS. Implementa o contrato v1 com um stub determinístico
+para gerar perguntas e avaliações, além de autenticação entre serviços, liveness
+e readiness. O stub não usa nem exige credenciais NVIDIA.
 
 ## Executar localmente
 
@@ -30,12 +28,14 @@ ambiente de execução.
 
 As rotas de negócio exigem `X-Chave-Servico`. A variável
 `IVIS_IA_CHAVE_SERVICO` é obrigatória e deve ser diferente da chave NVIDIA.
-`NVIDIA_API_KEY` e `NVIDIA_MODEL` são opcionais e não são usados no Marco 1.
+As avaliações do stub são demonstrativas: a nota depende somente do tamanho das
+respostas, não da sua qualidade técnica.
 
 ## Testes
 
 ```powershell
 Set-Location api-ia
+$env:IVIS_IA_CHAVE_SERVICO = "chave-local-com-pelo-menos-32-caracteres"
 .\.venv\Scripts\python.exe -m pytest
 ```
 
@@ -44,11 +44,14 @@ Set-Location api-ia
 | Variável | Obrigatória | Uso |
 |---|---|---|
 | `IVIS_IA_CHAVE_SERVICO` | Sim | Chave interna do backend, com no mínimo 32 caracteres. |
-| `IVIS_IA_USAR_STUB` | Não (`true`) | Seleção futura do provedor stub. No Marco 1, readiness fica indisponível se desativado. |
+| `IVIS_IA_USAR_STUB` | Não (`true`) | Ativa o provedor stub; desativado, as operações retornam `503/provedor_indisponivel`. |
+| `IVIS_IA_STUB_FALHA` | Não (`nenhuma`) | Simula falha do stub: `nenhuma`, `indisponivel` (`503`) ou `tempo_esgotado` (`504`). Não é um parâmetro das requisições. |
 | `NVIDIA_API_KEY` | Não | Reservada para o adaptador NVIDIA de marco posterior. |
 | `NVIDIA_MODEL` | Não | Reservada para o adaptador NVIDIA de marco posterior. |
 | `NVIDIA_BASE_URL` | Não | Endpoint base reservado para o adaptador NVIDIA. |
 | `NVIDIA_TIMEOUT_SEGUNDOS` | Não (`25`) | Timeout reservado para o adaptador NVIDIA. |
 
 As respostas de saúde não incluem configuração, credenciais ou detalhes internos.
+Com `IVIS_IA_STUB_FALHA` diferente de `nenhuma`, `/pronto` retorna
+`503/provedor_indisponivel` para indicar que o stub configurado não está pronto.
 Em ambientes implantados, a comunicação deve usar TLS.

@@ -11,6 +11,7 @@ cliente = TestClient(app)
 def setup_function() -> None:
     config.configuracoes.chave_servico = SecretStr(CHAVE_TESTE)
     config.configuracoes.usar_stub = True
+    config.configuracoes.falha_stub = "nenhuma"
 
 
 def test_liveness_nao_expoe_configuracoes() -> None:
@@ -41,6 +42,15 @@ def test_readiness_indisponivel_quando_stub_desativado() -> None:
     }
 
 
+def test_readiness_indisponivel_quando_falha_stub_configurada() -> None:
+    config.configuracoes.falha_stub = "indisponivel"
+
+    resposta = cliente.get("/pronto")
+
+    assert resposta.status_code == 503
+    assert resposta.json()["codigo"] == "provedor_indisponivel"
+
+
 def test_rota_protegida_rejeita_chave_ausente() -> None:
     resposta = cliente.post("/v1/perguntas/gerar", json={})
 
@@ -59,7 +69,7 @@ def test_rota_protegida_rejeita_chave_invalida() -> None:
     assert resposta.json()["codigo"] == "nao_autenticado"
 
 
-def test_rota_protegida_autentica_antes_do_marco_2() -> None:
+def test_gerar_pergunta_retorna_resposta_deterministica() -> None:
     resposta = cliente.post(
         "/v1/perguntas/gerar",
         headers={"X-Chave-Servico": CHAVE_TESTE},
@@ -74,8 +84,117 @@ def test_rota_protegida_autentica_antes_do_marco_2() -> None:
         },
     )
 
-    assert resposta.status_code == 501
-    assert resposta.json()["codigo"] == "nao_implementado"
+    assert resposta.status_code == 200
+    assert resposta.json() == {
+        "pergunta": {
+            "texto": "Como você aplicaria Python em um projeto real e quais decisões técnicas tomaria?"
+        },
+        "versao_modelo": "stub-1",
+        "versao_prompt": "perguntas-1",
+    }
+
+
+def test_gerar_pergunta_varia_com_numero_e_contexto() -> None:
+    payload = {
+        "id_correlacao": "correlacao-123",
+        "tipo_contexto": "VAGA",
+        "habilidades": None,
+        "vaga": {
+            "titulo": "Desenvolvedor",
+            "senioridade": "Pleno",
+            "requisitos": ["Python", "PostgreSQL"],
+        },
+        "interacoes": [],
+        "numero_pergunta": 2,
+        "total_perguntas": 3,
+    }
+
+    resposta = cliente.post(
+        "/v1/perguntas/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json=payload,
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["pergunta"]["texto"] == (
+        "Descreva um desafio envolvendo Python e como avaliaria as alternativas para resolvê-lo."
+    )
+
+
+def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
+    payload = {
+        "id_correlacao": "correlacao-123",
+        "tipo_contexto": "HABILIDADES",
+        "habilidades": [{"nome": "Python", "nivel": 4}],
+        "vaga": None,
+        "interacoes": [
+            {"numero": 1, "pergunta": "Pergunta", "resposta": "x" * 250},
+            {"numero": 2, "pergunta": "Pergunta", "resposta": ""},
+        ],
+    }
+
+    resposta = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json=payload,
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json() == {
+        "nota": 25,
+        "pontos_fortes": [
+            "Esta avaliação demonstrativa considera o volume de texto das respostas.",
+            "As respostas enviadas contêm texto para análise.",
+        ],
+        "pontos_melhoria": [
+            "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
+        ],
+        "versao_modelo": "stub-1",
+        "versao_prompt": "avaliacao-1",
+    }
+
+
+def test_stub_mapeia_indisponibilidade_e_timeout() -> None:
+    payload = {
+        "id_correlacao": "correlacao-123",
+        "tipo_contexto": "HABILIDADES",
+        "habilidades": [{"nome": "Python", "nivel": 4}],
+        "vaga": None,
+        "interacoes": [],
+        "numero_pergunta": 1,
+        "total_perguntas": 3,
+    }
+    headers = {"X-Chave-Servico": CHAVE_TESTE}
+
+    config.configuracoes.falha_stub = "indisponivel"
+    indisponivel = cliente.post("/v1/perguntas/gerar", headers=headers, json=payload)
+    assert indisponivel.status_code == 503
+    assert indisponivel.json()["codigo"] == "provedor_indisponivel"
+
+    config.configuracoes.falha_stub = "tempo_esgotado"
+    timeout = cliente.post("/v1/perguntas/gerar", headers=headers, json=payload)
+    assert timeout.status_code == 504
+    assert timeout.json()["codigo"] == "tempo_esgotado"
+
+
+def test_operacao_indisponivel_quando_stub_desativado() -> None:
+    config.configuracoes.usar_stub = False
+    resposta = cliente.post(
+        "/v1/perguntas/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [],
+            "numero_pergunta": 1,
+            "total_perguntas": 3,
+        },
+    )
+
+    assert resposta.status_code == 503
+    assert resposta.json()["codigo"] == "provedor_indisponivel"
 
 
 def test_chave_e_comparada_com_hmac_compare_digest(monkeypatch) -> None:
@@ -108,3 +227,26 @@ def test_validacao_de_entrada_usa_erro_do_contrato() -> None:
         "codigo": "entrada_invalida",
         "mensagem": "A requisição não atende ao contrato da API.",
     }
+
+
+def test_validacao_rejeita_resposta_acima_do_limite() -> None:
+    resposta = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [
+                {
+                    "numero": 1,
+                    "pergunta": "Pergunta",
+                    "resposta": "x" * 4001,
+                }
+            ],
+        },
+    )
+
+    assert resposta.status_code == 422
+    assert resposta.json()["codigo"] == "entrada_invalida"
