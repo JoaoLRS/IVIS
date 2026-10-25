@@ -35,6 +35,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  ivis-api-ia:
+    build:
+      context: ./api-ia
+      dockerfile: Dockerfile
+    container_name: ivis-api-ia
+    environment:
+      IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
+      IVIS_IA_USAR_STUB: ${IVIS_IA_USAR_STUB:-true}
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
   ivis-frontend:
     build:
       context: ./frontend
