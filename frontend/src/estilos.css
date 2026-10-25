@@ -3277,3 +3277,16 @@ body{
     height: 28px;
   }
 }
+
+/* Padrão visual IVIS: componentes e elementos sem cantos arredondados. */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+/* O indicador de pontuação mantém o anel circular como elemento de dados. */
+.score-ring,
+.score-ring::before {
+  border-radius: 50% !important;
+}
