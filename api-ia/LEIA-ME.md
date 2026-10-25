@@ -31,6 +31,11 @@ As rotas de negócio exigem `X-Chave-Servico`. A variável
 As avaliações do stub são demonstrativas: a nota depende somente do tamanho das
 respostas, não da sua qualidade técnica.
 
+O backend acessa estas rotas pela rede interna do Compose (`http://ivis-api-ia:8000`).
+O frontend não deve chamar este serviço diretamente; para iniciar e conduzir um
+treino, use as rotas do backend `/api/v1/ia/perguntas/gerar` e
+`/api/v1/ia/avaliacoes/gerar`.
+
 ## Testes
 
 ```powershell

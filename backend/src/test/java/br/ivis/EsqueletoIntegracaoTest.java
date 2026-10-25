@@ -36,6 +36,7 @@ class EsqueletoIntegracaoTest {
         registro.add("spring.datasource.url", postgres::getJdbcUrl);
         registro.add("spring.datasource.username", postgres::getUsername);
         registro.add("spring.datasource.password", postgres::getPassword);
+        registro.add("ivis.ia.chave-servico", () -> "chave-interna-de-integracao-com-mais-de-32-caracteres");
     }
 
     @Value("${local.server.port}")

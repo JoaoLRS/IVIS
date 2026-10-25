@@ -126,8 +126,7 @@ function confirmarRemocao() {
 function treinarPara(titulo: string) {
   const vaga = estado.vagas.find((item) => item.titulo === titulo);
   if (!vaga) return;
-  estado.iniciarTreino(vaga);
-  roteador.push("/treinos");
+  roteador.push({ path: "/treinos", query: { vaga: vaga.titulo } });
 }
 </script>
 
@@ -152,9 +151,7 @@ function treinarPara(titulo: string) {
   </div>
   <div
     class="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap"
-  >
-
-  </div>
+  ></div>
   <div class="row g-3">
     <div
       v-for="{ vaga, indice } in vagasFiltradas"
