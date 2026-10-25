@@ -17,6 +17,10 @@ Além do módulo de treinamento, o IVIS contempla o **gerenciamento de contas, p
 
 O projeto está sendo desenvolvido e aprimorado no contexto da disciplina de **Engenharia de Software**, aplicando conceitos de levantamento e especificação de requisitos, casos de uso, histórias de usuário, arquitetura, desenvolvimento, testes, qualidade e evolução de software.
 
+## 🌐 Acesso à produção
+
+A versão de produção do IVIS está disponível em: [https://ivis-ia.vercel.app/inicio](https://ivis-ia.vercel.app/inicio).
+
 ---
 
 ## 🎯 Objetivo
