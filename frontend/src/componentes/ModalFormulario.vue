@@ -9,9 +9,13 @@ const emit = defineEmits<{ fechar: []; enviar: [evento: SubmitEvent] }>();
   <div
     class="ivis-modal-layer"
     role="presentation"
-    @mousedown.self="emit('fechar')"
   >
-    <div class="modal d-block" role="dialog" aria-modal="true">
+    <div
+      class="modal d-block"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="titulo"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <form @submit.prevent="emit('enviar', $event)">

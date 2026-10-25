@@ -1,21 +1,70 @@
-@import url('https\://fonts.googleapis.com/css2?family=DM+Sans:wght\@400;500;600;700&family=Manrope:wght\@400;500;600;700;800&display=swap');
-
 :root{
-  font-family:'DM Sans',sans-serif;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  font-size:16px;
   color:#292a35;
   background:#f1f2f5;
   font-synthesis:none;
   text-rendering:optimizeLegibility;
   --ivis-purple:#6757df;
   --ivis-border:#ececf2;
-  --ivis-muted:#898a98;
+  --ivis-muted:#626477;
+  --ivis-text-secondary:#626477;
+  --ivis-text-subtle:#626477;
   --bs-primary:#6757df;
   --bs-primary-rgb:103,87,223;
-  --bs-body-font-family:'DM Sans',sans-serif;
+  --bs-body-font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --bs-body-color:#292a35;
+  --bs-secondary-color:#626477;
+  --bs-tertiary-color:#626477;
   --bs-body-bg:#f1f2f5;
   --bs-border-color:#ececf2;
   --bs-border-radius:.55rem
+}
+
+/* Escala de texto global: tons auxiliares precisam continuar legíveis em telas claras. */
+.text-secondary,
+.text-muted {
+  color: var(--ivis-text-secondary) !important;
+}
+
+.eyebrow,
+.nav-section-title,
+.workspace-switch small,
+.user-profile small,
+.page-heading p,
+.stat-label,
+.stat-detail,
+.panel-heading p,
+.chart-legend,
+.chart-axis,
+.chart-dates,
+.row-copy small,
+.company-meta,
+.skill-level,
+.training-option small,
+.context-card-title small,
+.skill-chip small,
+.vacancy-option-copy > small,
+.training-context-summary small,
+.training-start-actions > small,
+.interview-heading small,
+.interview-detail small,
+.history-stat span > small,
+.history-result > small,
+.history-result strong small,
+.score-ring small,
+.student-cell small,
+.auth-card p,
+.auth-note,
+.auth-divider {
+  color: var(--ivis-text-secondary);
+}
+
+.form-control::placeholder,
+.form-select:invalid,
+.search-field .form-control::placeholder {
+  color: #626477;
+  opacity: 1;
 }
 
 \*{
@@ -319,14 +368,14 @@ body{
 }
 
 .btn-primary {
-  --bs-btn-bg: #92939f;
-  --bs-btn-border-color: #92939f;
+  --bs-btn-bg: #6757df;
+  --bs-btn-border-color: #6757df;
   --bs-btn-hover-bg: #6757df;
   --bs-btn-hover-border-color: #6757df;
   --bs-btn-active-bg: #5142bd;
   --bs-btn-active-border-color: #5142bd;
-  --bs-btn-disabled-bg: #92939f;
-  --bs-btn-disabled-border-color: #92939f;
+  --bs-btn-disabled-bg: #626477;
+  --bs-btn-disabled-border-color: #626477;
 }
 
 .btn{
@@ -2213,7 +2262,7 @@ body{
   }
 }
 
-*.ivis-modal-layer*{
+.ivis-modal-layer{
   position:fixed;
   inset:0;
   z-index:1060;
@@ -2221,15 +2270,50 @@ body{
   align-items:center;
   justify-content:center;
   padding:16px;
-  background:#19182b66
+  overflow-y:auto;
+  background:rgba(0,0,0,.5)
 }
 
-*.ivis-modal-layer* *.modal*{
+.ivis-modal-layer .modal{
   position:static;
   overflow:visible;
   z-index:auto;
   padding:0;
   background:transparent
+}
+
+.ivis-modal-layer .modal-dialog{
+  width:100%;
+  max-width:420px;
+  margin:0 auto;
+}
+
+.ivis-modal-layer .modal-content{
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.2);
+  border-radius:.3rem;
+  background:#fff;
+  color:#212529;
+  box-shadow:0 .5rem 1rem rgba(0,0,0,.15);
+}
+
+.ivis-modal-layer .modal-title{
+  color:#5142bd;
+  font-size:22px;
+  font-weight:700;
+  line-height:1.25;
+}
+
+.ivis-modal-layer .modal-title-confirmacao{
+  color:#5142bd;
+  font-size:20px;
+  font-weight:700;
+}
+
+.ivis-modal-layer .form-label{
+  color:#343540;
+  font-size:14px;
+  font-weight:600;
 }
 
 *.public-app*{
@@ -2648,6 +2732,120 @@ body{
   color: #555664;
 }
 
+/* Tipografia alinhada à pilha nativa do Bootstrap e legível em todo o IVIS. */
+.app-shell,
+.app-shell :not(svg):not(i),
+.app-shell button,
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important;
+}
+
+.page-content p,
+.page-content li,
+.page-content label,
+.page-content td,
+.page-content th,
+.page-content .form-control,
+.page-content .form-select,
+.page-content .btn {
+  font-size: 14px;
+}
+
+.page-content small,
+.page-content .text-secondary,
+.page-content .text-muted,
+.page-content .stat-label,
+.page-content .stat-detail,
+.page-content .company-meta,
+.page-content .skill-level,
+.page-content .chart-axis,
+.page-content .chart-dates,
+.page-content .chart-legend,
+.page-content .row-copy small,
+.page-content .context-card-title small,
+.page-content .skill-chip small,
+.page-content .vacancy-tags > span,
+.page-content .history-result > small,
+.page-content .student-cell small {
+  font-size: 14px !important;
+}
+
+.page-content .eyebrow,
+.page-content .home-section-kicker {
+  font-size: 12px !important;
+}
+
+.page-content .home-action-copy strong,
+.page-content .latest-training-copy > strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Metadados e textos de apoio usam o mesmo contraste em todas as páginas. */
+.page-content small,
+.page-content .breadcrumb-line,
+.page-content .company-meta,
+.page-content .match-label,
+.page-content .focus-progress > div:first-child,
+.page-content .context-empty,
+.page-content .vacancy-tags > span,
+.page-content .training-context-summary,
+.page-content .history-stat span > small,
+.page-content .history-result > small,
+.page-content .history-result strong small,
+.page-content .score-ring small,
+.page-content .student-cell small {
+  color: var(--ivis-text-secondary);
+}
+
+.page-content .training-hero small,
+.page-content .hero-card small,
+.page-content .chat-message small {
+  color: #e0deed;
+}
+
+.page-content input::placeholder,
+.page-content textarea::placeholder {
+  color: #626477;
+  opacity: 1;
+}
+
+.page-content .stat-label,
+.page-content .stat-detail {
+  color: var(--ivis-text-secondary) !important;
+}
+
+.page-content .stat-label,
+.page-content .stat-detail {
+  font-size: 14px !important;
+}
+
+/* Tamanho mínimo confortável para rótulos, descrições e metadados do sistema. */
+.page-content small,
+.page-content .eyebrow,
+.page-content .stat-label,
+.page-content .stat-detail,
+.page-content .company-meta,
+.page-content .skill-level,
+.page-content .chart-axis,
+.page-content .chart-dates,
+.page-content .chart-legend,
+.page-content .row-copy small,
+.page-content .context-card-title small,
+.page-content .skill-chip small,
+.page-content .vacancy-tags > span,
+.page-content .history-result > small,
+.page-content .student-cell small {
+  font-size: 14px !important;
+}
+
+.page-content .nav-section-title,
+.page-content .home-section-kicker {
+  font-size: 12px !important;
+}
+
 @media (max-width: 991.98px) {
   .app-sidebar.app-top-menu {
     height: auto;
@@ -2713,4 +2911,154 @@ body{
     justify-content: center;
     width: 100%;
   }
+}
+
+/* Escala comum para o conteúdo de todas as páginas, acima dos estilos legados. */
+.page-content :is(
+  p,
+  li,
+  label,
+  td,
+  th,
+  small,
+  .small,
+  .badge,
+  .text-secondary,
+  .text-muted,
+  .form-control,
+  .form-select,
+  .form-check-label,
+  .btn,
+  .company-meta,
+  .match-label,
+  .skill-level,
+  .ivis-badge,
+  .result-label,
+  .skill-chip,
+  .vacancy-tags > span,
+  .context-count,
+  .training-context-summary,
+  .training-option,
+  .skill-picker-heading,
+  .feedback-point strong,
+  .feedback-meta,
+  .interview-status,
+  .interview-heading strong,
+  .interview-detail,
+  .question-progress,
+  .tip-card,
+  .history-list-row,
+  .history-result,
+  .history-stat span > small,
+  .stat-label,
+  .stat-detail,
+  .chart-axis,
+  .chart-dates,
+  .chart-legend,
+  .row-copy,
+  .student-cell,
+  .plan-detail,
+  .offer-price
+) {
+  font-size: 14px !important;
+}
+
+.page-content p,
+.page-content :is(
+  small,
+  .text-secondary,
+  .text-muted,
+  .eyebrow,
+  .company-meta,
+  .match-label,
+  .skill-level,
+  .stat-label,
+  .stat-detail,
+  .chart-axis,
+  .chart-dates,
+  .chart-legend,
+  .feedback-meta,
+  .interview-detail
+) {
+  color: var(--ivis-text-secondary) !important;
+}
+
+.page-content :is(.training-hero, .hero-card, .home-hero, .current-plan) p,
+.page-content :is(.training-hero, .hero-card, .home-hero, .current-plan) small {
+  color: #e0deed !important;
+}
+
+.page-content .eyebrow,
+.page-content .home-section-kicker {
+  font-size: 12px !important;
+}
+
+.page-content :is(
+  .panel-title,
+  .job-title,
+  .skill-title,
+  .context-card-title > strong,
+  .vacancy-option-copy > strong,
+  .home-action-copy > strong,
+  .latest-training-copy > strong
+) {
+  font-size: 16px !important;
+  font-weight: 700;
+}
+
+.page-content :is(
+  .opportunity-alert strong,
+  .skill-alert strong,
+  .training-option strong,
+  .row-copy strong,
+  .chat-message strong,
+  .interview-detail strong,
+  .tip-card strong,
+  .match-label strong
+) {
+  font-size: 14px !important;
+}
+
+.page-content :is(.opportunity-alert strong, .skill-alert strong) {
+  font-size: 16px !important;
+}
+
+.page-content .feedback-body h2 {
+  font-size: 20px;
+}
+
+/* A mesma escala alcança também páginas fora do contêiner principal. */
+.app-shell :is(
+  p,
+  li,
+  label,
+  td,
+  th,
+  small,
+  .small,
+  .badge,
+  .text-secondary,
+  .text-muted,
+  .btn,
+  .form-control,
+  .form-select,
+  .form-check-label,
+  .auth-note,
+  .auth-divider,
+  .auth-card p,
+  .auth-card a,
+  .public-footer,
+  .public-plans > div > p
+) {
+  font-size: 14px !important;
+}
+
+.app-shell p,
+.app-shell :is(small, .text-secondary, .text-muted, .auth-note, .auth-divider) {
+  color: var(--ivis-text-secondary) !important;
+}
+
+.app-shell :is(.home-hero, .hero-card, .training-hero, .current-plan) p,
+.app-shell :is(.home-hero, .hero-card, .training-hero, .current-plan) small {
+  color: #e0deed !important;
 }

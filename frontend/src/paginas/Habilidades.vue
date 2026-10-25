@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { reactive, ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { Code2, Pencil, Plus, Trash2 } from "lucide-vue-next";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
+import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
 
 const estado = useEstadoAplicacao();
 const modal = ref(false);
+const indiceParaExcluir = ref<number | null>(null);
 const indiceEmEdicao = ref<number | null>(null);
 const formulario = reactive({ nome: "", categoria: "", nivel: 3 });
 const niveis = [
@@ -19,6 +21,11 @@ const niveis = [
   "Especialista",
 ];
 const emit = defineEmits<{ notificar: [mensagem: string] }>();
+const habilidadeParaExcluir = computed(() =>
+  indiceParaExcluir.value === null
+    ? null
+    : (estado.habilidades[indiceParaExcluir.value] ?? null),
+);
 
 function abrirNovo() {
   indiceEmEdicao.value = null;
@@ -46,11 +53,22 @@ function salvar() {
   }
   modal.value = false;
 }
+
+function confirmarRemocao() {
+  const indice = indiceParaExcluir.value;
+  if (indice === null) return;
+
+  const habilidade = estado.habilidades[indice];
+  if (habilidade) {
+    estado.removerHabilidade(indice);
+    emit("notificar", `Habilidade ${habilidade.nome} removida do perfil.`);
+  }
+  indiceParaExcluir.value = null;
+}
 </script>
 
 <template>
   <CabecalhoPagina
-    eyebrow="RF03 · PERFIL TÉCNICO"
     titulo="Minhas habilidades"
     descricao="Cadastre e mantenha atualizadas as habilidades usadas para personalizar os próximos treinamentos."
   >
@@ -93,10 +111,7 @@ function salvar() {
               ><button
                 class="btn btn-sm btn-outline-danger"
                 :aria-label="`Remover ${habilidade.nome}`"
-                @click="
-                  estado.removerHabilidade(indice);
-                  emit('notificar', 'Habilidade removida do perfil.');
-                "
+                @click="indiceParaExcluir = indice"
               >
                 <Trash2 :size="15" />
               </button>
@@ -158,4 +173,11 @@ function salvar() {
       </select></label
     >
   </ModalFormulario>
+  <ModalConfirmacao
+    v-if="habilidadeParaExcluir"
+    titulo="Excluir habilidade?"
+    :mensagem="`Tem certeza de que deseja excluir a habilidade ${habilidadeParaExcluir.nome}?`"
+    @fechar="indiceParaExcluir = null"
+    @confirmar="confirmarRemocao"
+  />
 </template>
