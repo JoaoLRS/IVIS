@@ -203,7 +203,7 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 .home-hero-kicker,
 .home-section-kicker {
   color: #9f97f7;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.4px;
 }
@@ -339,8 +339,8 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 
 .progress-label,
 .progress-card small {
-  color: #858694;
-  font-size: 11px;
+  color: var(--ivis-text-secondary);
+  font-size: 14px;
 }
 
 .progress-card strong {
@@ -361,15 +361,15 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 }
 
 .home-section-kicker {
-  color: #898a98;
-  font-size: 9px;
+  color: var(--ivis-text-secondary);
+  font-size: 12px;
   letter-spacing: 1.2px;
 }
 
 .home-section-heading h2 {
   margin: 5px 0 0;
   color: #292a35;
-  font: 700 20px/1.3 Manrope, sans-serif;
+  font: 700 22px/1.3 Manrope, sans-serif;
   letter-spacing: -.4px;
 }
 
@@ -386,7 +386,7 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 
 .home-action-card > svg {
   margin-left: auto;
-  color: #9899a6;
+  color: var(--ivis-text-secondary);
 }
 
 .home-action-card:hover {
@@ -402,12 +402,13 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 }
 
 .home-action-copy strong {
-  font-size: 12px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .home-action-copy small {
-  color: #858694;
-  font-size: 10px;
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
 }
 
 .home-latest {
@@ -449,13 +450,14 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 
 .latest-training-copy > strong {
   color: #292a35;
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .latest-training-copy > small {
   overflow: hidden;
-  color: #858694;
-  font-size: 10px;
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -495,8 +497,8 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 
 .home-empty-state p {
   margin: 5px 0 0;
-  color: #858694;
-  font-size: 11px;
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
 }
 
 .home-empty-link {
@@ -518,8 +520,8 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 .how-it-works .home-section-heading > p {
   max-width: 350px;
   margin: 0;
-  color: #727482;
-  font-size: 11px;
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
   text-align: right;
 }
 
@@ -550,15 +552,15 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
 
 .step-card p {
   margin: 0;
-  color: #777987;
-  font-size: 11px;
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
   line-height: 1.6;
 }
 
 .home-demo-note {
   margin: 0;
-  color: #898a98;
-  font-size: 10px;
+  color: var(--ivis-text-secondary);
+  font-size: 12px;
 }
 
 @media (max-width: 900px) {
@@ -614,7 +616,7 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
   }
 
   .home-section-heading h2 {
-    font-size: 18px;
+    font-size: 22px;
   }
 
   .home-latest .home-section-heading {

@@ -12,12 +12,14 @@ import { useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
+import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
 
 const estado = useEstadoAplicacao();
 const roteador = useRouter();
 const consulta = ref("");
 const modal = ref(false);
+const indiceParaExcluir = ref<number | null>(null);
 const indiceEmEdicao = ref<number | null>(null);
 const formulario = reactive({
   titulo: "",
@@ -34,6 +36,11 @@ const vagasFiltradas = computed(() =>
         .toLowerCase()
         .includes(consulta.value.toLowerCase()),
     ),
+);
+const vagaParaExcluir = computed(() =>
+  indiceParaExcluir.value === null
+    ? null
+    : (estado.vagas[indiceParaExcluir.value] ?? null),
 );
 
 function abrirNova() {
@@ -97,6 +104,25 @@ function remover(indice: number) {
   emit("notificar", "Vaga removida.");
 }
 
+function solicitarRemocao(indice: number) {
+  const vaga = estado.vagas[indice];
+  if (!vaga) return;
+  if (estado.vagaEmTreinamento === vaga.titulo) {
+    emit(
+      "notificar",
+      "Esta vaga está vinculada ao treino em andamento e não pode ser excluída.",
+    );
+    return;
+  }
+  indiceParaExcluir.value = indice;
+}
+
+function confirmarRemocao() {
+  if (indiceParaExcluir.value === null) return;
+  remover(indiceParaExcluir.value);
+  indiceParaExcluir.value = null;
+}
+
 function treinarPara(titulo: string) {
   const vaga = estado.vagas.find((item) => item.titulo === titulo);
   if (!vaga) return;
@@ -107,7 +133,6 @@ function treinarPara(titulo: string) {
 
 <template>
   <CabecalhoPagina
-    eyebrow="RF06 · OBJETIVOS PROFISSIONAIS"
     titulo="Vagas de interesse"
     descricao="Cadastre e organize vagas para orientar seus treinamentos de entrevista."
   >
@@ -128,15 +153,7 @@ function treinarPara(titulo: string) {
   <div
     class="d-flex justify-content-between align-items-center gap-3 mb-3 flex-wrap"
   >
-    <label class="input-group list-search"
-      ><span class="input-group-text"><Search :size="15" /></span
-      ><input
-        v-model="consulta"
-        class="form-control"
-        placeholder="Buscar vaga ou habilidade" /></label
-    ><span class="text-secondary small"
-      >{{ vagasFiltradas.length }} resultados</span
-    >
+
   </div>
   <div class="row g-3">
     <div
@@ -146,8 +163,7 @@ function treinarPara(titulo: string) {
     >
       <article class="card job-card h-100">
         <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="company-mark large">{{ vaga.empresa[0] }}</span>
+          <div class="d-flex justify-content-end align-items-center">
             <div class="d-flex gap-2">
               <button
                 class="btn btn-sm btn-outline-secondary"
@@ -164,7 +180,7 @@ function treinarPara(titulo: string) {
                     ? 'Vaga usada no treino em andamento'
                     : 'Excluir vaga'
                 "
-                @click="remover(indice)"
+                @click="solicitarRemocao(indice)"
               >
                 <Trash2 :size="14" />
               </button>
@@ -247,4 +263,11 @@ function treinarPara(titulo: string) {
       /><small class="form-text">Separe os itens por vírgula.</small></label
     >
   </ModalFormulario>
+  <ModalConfirmacao
+    v-if="vagaParaExcluir"
+    titulo="Excluir vaga"
+    :mensagem="`Tem certeza de que deseja excluir a vaga ${vagaParaExcluir.titulo}?`"
+    @fechar="indiceParaExcluir = null"
+    @confirmar="confirmarRemocao"
+  />
 </template>

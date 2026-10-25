@@ -23,7 +23,6 @@ const treino = computed(() => {
 
 <template>
   <CabecalhoPagina
-    eyebrow="RF08 · FEEDBACK DO TREINAMENTO"
     titulo="Feedback da entrevista"
     :descricao="`${treino?.titulo ?? 'Treinamento'} · ${treino?.contexto ?? ''}`"
   />

@@ -8,11 +8,13 @@ import {
 } from "lucide-vue-next";
 import { RouterLink } from "vue-router";
 import type { Component } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 
 defineProps<{ aberto: boolean }>();
 const emit = defineEmits<{ fechar: [] }>();
 const estado = useEstadoAplicacao();
+const menuRef = ref<HTMLElement | null>(null);
 type LinkMenu = { rota: string; rotulo: string; icone: Component };
 const grupos: { rotulo: string; links: LinkMenu[] }[] = [
   {
@@ -25,6 +27,24 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
     ],
   },
 ];
+
+function fecharGruposAoClicarFora(evento: PointerEvent) {
+  const alvo = evento.target;
+  if (!(alvo instanceof Node)) return;
+
+  menuRef.value
+    ?.querySelectorAll<HTMLDetailsElement>(".nav-section-menu[open]")
+    .forEach((grupo) => {
+      if (!grupo.contains(alvo)) grupo.open = false;
+    });
+}
+
+onMounted(() =>
+  document.addEventListener("pointerdown", fecharGruposAoClicarFora),
+);
+onBeforeUnmount(() =>
+  document.removeEventListener("pointerdown", fecharGruposAoClicarFora),
+);
 </script>
 
 <template>
@@ -34,7 +54,11 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
     aria-label="Fechar menu"
     @click="emit('fechar')"
   />
-  <aside class="app-sidebar app-top-menu" :class="{ show: aberto }">
+  <aside
+    ref="menuRef"
+    class="app-sidebar app-top-menu"
+    :class="{ show: aberto }"
+  >
     <RouterLink
       class="brand d-flex align-items-center text-decoration-none"
       to="/inicio"
