@@ -3062,3 +3062,218 @@ body{
 .app-shell :is(.home-hero, .hero-card, .training-hero, .current-plan) small {
   color: #e0deed !important;
 }
+
+/* Ajustes de leitura e fluxo para telas estreitas, inclusive zoom do navegador. */
+@media (max-width: 575.98px) {
+  .page-content {
+    width: 100%;
+    min-width: 0;
+    padding: 20px 12px 32px;
+  }
+
+  .page-heading,
+  .page-heading > div:first-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .page-heading h1 {
+    overflow-wrap: anywhere;
+  }
+
+  .page-heading .heading-action {
+    width: 100%;
+  }
+
+  .page-heading .heading-action > .btn {
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .card,
+  .card-body,
+  .training-setup,
+  .context-card {
+    min-width: 0;
+  }
+
+  .panel-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .panel-heading > div,
+  .history-filter {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .history-filter {
+    min-height: 42px;
+  }
+
+  .history-list-row {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "symbol copy result"
+      "symbol label label";
+    align-items: start;
+    gap: 8px 10px;
+    padding: 14px 0;
+    text-decoration: none;
+  }
+
+  .history-symbol {
+    grid-area: symbol;
+    width: 30px;
+    height: 30px;
+    margin-top: 2px;
+  }
+
+  .history-list-row .row-copy {
+    grid-area: copy;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .history-list-row .row-copy strong {
+    min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .history-list-row .row-copy small {
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .history-list-row .history-result {
+    grid-area: result;
+    justify-items: end;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .history-list-row .result-label {
+    display: inline-flex;
+    grid-area: label;
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .training-setup {
+    padding: 12px;
+  }
+
+  .context-card {
+    padding: 12px;
+  }
+
+  .context-card-heading {
+    display: grid;
+    grid-template-columns: 18px 32px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 8px;
+  }
+
+  .context-card-heading > .form-check-input {
+    margin-top: 9px;
+  }
+
+  .context-card-icon {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .context-card-title {
+    overflow-wrap: anywhere;
+  }
+
+  .context-card-title > strong,
+  .context-card-title > small {
+    overflow-wrap: anywhere;
+  }
+
+  .context-count {
+    min-width: 24px;
+    padding: 4px 6px;
+  }
+
+  .skill-picker-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .skill-picker-heading > div {
+    flex-wrap: wrap;
+  }
+
+  .training-setup-footer {
+    align-items: stretch;
+  }
+
+  .training-context-summary,
+  .training-context-summary > span {
+    min-width: 0;
+  }
+
+  .training-context-summary strong,
+  .vacancy-option-copy,
+  .vacancy-option-copy > strong,
+  .vacancy-option-copy > small {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .interview-top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .chat-message,
+  .chat-message > div,
+  .answer-input {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-composer > div {
+    align-items: stretch !important;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .chat-composer > div > .btn {
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 359.98px) {
+  .topbar {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .training-context-grid {
+    gap: 10px;
+  }
+
+  .context-card-heading {
+    grid-template-columns: 16px 28px minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .context-card-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
