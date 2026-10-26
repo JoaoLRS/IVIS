@@ -1,8 +1,9 @@
 # API de IA do IVIS
 
-Serviço Python interno do IVIS. Implementa o contrato v1 com um stub determinístico
-para gerar perguntas e avaliações, além de autenticação entre serviços, liveness
-e readiness. O stub não usa nem exige credenciais NVIDIA.
+Serviço Python interno do IVIS. Implementa o contrato v1 com uma interface de
+provedor, um stub determinístico para gerar perguntas e avaliações, validação
+das saídas antes de responder, autenticação entre serviços, liveness e readiness.
+O stub não usa nem exige credenciais NVIDIA.
 
 ## Executar localmente
 
@@ -30,6 +31,12 @@ As rotas de negócio exigem `X-Chave-Servico`. A variável
 `IVIS_IA_CHAVE_SERVICO` é obrigatória e deve ser diferente da chave NVIDIA.
 As avaliações do stub são demonstrativas: a nota depende somente do tamanho das
 respostas, não da sua qualidade técnica.
+
+As rotas delegam a geração ao contrato interno `ProvedorIA`. O adaptador stub é
+o único provedor ativo; desativar `IVIS_IA_USAR_STUB` retorna
+`503/provedor_indisponivel`. Saídas dos provedores são validadas contra os
+schemas v1 e uma saída incompatível resulta em `502/saida_invalida`. O adaptador
+NVIDIA ainda não foi implementado e nenhuma chamada externa é feita pelo serviço.
 
 O backend acessa estas rotas pela rede interna do Compose (`http://ivis-api-ia:8000`).
 O frontend não deve chamar este serviço diretamente; para iniciar e conduzir um

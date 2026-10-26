@@ -1,8 +1,9 @@
 from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
-from app import auth, config
+from app import auth, config, rotas
 from app.main import app
+from app.servico import ServicoIA
 
 CHAVE_TESTE = "chave-de-teste-com-mais-de-32-caracteres"
 cliente = TestClient(app)
@@ -91,6 +92,122 @@ def test_gerar_pergunta_retorna_resposta_deterministica() -> None:
         },
         "versao_modelo": "stub-1",
         "versao_prompt": "perguntas-1",
+    }
+
+
+def test_rota_pergunta_usa_provedor_injetado(monkeypatch) -> None:
+    entrada = {
+        "id_correlacao": "correlacao-123",
+        "tipo_contexto": "HABILIDADES",
+        "habilidades": [{"nome": "Python", "nivel": 4}],
+        "vaga": None,
+        "interacoes": [],
+        "numero_pergunta": 1,
+        "total_perguntas": 3,
+    }
+    resposta_provedor = {
+        "pergunta": {"texto": "Pergunta do provedor"},
+        "versao_modelo": "fake-1",
+        "versao_prompt": "fake-prompt-1",
+    }
+
+    class ProvedorFalso:
+        async def gerar_pergunta(self, recebido):
+            assert recebido.id_correlacao == "correlacao-123"
+            return resposta_provedor
+
+        async def gerar_avaliacao(self, recebido):
+            raise AssertionError("Não deveria gerar avaliação neste teste.")
+
+    monkeypatch.setattr(
+        rotas,
+        "obter_servico_ativo",
+        lambda: ServicoIA(ProvedorFalso()),
+    )
+
+    resposta = cliente.post(
+        "/v1/perguntas/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json=entrada,
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json() == resposta_provedor
+
+
+def test_rota_avaliacao_usa_provedor_injetado(monkeypatch) -> None:
+    resposta_provedor = {
+        "nota": 82,
+        "pontos_fortes": ["Explicou a solução com clareza."],
+        "pontos_melhoria": ["Detalhar as alternativas consideradas."],
+        "versao_modelo": "fake-1",
+        "versao_prompt": "fake-prompt-1",
+    }
+
+    class ProvedorFalso:
+        async def gerar_pergunta(self, recebido):
+            raise AssertionError("Não deveria gerar pergunta neste teste.")
+
+        async def gerar_avaliacao(self, recebido):
+            assert recebido.id_correlacao == "correlacao-123"
+            return resposta_provedor
+
+    monkeypatch.setattr(
+        rotas,
+        "obter_servico_ativo",
+        lambda: ServicoIA(ProvedorFalso()),
+    )
+    resposta = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [],
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json() == resposta_provedor
+
+
+def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
+    class ProvedorFalso:
+        async def gerar_pergunta(self, recebido):
+            raise AssertionError("Não deveria gerar pergunta neste teste.")
+
+        async def gerar_avaliacao(self, recebido):
+            return {
+                "nota": 101,
+                "pontos_fortes": ["Ponto forte"],
+                "pontos_melhoria": ["Melhoria"],
+                "versao_modelo": "fake-1",
+                "versao_prompt": "fake-prompt-1",
+            }
+
+    monkeypatch.setattr(
+        rotas,
+        "obter_servico_ativo",
+        lambda: ServicoIA(ProvedorFalso()),
+    )
+    resposta = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [],
+        },
+    )
+
+    assert resposta.status_code == 502
+    assert resposta.json() == {
+        "codigo": "saida_invalida",
+        "mensagem": "O provedor retornou uma resposta inválida.",
     }
 
 

@@ -9,6 +9,21 @@ from app.schemas import (
     PerguntaGerada,
 )
 
+
+class ProvedorStub:
+    async def gerar_pergunta(
+        self,
+        entrada: GerarPerguntaEntrada,
+    ) -> GerarPerguntaResposta:
+        return gerar_pergunta(entrada)
+
+    async def gerar_avaliacao(
+        self,
+        entrada: GerarAvaliacaoEntrada,
+    ) -> GerarAvaliacaoResposta:
+        return gerar_avaliacao(entrada)
+
+
 _PERGUNTAS = (
     "Como você aplicaria {tema} em um projeto real e quais decisões técnicas tomaria?",
     "Descreva um desafio envolvendo {tema} e como avaliaria as alternativas para resolvê-lo.",
