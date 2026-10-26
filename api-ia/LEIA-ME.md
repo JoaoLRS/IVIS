@@ -51,6 +51,23 @@ $env:IVIS_IA_CHAVE_SERVICO = "chave-local-com-pelo-menos-32-caracteres"
 .\.venv\Scripts\python.exe -m pytest
 ```
 
+## Marco 6: medição e demonstração
+
+O roteiro de integração local, protocolo de avaliação humana e limitações das
+medições estão em [DEMONSTRACAO_MARCO_6.md](DEMONSTRACAO_MARCO_6.md). Para medir
+latência com payloads sintéticos, inicie primeiro o serviço e execute:
+
+```powershell
+Set-Location api-ia
+$env:IVIS_IA_CHAVE_SERVICO = "chave-local-com-pelo-menos-32-caracteres"
+.\.venv\Scripts\python.exe scripts\medir_desempenho.py
+```
+
+O script mede a API de IA por padrão. Use `--camada backend
+--base-url http://127.0.0.1:8081/api` para medir a rota integrada. A medição
+não avalia qualidade semântica; o stub não representa desempenho ou qualidade
+do NIM. Os alvos p95 do relatório são propostas, não um SLA aprovado.
+
 ## Configuração
 
 | Variável | Obrigatória | Uso |
