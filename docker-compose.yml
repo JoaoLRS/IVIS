@@ -28,11 +28,30 @@ services:
       IVIS_BD_USUARIO: ${IVIS_BD_USUARIO:-ivis}
       IVIS_BD_SENHA: ${IVIS_BD_SENHA:-ivis_local}
       IVIS_CORS_ORIGENS: ${IVIS_CORS_ORIGENS:-http://localhost:8080,http://localhost:5173}
+      IVIS_IA_URL: http://ivis-api-ia:8000
+      IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
+      IVIS_IA_TIMEOUT_PERGUNTA: ${IVIS_IA_TIMEOUT_PERGUNTA:-12s}
+      IVIS_IA_TIMEOUT_AVALIACAO: ${IVIS_IA_TIMEOUT_AVALIACAO:-22s}
     ports:
       - "8081:8081"
     depends_on:
       ivis-banco:
         condition: service_healthy
+      ivis-api-ia:
+        condition: service_started
+    restart: unless-stopped
+
+  ivis-api-ia:
+    build:
+      context: ./api-ia
+      dockerfile: Dockerfile
+    container_name: ivis-api-ia
+    environment:
+      IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
+      IVIS_IA_USAR_STUB: ${IVIS_IA_USAR_STUB:-true}
+      IVIS_IA_STUB_FALHA: ${IVIS_IA_STUB_FALHA:-nenhuma}
+    ports:
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
 
   ivis-frontend:

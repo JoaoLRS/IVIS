@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  ArrowUpRight,
-  Check,
-  CheckCircle2,
-  Clock3,
-} from "lucide-vue-next";
+import { ArrowUpRight, Check, CheckCircle2, Clock3 } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
@@ -40,8 +35,8 @@ const treino = computed(() => {
               ><small>pontos</small>
             </div>
           </div>
-          <Etiqueta tom="green">Acima da média</Etiqueta>
-          <p>Resultado demonstrativo gerado ao concluir a simulação.</p>
+          <Etiqueta tom="green">Avaliação concluída</Etiqueta>
+          <p>Resultado registrado ao concluir o treino.</p>
         </div>
       </section>
     </div>
@@ -49,7 +44,7 @@ const treino = computed(() => {
       <section class="card h-100">
         <div class="card-body feedback-body">
           <div class="eyebrow">ANÁLISE DA ENTREVISTA</div>
-          <h2>Uma conversa forte, com espaço para brilhar ainda mais.</h2>
+          <h2>Resumo da sua entrevista</h2>
           <div class="feedback-point">
             <span class="point-icon"><Check :size="15" /></span>
             <div>

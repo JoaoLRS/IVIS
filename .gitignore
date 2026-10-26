@@ -16,3 +16,11 @@ frontend/cypress/screenshots/
 backend/build/
 backend/.gradle/
 backend/out/
+
+# planos da equipe
+planos-equipe/
+
+# API de IA Python
+api-ia/.venv/
+api-ia/.pytest_cache/
+api-ia/**/__pycache__/

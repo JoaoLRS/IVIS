@@ -16,14 +16,21 @@ docker compose up --build
 
 ## Rodar em desenvolvimento
 
-Pré-requisitos: JDK 25 e Docker.
+Pré-requisitos: JDK 25, Docker e uma chave local de serviço (ao menos 32 caracteres).
 
 ```bash
-docker compose up ivis-banco -d
+docker compose up ivis-banco ivis-api-ia -d
 cd backend
 export IVIS_BD_SENHA=ivis_local
+export IVIS_IA_CHAVE_SERVICO=chave-local-com-pelo-menos-32-caracteres
 gradle bootRun
 ```
+
+O backend chama a API de IA usando `IVIS_IA_URL` e `X-Chave-Servico`; o navegador
+chama somente as rotas do backend `/api/v1/ia/perguntas/gerar` e
+`/api/v1/ia/avaliacoes/gerar`. Respostas da IA são validadas antes de serem
+retornadas. Em falhas, o backend preserva as interações recebidas e devolve um
+erro contratual sem repassar detalhes internos.
 
 O Gradle Wrapper ainda não foi gerado. Uma vez, com Gradle instalado, rode `gradle wrapper --gradle-version 9.1.0` dentro de `backend/` e versione `gradlew`, `gradlew.bat` e `gradle/wrapper/`.
 
@@ -38,6 +45,10 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 | `IVIS_BD_SENHA` | *(obrigatória)* | Senha do banco. Sem padrão no código. |
 | `IVIS_PORTA` | `8081` | Porta HTTP. |
 | `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173` | Origens do frontend, separadas por vírgula. |
+| `IVIS_IA_URL` | `http://localhost:8000` | URL base interna da API de IA; no Compose, usa `http://ivis-api-ia:8000`. |
+| `IVIS_IA_CHAVE_SERVICO` | *(obrigatória, mínimo 32 caracteres)* | Chave serviço a serviço enviada ao serviço de IA. Nunca vai para o frontend. |
+| `IVIS_IA_TIMEOUT_PERGUNTA` | `12s` | Timeout para geração de perguntas. |
+| `IVIS_IA_TIMEOUT_AVALIACAO` | `22s` | Timeout para avaliação. |
 | `SPRING_PROFILES_ACTIVE` | *(vazio)* | `estruturado` liga logs em JSON (ECS). |
 
 ## Convenções de API (Etapa 0, item 4)

@@ -315,6 +315,21 @@ Esse documento contém a especificação inicial de visão, escopo, stakeholders
 
 A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10) está em `etc/plano/Ordem_de_Entrega_MVP.md`.
 
+## 🤖 API de IA
+
+O serviço Python interno fica em `api-ia/`. Para iniciá-lo com os demais
+módulos em desenvolvimento, copie `.env.example` para `.env` e execute:
+
+```bash
+docker compose up --build
+```
+
+Liveness e readiness ficam disponíveis em `http://localhost:8000/saude` e
+`http://localhost:8000/pronto`. As operações v1 exigem `X-Chave-Servico`; no
+Marco 1 retornam `501` após autenticação, até a entrega do stub. A NVIDIA não
+é chamada e nenhuma credencial NVIDIA é necessária nesta etapa. Consulte
+[`api-ia/LEIA-ME.md`](api-ia/LEIA-ME.md) para executar e testar o módulo isolado.
+
 ---
 
 ## 📌 Status do Projeto

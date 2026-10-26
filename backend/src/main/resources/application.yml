@@ -28,6 +28,11 @@ server:
 ivis:
   cors:
     origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173}
+  ia:
+    url: ${IVIS_IA_URL:http://localhost:8000}
+    chave-servico: ${IVIS_IA_CHAVE_SERVICO}
+    timeout-pergunta: ${IVIS_IA_TIMEOUT_PERGUNTA:12s}
+    timeout-avaliacao: ${IVIS_IA_TIMEOUT_AVALIACAO:22s}
 
 logging:
   pattern:
