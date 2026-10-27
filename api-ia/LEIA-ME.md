@@ -81,7 +81,7 @@ do NIM. Os alvos p95 do relatório são propostas, não um SLA aprovado.
 | `IVIS_IA_CHAVE_SERVICO` | Sim | Chave interna do backend, com no mínimo 32 caracteres. |
 | `IVIS_IA_USAR_STUB` | Não (`true`) | `true` usa o stub local; `false` seleciona NVIDIA. |
 | `IVIS_IA_STUB_FALHA` | Não (`nenhuma`) | Simula falha do stub: `nenhuma`, `indisponivel` (`503`) ou `tempo_esgotado` (`504`). Não é um parâmetro das requisições. |
-| `NVIDIA_API_KEY` | Para NVIDIA | Chave privada do NVIDIA API Catalog. Não use chave exposta anteriormente. |
+| `NVIDIA_API_KEY` | Para NVIDIA | Chave privada do NVIDIA API Catalog. Se uma chave real foi exposta, revogue-a e gere outra; nunca reutilize uma chave exposta. |
 | `NVIDIA_MODEL` | Não (`nvidia/nemotron-3.5-bolt-e4b`) | Modelo NVIDIA selecionado. |
 | `NVIDIA_BASE_URL` | Não (`https://integrate.api.nvidia.com/v1`) | URL base do endpoint NVIDIA. |
 | `NVIDIA_TIMEOUT_SEGUNDOS` | Não (`90`) | Timeout total da chamada externa, incluindo eventual consulta de operação assíncrona. |
