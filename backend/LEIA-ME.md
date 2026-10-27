@@ -47,8 +47,8 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 | `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173` | Origens do frontend, separadas por vírgula. |
 | `IVIS_IA_URL` | `http://localhost:8000` | URL base interna da API de IA; no Compose, usa `http://ivis-api-ia:8000`. |
 | `IVIS_IA_CHAVE_SERVICO` | *(obrigatória, mínimo 32 caracteres)* | Chave serviço a serviço enviada ao serviço de IA. Nunca vai para o frontend. |
-| `IVIS_IA_TIMEOUT_PERGUNTA` | `12s` | Timeout para geração de perguntas. |
-| `IVIS_IA_TIMEOUT_AVALIACAO` | `22s` | Timeout para avaliação. |
+| `IVIS_IA_TIMEOUT_PERGUNTA` | `105s` | Timeout para geração de perguntas (90s da NVIDIA mais margem de rede). |
+| `IVIS_IA_TIMEOUT_AVALIACAO` | `110s` | Timeout para avaliação (90s da NVIDIA mais margem de rede). |
 | `SPRING_PROFILES_ACTIVE` | *(vazio)* | `estruturado` liga logs em JSON (ECS). |
 
 ## Convenções de API (Etapa 0, item 4)

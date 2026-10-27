@@ -29,13 +29,18 @@ Este plano transforma o [modelo relacional proposto](Modelo_Relacional_IVIS.md) 
 
 ### 3. Implementar migrações incrementais
 
-- Criar migrações versionadas em ordem de dependência: contas e perfis; planos e contratos; vínculos; pagamentos; vagas e habilidades; treinamentos e resultados; auditoria.
+- **Concluída para o schema central do produto:** `V2__modelo_relacional_treinos.sql` e `V3__modelo_relacional_contas_planos_pagamentos_auditoria.sql` criam identidade, segurança, perfil, habilidades, vagas, treinos, Q&A, avaliação, planos, contratos, vínculos institucionais, pagamentos e auditoria.
+- Evoluções futuras continuam entrando por novas migrações Flyway, sem editar versões já aplicadas.
+
+- Manter as migrações versionadas em ordem de dependência; as tabelas centrais atuais estão distribuídas entre V2 e V3.
 - Declarar PKs, FKs, `NOT NULL`, unicidade, índices e `CHECK` para regras estruturais.
 - Usar nomes em português brasileiro também para índices e restrições.
 - Não editar migrações já aplicadas em ambientes compartilhados; corrigir com nova migração.
 - Separar dados fictícios de demonstração das migrações de estrutura.
 
 ### 4. Implementar repositórios e regras transacionais no backend
+
+- **Pendente para a fatia Q&A:** entidades, repositórios e operações de domínio para iniciar treino, persistir pergunta e resposta, concluir com avaliação e consultar histórico.
 
 - Criar entidades e repositórios com nomes em português brasileiro; classes em `PascalCase`, métodos em `camelCase`, identificadores sem acentos.
 - Derivar a conta autenticada no servidor; não aceitar do frontend IDs como prova de titularidade.
