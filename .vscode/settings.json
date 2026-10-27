@@ -1,5 +1,7 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
     "python-envs.defaultEnvManager": "ms-python.python:system",
+    "jdk.advanced.disable.nbjavac": false,
+    "java.configuration.updateBuildConfiguration": "interactive",
     "python.terminal.useEnvFile": true
 }
