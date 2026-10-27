@@ -156,6 +156,11 @@ function enviarCadastro() {
           privacidade.
         </p>
       </form>
+
+      <p class="cadastro-login-link">
+        Já tem uma conta?
+        <RouterLink to="/login">Entrar</RouterLink>
+      </p>
     </section>
 
     <p class="cadastro-demo">Tela de exemplo · cadastro ainda não integrado</p>
