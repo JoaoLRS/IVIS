@@ -24,6 +24,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -56,12 +60,17 @@ class IaControladorIntegracaoTest {
     @LocalServerPort
     private int porta;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private JwtEncoder codificadorJwt;
+
     private final HttpClient clienteHttp = HttpClient.newHttpClient();
 
     @DynamicPropertySource
     static void configurarIa(DynamicPropertyRegistry propriedades) {
         propriedades.add("ivis.ia.url", () -> "http://127.0.0.1:" + servidorIa.getAddress().getPort());
         propriedades.add("ivis.ia.chave-servico", () -> CHAVE_SERVICO);
+        propriedades.add("ivis.jwt.chave-assinatura",
+                () -> java.util.Base64.getEncoder().encodeToString(new byte[32]));
     }
 
     @BeforeEach
@@ -119,13 +128,74 @@ class IaControladorIntegracaoTest {
         assertEquals(List.of(CHAVE_SERVICO), chaves);
     }
 
+    @Test
+    void rotaPrivadaAindaNaoConfiguradaEhNegadaComErroUniforme() throws Exception {
+        HttpRequest requisicao = HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + porta + "/api/v1/conta"))
+                .header("X-Id-Requisicao", "abc-12345678")
+                .GET()
+                .build();
+        HttpResponse<String> resposta = clienteHttp.send(requisicao, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(401, resposta.statusCode());
+        assertTrue(resposta.body().contains("\"codigo\":\"nao_autenticado\""));
+        assertTrue(resposta.body().contains("\"idRequisicao\":\"abc-12345678\""));
+    }
+
+    @Test
+    void endpointCsrfEntregaTokenEGravaCookie() throws Exception {
+        HttpRequest requisicao = HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + porta + "/api/v1/sessoes/csrf"))
+                .GET()
+                .build();
+        HttpResponse<String> resposta = clienteHttp.send(requisicao, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, resposta.statusCode());
+        assertTrue(resposta.body().contains("\"token\":"));
+        assertTrue(resposta.headers().allValues("Set-Cookie").stream()
+                .anyMatch(cookie -> cookie.startsWith("XSRF-TOKEN=")));
+    }
+
+    @Test
+    void corsAceitaPreflightComPatchECredenciais() throws Exception {
+        HttpRequest requisicao = HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + porta + "/api/v1/habilidades"))
+                .header("Origin", "http://localhost:8080")
+                .header("Access-Control-Request-Method", "PATCH")
+                .header("Access-Control-Request-Headers", "authorization,content-type")
+                .method("OPTIONS", HttpRequest.BodyPublishers.noBody())
+                .build();
+        HttpResponse<String> resposta = clienteHttp.send(requisicao, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, resposta.statusCode());
+        assertEquals("http://localhost:8080",
+                resposta.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+        assertEquals("true", resposta.headers().firstValue("Access-Control-Allow-Credentials").orElse(""));
+        assertTrue(resposta.headers().firstValue("Access-Control-Allow-Methods").orElse("").contains("PATCH"));
+    }
+
     private HttpResponse<String> postar(String caminho, String corpo) throws Exception {
         HttpRequest requisicao = HttpRequest.newBuilder(
                         URI.create("http://localhost:" + porta + caminho))
                 .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + tokenAluno())
                 .POST(HttpRequest.BodyPublishers.ofString(corpo))
                 .build();
         return clienteHttp.send(requisicao, HttpResponse.BodyHandlers.ofString());
+    }
+
+    private String tokenAluno() {
+        var agora = java.time.Instant.now();
+        return codificadorJwt.encode(JwtEncoderParameters.from(
+                org.springframework.security.oauth2.jwt.JwsHeader.with(MacAlgorithm.HS256).build(),
+                JwtClaimsSet.builder()
+                        .issuer("ivis")
+                        .subject("123e4567-e89b-12d3-a456-426614174000")
+                        .issuedAt(agora)
+                        .expiresAt(agora.plusSeconds(900))
+                        .claim("tipo_conta", "ALUNO")
+                        .build()))
+                .getTokenValue();
     }
 
     private static HttpServer criarServidorIa() {
@@ -155,6 +225,56 @@ class IaControladorIntegracaoTest {
         @Bean
         DataSource fonteDeDados() {
             return mock(DataSource.class);
+        }
+
+        @Bean
+        br.ivis.identidade.ContaRepositorio contas() {
+            return mock(br.ivis.identidade.ContaRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.PerfilAlunoRepositorio perfisAlunos() {
+            return mock(br.ivis.identidade.PerfilAlunoRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.PerfilInstituicaoRepositorio perfisInstituicoes() {
+            return mock(br.ivis.identidade.PerfilInstituicaoRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.SessaoRepositorio sessoes() {
+            return mock(br.ivis.identidade.SessaoRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.TokenRecuperacaoSenhaRepositorio tokensRecuperacaoSenha() {
+            return mock(br.ivis.identidade.TokenRecuperacaoSenhaRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.HabilidadePerfilRepositorio habilidadesPerfil() {
+            return mock(br.ivis.identidade.HabilidadePerfilRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.VagaInteresseRepositorio vagasInteresse() {
+            return mock(br.ivis.identidade.VagaInteresseRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.RequisitoVagaRepositorio requisitosVaga() {
+            return mock(br.ivis.identidade.RequisitoVagaRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.ContratoInstitucionalRepositorio contratosInstitucionais() {
+            return mock(br.ivis.identidade.ContratoInstitucionalRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.identidade.VinculoInstitucionalRepositorio vinculosInstitucionais() {
+            return mock(br.ivis.identidade.VinculoInstitucionalRepositorio.class);
         }
     }
 }
