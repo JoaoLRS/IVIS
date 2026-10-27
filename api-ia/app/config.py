@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr
@@ -18,18 +19,27 @@ class Configuracoes(BaseSettings):
         default=None,
         validation_alias="NVIDIA_API_KEY",
     )
-    modelo_nvidia: str | None = Field(default=None, validation_alias="NVIDIA_MODEL")
+    modelo_nvidia: str = Field(
+        default="nvidia/nemotron-3.5-bolt-e4b",
+        min_length=1,
+        validation_alias="NVIDIA_MODEL",
+    )
     url_base_nvidia: str = Field(
         default="https://integrate.api.nvidia.com/v1",
         validation_alias="NVIDIA_BASE_URL",
     )
     timeout_nvidia_segundos: float = Field(
-        default=25,
+        default=90,
         gt=0,
         validation_alias="NVIDIA_TIMEOUT_SEGUNDOS",
     )
 
-    model_config = SettingsConfigDict(env_file=None, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[1] / ".env",
+        env_file_encoding="utf-8",
+        env_ignore_empty=True,
+        extra="ignore",
+    )
 
 
 configuracoes = Configuracoes()

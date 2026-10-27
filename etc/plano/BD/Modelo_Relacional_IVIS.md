@@ -1,6 +1,18 @@
 # Modelo relacional do IVIS — proposta inicial
 
-Este documento descreve as tabelas e regras de relacionamento propostas para o banco PostgreSQL do IVIS. É o detalhamento associado ao [ADR-0010](../adr/ADR-0010-modelagem-relacional-do-banco.md); deve ser validado pela equipe antes da criação das migrações Flyway. O **backend** é o único módulo que lê e grava os dados de negócio.
+Este documento descreve o modelo relacional do IVIS e suas regras de relacionamento. É o detalhamento associado ao [ADR-0010](../adr/ADR-0010-modelagem-relacional-do-banco.md). As tabelas centrais do sistema estão implementadas nas migrações [`V2__modelo_relacional_treinos.sql`](../../../backend/src/main/resources/db/migration/V2__modelo_relacional_treinos.sql) e [`V3__modelo_relacional_contas_planos_pagamentos_auditoria.sql`](../../../backend/src/main/resources/db/migration/V3__modelo_relacional_contas_planos_pagamentos_auditoria.sql). O **backend** é o único módulo que lê e grava os dados de negócio.
+
+## Modelo relacional implementado
+
+A primeira versão do schema cria as tabelas relacionais centrais do produto. As migrações usam UUIDs, timestamps com fuso, chaves estrangeiras, índices e restrições estruturais:
+
+- **Contas e segurança:** `contas`, `perfis_aluno`, `perfis_instituicao`, `tokens_recuperacao_senha` e `sessoes_autenticacao`.
+- **Perfil e preparação:** `habilidades`, `vagas_interesse` e `requisitos_vaga`.
+- **Treinamentos e resultados:** `treinamentos`, `perguntas_entrevista`, `respostas_entrevista`, `avaliacoes_treinamento` e `itens_feedback_treinamento`.
+- **Planos e cobrança:** `planos`, `beneficios_plano`, `contratos` e `pagamentos`.
+- **Gestão institucional e rastreabilidade:** `vinculos_institucionais` e `eventos_auditoria`.
+
+O banco está disponível no serviço Docker Compose `ivis-banco`, com volume persistente `ivis-banco-dados`. O Flyway do backend aplica as migrações na inicialização. A existência do schema não significa que todos os módulos de domínio já estejam implementados: endpoints, repositórios e regras transacionais para cada conjunto de tabelas ainda precisam ser construídos no backend.
 
 ## Princípios e convenções
 
@@ -19,6 +31,7 @@ erDiagram
     CONTAS ||--o| PERFIS_ALUNO : "perfil de aluno"
     CONTAS ||--o| PERFIS_INSTITUICAO : "perfil de instituicao"
     CONTAS ||--o{ TOKENS_RECUPERACAO_SENHA : recupera
+    CONTAS ||--o{ SESSOES_AUTENTICACAO : autentica
     PERFIS_ALUNO ||--o{ HABILIDADES : possui
     PERFIS_ALUNO ||--o{ VAGAS_INTERESSE : cadastra
     VAGAS_INTERESSE ||--o{ REQUISITOS_VAGA : detalha
@@ -48,6 +61,7 @@ erDiagram
 | `perfis_aluno` | `conta_id` PK/FK, `nome_exibicao`, `url_foto`, `criado_em`, `atualizado_em` | Extensão 1:1 de uma conta `ALUNO`. Só o aluno dono pode alterar o próprio perfil. |
 | `perfis_instituicao` | `conta_id` PK/FK, `razao_social`, `documento_fiscal`, `url_logo`, `criado_em`, `atualizado_em` | Extensão 1:1 de uma conta `INSTITUICAO`. `documento_fiscal` único se exigido pelo produto; acesso restrito à instituição e ao backend. |
 | `tokens_recuperacao_senha` | `id`, `conta_id` FK, `hash_token`, `expira_em`, `consumido_em`, `criado_em` | Tokens de recuperação de uso único (RF04). Persistir apenas hash do token, expirar e marcar consumo; limitar solicitações no backend. A mensagem/link é capturada pelo Mailpit no ambiente de apresentação. |
+| `sessoes_autenticacao` | `id`, `conta_id` FK, `hash_token_renovacao`, `expira_em`, `revogada_em`, `substituida_por_id`, `criado_em` | Sessão de renovação conforme ADR-0011. Armazenar somente o hash do token opaco; permitir revogação e rotação sem persistir o token legível. |
 
 Não duplicar `AlunoPagante`/`AlunoConsórcio` como papel editável no cliente. A modalidade é derivada pelo backend a partir do plano individual ativo ou de vínculo institucional ativo, aplicando RF17 e RF19.
 
@@ -132,11 +146,11 @@ Constraints que dependem de outras linhas/tabelas (por exemplo, capacidade de va
 - Evoluções de situação/colunas devem preservar dados existentes e incluir estratégia de preenchimento retroativo quando necessário.
 - Usar dados de demonstração separados de migrações de schema; nunca inserir segredos, senhas reais, tokens ou cartões em massa.
 
-## Pendências para validar antes da primeira migração
+## Pendências de evolução do modelo
 
-- Campos obrigatórios de aluno/instituição e necessidade de foto/logo e CNPJ.
+- Validar com a equipe campos obrigatórios de aluno/instituição e necessidade de foto/logo e documento fiscal.
 - Moeda, ciclo de vigência, renovação e regras de preço/capacidade dos planos.
 - Transferência de aluno entre instituições e efeito de remoção/vencimento do plano no acesso.
 - Política de exclusão/anonimização e períodos concretos de retenção para conta, treino e auditoria.
-- Formato do contexto de IA e necessidade de persistir todas as respostas ou somente registros selecionados.
+- Formalizar o formato e a versão do snapshot de contexto da IA.
 - Esquema de estados e cenários do simulador de pagamento.

@@ -317,18 +317,36 @@ A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10)
 
 ## 🤖 API de IA
 
-O serviço Python interno fica em `api-ia/`. Para iniciá-lo com os demais
-módulos em desenvolvimento, copie `.env.example` para `.env` e execute:
+O banco PostgreSQL, a API de IA e o backend podem ser iniciados com o script na
+raiz do repositório usando Bash, Git Bash ou WSL:
 
 ```bash
-docker compose up --build
+bash release.sh up
 ```
 
+No PowerShell do Windows, o mesmo fluxo está disponível com:
+
+```powershell
+.\release.ps1 up
+```
+
+O script cria `.env` e `api-ia/.env` a partir dos exemplos se não existirem,
+compila os serviços e aguarda a prontidão. Os dados do PostgreSQL ficam no
+volume `ivis-banco-dados`. Também aceita `bash release.sh status`,
+`bash release.sh logs`, `bash release.sh restart` e `bash release.sh down`.
+O `release.ps1` aceita as mesmas ações (`.\release.ps1 status`, `logs`,
+`restart` e `down`).
+Para usar NVIDIA, configure `NVIDIA_API_KEY` em `api-ia/.env` e defina
+`IVIS_IA_USAR_STUB=false`.
+O PostgreSQL fica acessível apenas na máquina local pela porta `5433` por padrão
+(configurável em `IVIS_BD_PORTA` no `.env` da raiz); dentro do Docker, o backend
+usa o nome do serviço e a porta interna `5432`.
+
 Liveness e readiness ficam disponíveis em `http://localhost:8000/saude` e
-`http://localhost:8000/pronto`. As operações v1 exigem `X-Chave-Servico`; no
-Marco 1 retornam `501` após autenticação, até a entrega do stub. A NVIDIA não
-é chamada e nenhuma credencial NVIDIA é necessária nesta etapa. Consulte
-[`api-ia/LEIA-ME.md`](api-ia/LEIA-ME.md) para executar e testar o módulo isolado.
+`http://localhost:8000/pronto`. As operações v1 exigem `X-Chave-Servico` e
+usam o stub por padrão. Para testar o provedor NVIDIA no módulo Python, configure
+`api-ia/.env` conforme [`api-ia/LEIA-ME.md`](api-ia/LEIA-ME.md). O navegador
+continua chamando somente o backend.
 
 ---
 

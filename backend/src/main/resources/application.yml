@@ -31,8 +31,8 @@ ivis:
   ia:
     url: ${IVIS_IA_URL:http://localhost:8000}
     chave-servico: ${IVIS_IA_CHAVE_SERVICO}
-    timeout-pergunta: ${IVIS_IA_TIMEOUT_PERGUNTA:12s}
-    timeout-avaliacao: ${IVIS_IA_TIMEOUT_AVALIACAO:22s}
+    timeout-pergunta: ${IVIS_IA_TIMEOUT_PERGUNTA:105s}
+    timeout-avaliacao: ${IVIS_IA_TIMEOUT_AVALIACAO:110s}
 
 logging:
   pattern:

@@ -50,7 +50,7 @@ export async function gerarPergunta(
       numero_pergunta: numeroPergunta,
       total_perguntas: totalPerguntas,
     },
-    { timeout: 15_000 },
+    { timeout: 105_000 },
   );
   return resposta.data;
 }
@@ -61,7 +61,7 @@ export async function gerarAvaliacao(
   const resposta = await clienteHttp.post<GerarAvaliacaoResposta>(
     "/v1/ia/avaliacoes/gerar",
     contexto,
-    { timeout: 25_000 },
+    { timeout: 110_000 },
   );
   return resposta.data;
 }
