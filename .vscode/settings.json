@@ -1,3 +1,5 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "jdk.advanced.disable.nbjavac": false,
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

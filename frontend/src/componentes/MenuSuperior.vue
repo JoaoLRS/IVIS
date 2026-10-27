@@ -69,6 +69,13 @@ onBeforeUnmount(() =>
     <nav class="sidebar-nav">
       <RouterLink
         class="top-menu-text-link"
+        to="/cadastro"
+        @click="emit('fechar')"
+      >
+        Cadastro
+      </RouterLink>
+      <RouterLink
+        class="top-menu-text-link"
         to="/treinos"
         @click="emit('fechar')"
       >
