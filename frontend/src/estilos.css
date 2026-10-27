@@ -3290,3 +3290,233 @@ body{
 .score-ring::before {
   border-radius: 50% !important;
 }
+
+
+/* Tela de cadastro */
+.cadastro-page {
+  min-height: 100vh;
+  padding: 32px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f7f7fb;
+  color: #292a35;
+}
+
+.cadastro-top {
+  width: min(100%, 480px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.cadastro-brand {
+  margin-right: auto;
+  color: #22232d;
+  font: 800 24px Manrope, sans-serif;
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+
+.cadastro-back {
+  margin-left: auto;
+  color: #626477;
+  font-size: 13px;
+  text-align: right;
+  text-decoration: none;
+}
+
+.cadastro-back:hover {
+  color: #5b4cce;
+}
+
+.cadastro-card {
+  width: min(100%, 480px);
+  padding: 20px;
+  border: 1px solid #ececf2;
+  background: #fff;
+  box-shadow: 0 12px 36px #292a350a;
+}
+
+.cadastro-heading {
+  margin-bottom: 22px;
+}
+
+.cadastro-eyebrow {
+  color: #6757df;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+}
+
+.cadastro-heading h1 {
+  margin: 8px 0 6px;
+  color: #292a35;
+  font: 700 15px/1.2, Roboto, sans-serif;
+  letter-spacing: -0.7px;
+}
+
+.cadastro-heading p {
+  margin: 0;
+  color: #626477;
+  font-size: 14px;
+}
+
+.perfil-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 21px;
+}
+
+.perfil-option {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e6e6ef;
+  background: #fff;
+  color: #292a35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.perfil-option:hover {
+  border-color: #b9b0f4;
+}
+
+.perfil-option.selecionado {
+  border-color: #6757df;
+  background: #f7f5ff;
+  box-shadow: 0 0 0 2px #6757df16;
+}
+
+.perfil-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  background: #f0edff;
+  color: #6757df;
+}
+
+.perfil-option-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.perfil-option strong {
+  font-size: 12px;
+}
+
+.perfil-option small {
+  color: #626477;
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.perfil-radio {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  margin-left: auto;
+  border: 1.5px solid #c6c6d2;
+  border-radius: 50%;
+}
+
+.perfil-option.selecionado .perfil-radio {
+  border: 4px solid #6757df;
+}
+
+.cadastro-fields {
+  display: grid;
+  gap: 14px;
+}
+
+.cadastro-fields .form-label {
+  margin-bottom: 6px;
+  color: #373844;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.cadastro-fields .form-control {
+  min-height: 43px;
+  border-color: #e4e4ec;
+  font-size: 13px;
+}
+
+.cadastro-fields .form-control:focus {
+  border-color: #8d80ea;
+  box-shadow: 0 0 0 0.2rem #6757df1b;
+}
+
+.campo-opcional {
+  color: #77798b;
+  font-weight: 400;
+}
+
+.cadastro-passwords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+}
+
+.cadastro-submit {
+  min-height: 45px;
+  border: 0;
+  background: #6757df;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cadastro-submit:hover {
+  background: #5848ce;
+}
+
+.cadastro-message {
+  margin: 0;
+  padding: 10px 12px;
+  background: #f4f2ff;
+  color: #494078;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cadastro-terms {
+  margin: 0;
+  color: #77798b;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.cadastro-demo {
+  margin: 17px 0 0;
+  color: #77798b;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .cadastro-page {
+    padding: 22px 16px;
+  }
+
+  .cadastro-top {
+    margin-bottom: 24px;
+  }
+
+  .cadastro-card {
+    padding: 24px 20px;
+  }
+
+  .perfil-options,
+  .cadastro-passwords {
+    grid-template-columns: 1fr;
+  }
+}

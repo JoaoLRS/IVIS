@@ -14,11 +14,13 @@ const titulos: Record<string, string> = {
   historico: "Histórico",
   feedback: "Seu feedback",
   conta: "Dados do aluno",
+  cadastro: "Cadastro do aluno",
 };
 </script>
 
 <template>
-  <div class="app-shell">
+  <RouterView v-if="rota.meta.layout === 'autenticacao'" />
+  <div v-else class="app-shell">
     <MenuLateral :aberto="menuAberto" @fechar="menuAberto = false" />
     <main class="main-area">
       <BarraSuperior

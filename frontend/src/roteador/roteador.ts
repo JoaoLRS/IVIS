@@ -8,6 +8,12 @@ const roteador = createRouter({
       redirect: "/inicio",
     },
     {
+      path: "/cadastro",
+      name: "cadastro",
+      component: () => import("../paginas/Cadastro.vue"),
+      meta: { layout: "autenticacao" },
+    },
+    {
       path: "/inicio",
       name: "inicio",
       component: () => import("../paginas/Inicio.vue"),
@@ -47,3 +53,4 @@ const roteador = createRouter({
 });
 
 export default roteador;
+
