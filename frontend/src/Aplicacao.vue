@@ -14,7 +14,6 @@ const titulos: Record<string, string> = {
   historico: "Histórico",
   feedback: "Seu feedback",
   conta: "Dados do aluno",
-  cadastro: "Cadastro do aluno",
 };
 </script>
 
@@ -28,9 +27,9 @@ const titulos: Record<string, string> = {
         @abrir-menu="menuAberto = true"
       />
       <div class="page-content container-fluid">
-        <RouterView v-slot="{ Component }"
-          ><component :is="Component"
-        /></RouterView>
+        <RouterView v-slot="{ Component }">
+          <component :is="Component" />
+        </RouterView>
       </div>
     </main>
   </div>

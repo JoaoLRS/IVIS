@@ -14,6 +14,12 @@ const roteador = createRouter({
       meta: { layout: "autenticacao" },
     },
     {
+      path: "/login",
+      name: "login",
+      component: () => import("../paginas/Login.vue"),
+      meta: { layout: "autenticacao" },
+    },
+    {
       path: "/inicio",
       name: "inicio",
       component: () => import("../paginas/Inicio.vue"),
