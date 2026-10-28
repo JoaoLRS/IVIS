@@ -12,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -536,10 +537,15 @@ class EsqueletoIntegracaoTest {
 
     private ProtecaoCsrf obterProtecaoCsrf() throws Exception {
         HttpResponse<String> resposta = obter("/v1/sessoes/csrf");
-        String cookie = resposta.headers().allValues("Set-Cookie").stream()
+        String cookieCsrf = resposta.headers().allValues("Set-Cookie").stream()
                 .filter(valor -> valor.startsWith("XSRF-TOKEN="))
-                .findFirst().orElseThrow().split(";", 2)[0];
+                .findFirst().orElseThrow();
         String token = json().readTree(resposta.body()).get("token").asText();
+        assertTrue(Arrays.stream(cookieCsrf.split(";"))
+                .map(String::trim)
+                .anyMatch("Path=/"::equals));
+        String cookie = cookieCsrf.split(";", 2)[0];
+        assertEquals(token, cookie.substring("XSRF-TOKEN=".length()));
         return new ProtecaoCsrf(cookie, token);
     }
 

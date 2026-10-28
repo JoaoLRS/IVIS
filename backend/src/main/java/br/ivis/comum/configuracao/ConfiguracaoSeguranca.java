@@ -76,7 +76,7 @@ public class ConfiguracaoSeguranca {
     CookieCsrfTokenRepository repositorioCsrf(
             @Value("${ivis.sessao.cookie-seguro:true}") boolean cookieSeguro) {
         CookieCsrfTokenRepository repositorio = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        repositorio.setCookieCustomizer(cookie -> cookie.path("/api").secure(cookieSeguro).sameSite("Strict"));
+        repositorio.setCookieCustomizer(cookie -> cookie.path("/").secure(cookieSeguro).sameSite("Strict"));
         return repositorio;
     }
 

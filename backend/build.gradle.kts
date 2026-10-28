@@ -1,6 +1,7 @@
 plugins {
     java
     id("org.springframework.boot") version "4.1.0"
+    id("org.graalvm.buildtools.native") version "1.1.17"
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -47,4 +48,14 @@ tasks.withType<Test> {
 
 tasks.bootJar {
     archiveFileName.set("ivis-backend.jar")
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("ivis-backend")
+            buildArgs.add("-march=compatibility")
+            buildArgs.add("-O2")
+        }
+    }
 }

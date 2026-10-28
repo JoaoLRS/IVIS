@@ -38,6 +38,22 @@ O Gradle Wrapper ainda não foi gerado. Uma vez, com Gradle instalado, rode `gra
 
 Testes (exigem Docker, usam Testcontainers): `gradle test`.
 
+## Compilar como GraalVM Native Image
+
+O build usa o plugin oficial GraalVM Native Build Tools (`1.1.17`) e gera o executável `ivis-backend` com `-march=compatibility` para evitar instruções específicas da CPU de build.
+
+Pré-requisitos: GraalVM for JDK 25 com Native Image instalado e, no Windows, a toolchain C/C++ e o Windows SDK exigidos pelo Native Image. Confira a instalação com `native-image --version`.
+
+Na pasta `backend/`, compile e execute:
+
+```bash
+gradle nativeCompile
+```
+
+O executável fica em `build/native/nativeCompile/ivis-backend` (Linux/macOS) ou `build/native/nativeCompile/ivis-backend.exe` (Windows). A aplicação continua precisando das mesmas variáveis de ambiente documentadas acima, incluindo as credenciais do banco e a chave JWT.
+
+Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa também requer Docker porque os testes de integração usam Testcontainers.
+
 ## Variáveis de ambiente
 
 | Variável | Padrão | Uso |
@@ -101,7 +117,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
   `campos` é sempre uma lista (vazia quando não se aplica). As mensagens de erro do framework são fixas e não repetem o texto da exceção. Erros de regra de negócio usam `ExcecaoNegocio`.
 - **Logs:** só método, caminho, status e duração por requisição. Nada de corpo, cabeçalhos, consulta, senhas ou tokens.
 - **CORS:** só as origens de `IVIS_CORS_ORIGENS`, com credenciais (cookie de renovação do ADR-0011).
-- **CSRF:** buscar `GET /api/v1/sessoes/csrf` antes de chamadas mutáveis e enviar o cookie `XSRF-TOKEN` junto do cabeçalho `X-XSRF-TOKEN`. `ivis_refresh` é HttpOnly, SameSite Strict e Secure por padrão.
+- **CSRF:** buscar `GET /api/v1/sessoes/csrf` antes de chamadas mutáveis e enviar o cookie `XSRF-TOKEN` junto do cabeçalho `X-XSRF-TOKEN`. O cookie CSRF usa `Path=/` para ficar disponível em toda a aplicação. `ivis_refresh` é HttpOnly, SameSite Strict e Secure por padrão.
 
 ## Preparação de segurança
 
