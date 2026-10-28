@@ -1,23 +1,46 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useEstadoSessao } from "../estados/estadoSessao";
+
+declare module "vue-router" {
+  interface RouteMeta {
+    publico?: boolean;
+    layout?: string;
+    exigePlano?: boolean;
+  }
+}
 
 const roteador = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: "/",
-      redirect: "/inicio",
+      name: "apresentacao",
+      component: () => import("../paginas/Apresentacao.vue"),
+      meta: { layout: "autenticacao", publico: true },
     },
     {
       path: "/cadastro",
       name: "cadastro",
       component: () => import("../paginas/Cadastro.vue"),
-      meta: { layout: "autenticacao" },
+      meta: { layout: "autenticacao", publico: true },
     },
     {
       path: "/login",
       name: "login",
       component: () => import("../paginas/Login.vue"),
-      meta: { layout: "autenticacao" },
+      meta: { layout: "autenticacao", publico: true },
+    },
+    {
+      path: "/planos",
+      name: "planos",
+      component: () => import("../paginas/Planos.vue"),
+      meta: { layout: "autenticacao", publico: true },
+    },
+    {
+      path: "/checkout/:planoId",
+      name: "checkout",
+      component: () => import("../paginas/CheckoutSimulado.vue"),
+      meta: { layout: "autenticacao", exigePlano: false },
     },
     {
       path: "/inicio",
@@ -54,9 +77,28 @@ const roteador = createRouter({
       name: "conta",
       component: () => import("../paginas/Conta.vue"),
     },
-    { path: "/:caminho(.*)*", redirect: "/inicio" },
+    { path: "/:caminho(.*)*", redirect: "/" },
   ],
 });
 
 export default roteador;
 
+roteador.beforeEach(async (to) => {
+  const sessao = useEstadoSessao();
+  const autenticado = await sessao.restaurar();
+
+  if (to.meta.publico) {
+    if (autenticado && (to.name === "login" || to.name === "cadastro")) {
+      return sessao.temPlano ? "/inicio" : "/planos";
+    }
+    return true;
+  }
+
+  if (!autenticado) {
+    return { name: "login", query: { redirect: to.fullPath } };
+  }
+  if (to.meta.exigePlano !== false && !sessao.temPlano) {
+    return { name: "planos", query: { acesso: "necessario" } };
+  }
+  return true;
+});

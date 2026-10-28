@@ -8,6 +8,8 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import br.ivis.identidade.servico.LimiteTentativasLogin;
+
 class LimiteTentativasLoginTest {
 
     @Test

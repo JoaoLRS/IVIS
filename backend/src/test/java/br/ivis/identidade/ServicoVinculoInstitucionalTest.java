@@ -17,6 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 
+import br.ivis.identidade.dto.ContratoInstitucionalResposta;
+import br.ivis.identidade.dto.VinculoInstitucionalResumo;
+import br.ivis.identidade.modelo.Conta;
+import br.ivis.identidade.modelo.ContratoInstitucional;
+import br.ivis.identidade.modelo.VinculoInstitucional;
+import br.ivis.identidade.repositorio.ContaRepositorio;
+import br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio;
+import br.ivis.identidade.repositorio.PerfilAlunoRepositorio;
+import br.ivis.identidade.repositorio.VinculoInstitucionalRepositorio;
+import br.ivis.identidade.servico.ServicoVinculoInstitucional;
+
 class ServicoVinculoInstitucionalTest {
 
     private ContaRepositorio contas;

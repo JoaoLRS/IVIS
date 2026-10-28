@@ -14,19 +14,20 @@ atualizados. Operações protegidas usam `Authorization: Bearer <access-token>`.
 O refresh token é mantido pelo backend em cookie HttpOnly e não deve ser
 copiado para o frontend ou incluído em logs.
 
-## Consulta de planos (Nickolas)
+## Planos e contratação simulada
 
 - `GET /api/v1/planos`: catálogo público de ofertas ativas, ordenado por modalidade,
   preço e código. Cada oferta contém `id`, `codigo`, `modalidade`, `nome`,
-  `descricao`, `precoCentavos`, `moeda` e `beneficios` na ordem cadastrada.
+  `descricao`, `precoCentavos`, `moeda`, `duracaoDias` e `beneficios` na ordem cadastrada.
 - `GET /api/v1/planos/{id}`: detalhes públicos de uma oferta ativa; ofertas
   inativas e identificadores inexistentes retornam `404 plano_nao_encontrado`.
 - `GET /api/v1/conta/plano`: exige Bearer. A conta é extraída exclusivamente do
   principal autenticado e precisa continuar ativa no banco. Retorna `situacao`
-  (`COM_PLANO_VIGENTE` ou `SEM_PLANO_VIGENTE`) e a lista `planos`.
+  (`COM_PLANO_VIGENTE` ou `SEM_PLANO_VIGENTE`) e a lista `planos`. O acesso
+  próprio deixa de ser vigente ao atingir `expiraEm`.
 
 Cada item de `planos` contém `contratoId`, `planoId`, `nomePlano`, `origemAcesso`
-(`PROPRIO` ou `VINCULO_INSTITUCIONAL`), `situacao`, `iniciadoEm`, `encerradoEm`,
+(`PROPRIO` ou `VINCULO_INSTITUCIONAL`), `situacao`, `iniciadoEm`, `expiraEm`, `encerradoEm`,
 `condicoesTitular` e `beneficios`. Somente o titular recebe `condicoesTitular`,
 com `quantidadeVagas`, `precoCentavosContratado` e `moeda`. Para aluno vinculado,
 esse campo é `null`; a API não retorna identificadores da conta institucional.
@@ -38,18 +39,26 @@ seus contratos institucionais. Desativar uma oferta no catálogo não encerra
 contratos existentes. Não se presume exclusividade de contrato enquanto essa
 política permanecer pendente: a resposta admite múltiplos contratos vigentes.
 
-**Limites desta entrega:** o schema atual tem data de início e encerramento,
-mas não possui data de expiração prevista. `encerradoEm` não significa validade
-comercial, e `null` não promete acesso perpétuo. Os benefícios apresentados são
-os do catálogo atual; o schema ainda não tem snapshot dos benefícios contratados.
-O preço, porém, vem do snapshot existente no contrato. A consulta não substitui
-autorização para iniciar treinos nem implementa contratação/pagamento.
+`POST /api/v1/contratacoes/simuladas` exige sessão autenticada com tipo de conta
+compatível com a modalidade (aluno para individual, instituição para acadêmico), cabeçalho
+`Idempotency-Key` e token CSRF. O corpo recebe `planoId`, `numeroCartao`,
+`validade` (MM/AA ou MM/AAAA) e `cvv`. O servidor só aceita cartões de teste
+documentados na tela de checkout: `4242 4242 4242 4242` para aprovação ou
+`4000 0000 0000 0002` para recusa; ambos usam CVV `123` e validade futura.
+O servidor calcula o preço e a duração, não confia em resultado enviado pelo
+cliente e retorna a situação simulada do contrato e pagamento. A chave de
+idempotência permite repetir uma requisição sem criar uma segunda cobrança
+simulada.
 
-Não foram inseridos preços ou ofertas fictícias no catálogo por migration.
-Um banco novo retorna `[]` no catálogo até receber ofertas aprovadas. Valores
-usados nos testes são sintéticos e ficam em banco isolado pelo Testcontainers.
-As rotas são propostas implementadas para revisão da equipe; não se presume
-aprovação de Alisson ou Mariana.
+Este fluxo é acadêmico: não conecta a adquirente, não movimenta dinheiro, não
+envia e-mail real e não grava número do cartão/CVV. Em aprovações, o backend
+registra uma mensagem em `emails_simulados` e devolve a prévia na resposta para
+exibição autenticada no checkout. A migration V4 inclui uma oferta individual
+demonstrativa de 30 dias por R$ 19,90. A migration V5 inclui o Plano Acadêmico
+institucional por 30 dias, com capacidade para 10 alunos, por R$ 99,90. Ambos
+os valores são ilustrativos, sem cobrança real. Uma instituição contrata o
+plano acadêmico com sua conta institucional; depois, pode vincular alunos até
+o limite de vagas. Preço, duração e capacidade são definidos no catálogo.
 
 ## Subir a aplicação com Docker
 
@@ -62,7 +71,8 @@ versione `.env` nem compartilhe os valores.
 docker compose up --build
 ```
 
-O Compose sobe frontend, backend, PostgreSQL, API de IA e Mailpit. A interface
+O Compose sobe frontend, backend, PostgreSQL, API de IA e Mailpit. As migrations
+criam o catálogo demonstrativo na migration V4. A interface
 do frontend fica em `http://localhost:8080`; a caixa local de e-mail fica em
 `http://localhost:8025` e captura mensagens de recuperação sem encaminhá-las a
 destinatários reais. Para encerrar, use `Ctrl+C`; para remover containers,

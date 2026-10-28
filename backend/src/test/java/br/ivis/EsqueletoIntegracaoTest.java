@@ -27,6 +27,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import br.ivis.identidade.modelo.Conta;
+import br.ivis.planos.modelo.Plano;
+
 /** Sobe a aplicação inteira contra um PostgreSQL vazio (Testcontainers); exige Docker. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers

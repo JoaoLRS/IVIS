@@ -6,6 +6,7 @@ node_modules/
 frontend/dist/
 frontend/cypress/videos/
 frontend/cypress/screenshots/
+frontend/.vercel/
 
 # Local environment files
 .env
