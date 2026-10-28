@@ -24,6 +24,7 @@ public class ConfiguracaoRestClientIa {
     }
 
     private static RestClient criarCliente(URI url, Duration timeout) {
+        System.out.println("URL-base da API de IA: " + url);
         HttpClient clienteJdk = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(2))
                 .build();
