@@ -56,6 +56,7 @@ public class ConfiguracaoSeguranca {
                 .authorizeHttpRequests(autorizacao -> autorizacao
                         .requestMatchers(HttpMethod.GET, "/v1/saude", "/v1/pronto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/sessoes/csrf").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/planos", "/v1/planos/*").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/contas/alunos",
                                 "/v1/contas/instituicoes",

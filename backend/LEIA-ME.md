@@ -66,6 +66,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 ## Convenções de API (Etapa 0, item 4)
 
 - Base `/api` (servlet context path) + `/v1`: por exemplo `/api/v1/saude`. O `clienteHttp.ts` do frontend já aponta para `http://localhost:8081/api`.
+- Planos (domínio `br.ivis.planos`): `GET /api/v1/planos` e `GET /api/v1/planos/{id}` são públicos. `GET /api/v1/conta/plano` consulta contratos ativos próprios ou por vínculo institucional, usando o principal autenticado. Consulte [OPENAPI.md](OPENAPI.md) para campos, isolamento e limites desta entrega. Ofertas e benefícios vêm do banco; nenhum preço comercial foi inventado.
 - Identidade: `POST /api/v1/contas/alunos`, `POST /api/v1/contas/instituicoes`, `POST /api/v1/sessoes` (login), `POST /api/v1/sessoes/renovacao` e `DELETE /api/v1/sessoes/atual` (logout autenticado).
 - Conta e senha: `GET/PATCH /api/v1/conta`, `POST /api/v1/conta/senha`, `POST /api/v1/senhas/recuperacao` e `POST /api/v1/senhas/redefinicao`. Perfil e senha autenticados derivam a conta do JWT; troca/redefinição de senha revoga todas as sessões de renovação existentes.
 - Habilidades e vagas: `GET/POST /api/v1/habilidades`, `PUT/DELETE /api/v1/habilidades/{id}`, `GET/POST /api/v1/vagas` e `PUT/DELETE /api/v1/vagas/{id}`. Todas exigem JWT de uma conta com perfil de aluno; o titular vem do `sub`, nunca do payload.

@@ -24,6 +24,8 @@ public class ConfiguracaoOpenApi {
             "POST /v1/senhas/recuperacao",
             "POST /v1/senhas/redefinicao",
             "GET /v1/sessoes/csrf",
+            "GET /v1/planos",
+            "GET /v1/planos/{id}",
             "GET /v1/saude",
             "GET /v1/pronto");
 
