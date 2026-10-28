@@ -2,6 +2,7 @@ package br.ivis.identidade.controlador;
 
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.Capacidade;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoRequisicao;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoPorEmailRequisicao;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoResposta;
 
 import jakarta.validation.Valid;
@@ -44,6 +45,14 @@ public class VinculoInstitucionalControlador {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CriacaoVinculoRequisicao requisicao) {
         return servico.criarVinculo(contaId(jwt), requisicao);
+    }
+
+    @PostMapping("/vinculos/por-email")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CriacaoVinculoResposta criarPorEmail(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody CriacaoVinculoPorEmailRequisicao requisicao) {
+        return servico.criarVinculoPorEmail(contaId(jwt), requisicao);
     }
 
     @DeleteMapping("/vinculos/{id}")

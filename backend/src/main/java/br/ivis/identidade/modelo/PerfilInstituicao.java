@@ -21,6 +21,9 @@ public class PerfilInstituicao {
     @Column(name = "razao_social", nullable = false, length = 200)
     private String razaoSocial;
 
+    @Column(name = "nome_administrador", nullable = false, length = 160)
+    private String nomeAdministrador;
+
     @Column(name = "documento_fiscal", length = 32)
     private String documentoFiscal;
 
@@ -32,15 +35,25 @@ public class PerfilInstituicao {
 
     @Column(name = "atualizado_em", nullable = false)
     private Instant atualizadoEm;
-public PerfilInstituicao(UUID contaId, String razaoSocial, Instant agora) {
+public PerfilInstituicao(UUID contaId, String razaoSocial, String nomeAdministrador, Instant agora) {
         this.contaId = contaId;
         this.razaoSocial = razaoSocial;
+        this.nomeAdministrador = nomeAdministrador;
         this.criadoEm = agora;
         this.atualizadoEm = agora;
     }
 
     public String getRazaoSocial() {
         return razaoSocial;
+    }
+
+    public String getNomeAdministrador() {
+        return nomeAdministrador;
+    }
+
+    public void atualizarNomeAdministrador(String nomeAdministrador, Instant agora) {
+        this.nomeAdministrador = nomeAdministrador;
+        this.atualizadoEm = agora;
     }
 
     public void atualizarRazaoSocial(String razaoSocial, Instant agora) {

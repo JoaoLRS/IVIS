@@ -105,8 +105,11 @@ public class ServicoIdentidade {
         try {
             contas.saveAndFlush(conta);
             PerfilInstituicao perfil =
-                    perfisInstituicoes.save(new PerfilInstituicao(id, requisicao.razaoSocial().trim(), agora));
-            return new ContaResposta(id, conta.getTipoConta(), conta.getEmail(), perfil.getRazaoSocial());
+                    perfisInstituicoes.save(new PerfilInstituicao(id, requisicao.razaoSocial().trim(),
+                            requisicao.nomeAdministrador() == null || requisicao.nomeAdministrador().isBlank()
+                                    ? requisicao.razaoSocial().trim() : requisicao.nomeAdministrador().trim(), agora));
+            return new ContaResposta(id, conta.getTipoConta(), conta.getEmail(), perfil.getRazaoSocial(),
+                    perfil.getNomeAdministrador());
         } catch (DataIntegrityViolationException excecao) {
             throw traduzirIntegridade(excecao);
         }
@@ -180,6 +183,13 @@ public class ServicoIdentidade {
                 }
                 perfil.atualizarRazaoSocial(valor, agora);
             }
+            if (requisicao.nomeAdministrador() != null) {
+                String valor = requisicao.nomeAdministrador().trim();
+                if (valor.isBlank()) {
+                    throw dadosContaInvalidos("nomeAdministrador", "O nome do administrador não pode ficar vazio.");
+                }
+                perfil.atualizarNomeAdministrador(valor, agora);
+            }
             nome = perfil.getRazaoSocial();
         }
         try {
@@ -187,7 +197,11 @@ public class ServicoIdentidade {
         } catch (DataIntegrityViolationException excecao) {
             throw traduzirIntegridade(excecao);
         }
-        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome);
+        String nomeAdministrador = "INSTITUICAO".equals(conta.getTipoConta())
+                ? perfisInstituicoes.findByContaId(contaId).orElseThrow(ServicoIdentidade::sessaoInvalida)
+                        .getNomeAdministrador()
+                : null;
+        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome, nomeAdministrador);
     }
 
     @Transactional
@@ -274,7 +288,9 @@ public class ServicoIdentidade {
         String nome = perfisInstituicoes.findByContaId(conta.getId())
                 .orElseThrow(ServicoIdentidade::sessaoInvalida)
                 .getRazaoSocial();
-        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome);
+        String nomeAdministrador = perfisInstituicoes.findByContaId(conta.getId())
+                .orElseThrow(ServicoIdentidade::sessaoInvalida).getNomeAdministrador();
+        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome, nomeAdministrador);
     }
 
     private void validarEmailDisponivel(String email) {

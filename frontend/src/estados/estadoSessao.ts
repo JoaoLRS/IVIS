@@ -7,6 +7,7 @@ export interface ContaAutenticada {
   tipoConta: "ALUNO" | "INSTITUICAO";
   email: string;
   nome: string;
+  nomeAdministrador?: string | null;
 }
 
 interface SessaoResposta {
@@ -95,6 +96,7 @@ export const useEstadoSessao = defineStore("sessao", () => {
   }
 
   async function cadastrarInstituicao(dados: {
+    nomeAdministrador: string;
     razaoSocial: string;
     email: string;
     senha: string;

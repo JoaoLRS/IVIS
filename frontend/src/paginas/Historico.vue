@@ -6,11 +6,16 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-vue-next";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 const estado = useEstadoAplicacao();
 const roteador = useRouter();
+const mediaNotas = computed(() => {
+  if (!estado.historico.length) return 0;
+  return Math.round(estado.historico.reduce((total, treino) => total + treino.nota, 0) / estado.historico.length);
+});
 </script>
 
 <template>
@@ -35,14 +40,14 @@ const roteador = useRouter();
       <div class="history-stat card">
         <TrendingUp /><span
           ><small>PONTUAÇÃO MÉDIA</small
-          ><strong>82 <small>/100</small></strong></span
+          ><strong>{{ mediaNotas || "—" }} <small v-if="mediaNotas">/100</small></strong></span
         >
       </div>
     </div>
     <div class="col-md-4">
       <div class="history-stat card">
         <Zap /><span
-          ><small>TEMPO DE PRÁTICA</small><strong>4h 18m</strong></span
+          ><small>REGISTROS</small><strong>{{ estado.historico.length }}</strong></span
         >
       </div>
     </div>
@@ -79,7 +84,6 @@ const roteador = useRouter();
     </div>
   </section>
   <div class="d-flex align-items-center gap-2 text-secondary small mt-3">
-    <Clock3 :size="14" /> Exibindo somente os dados locais desta demonstração;
-    identificar e isolar o histórico por aluno depende do backend.
+    <Clock3 :size="14" /> Seu histórico é persistido e isolado por conta.
   </div>
 </template>

@@ -11,6 +11,7 @@ const perfil = ref<PerfilCadastro>(
   rota.query.tipo === "instituicao" ? "instituicao" : "aluno",
 );
 const nome = ref("");
+const nomeAdministrador = ref("");
 const email = ref("");
 const senha = ref("");
 const confirmarSenha = ref("");
@@ -57,6 +58,7 @@ async function enviarCadastro() {
       });
     } else {
       await sessao.cadastrarInstituicao({
+        nomeAdministrador: nomeAdministrador.value,
         razaoSocial: nome.value,
         email: email.value,
         senha: senha.value,
@@ -178,6 +180,17 @@ async function continuarAposCadastro() {
         </div>
 
         <form class="cadastro-fields" @submit.prevent="enviarCadastro">
+          <div v-if="perfil === 'instituicao'">
+            <label class="form-label" for="nome-administrador">Nome do administrador</label>
+            <input
+              id="nome-administrador"
+              v-model="nomeAdministrador"
+              class="form-control"
+              placeholder="Nome completo da pessoa responsável"
+              autocomplete="name"
+              required
+            />
+          </div>
           <div>
             <label class="form-label" for="nome-cadastro">{{
               nomeCampo
