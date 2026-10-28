@@ -42,7 +42,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 
 | Variável | Padrão | Uso |
 |---|---|---|
-| `IVIS_BD_URL` | `jdbc:postgresql://localhost:5432/ivis` | Conexão JDBC. |
+| `IVIS_BD_URL` | `jdbc:postgresql://localhost:5432/ivis` | Conexão JDBC. Em produção no Neon, use `jdbc:postgresql://HOST.neon.tech/BANCO?sslmode=require`. |
 | `IVIS_BD_USUARIO` | `ivis` | Usuário do banco. |
 | `IVIS_BD_SENHA` | *(obrigatória)* | Senha do banco. Sem padrão no código. |
 | `IVIS_PORTA` | `8081` | Porta HTTP. |
@@ -61,7 +61,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 | `IVIS_IA_CHAVE_SERVICO` | *(obrigatória, mínimo 32 caracteres)* | Chave serviço a serviço enviada ao serviço de IA. Nunca vai para o frontend. |
 | `IVIS_IA_TIMEOUT_PERGUNTA` | `105s` | Timeout para geração de perguntas (90s da NVIDIA mais margem de rede). |
 | `IVIS_IA_TIMEOUT_AVALIACAO` | `110s` | Timeout para avaliação (90s da NVIDIA mais margem de rede). |
-| `SPRING_PROFILES_ACTIVE` | *(vazio)* | `estruturado` liga logs em JSON (ECS). |
+| `SPRING_PROFILES_ACTIVE` | *(vazio)* | `dev` mantém Swagger e OpenAPI ativos; `prod` desativa ambos. `estruturado` liga logs em JSON (ECS); combine perfis com vírgula, por exemplo `prod,estruturado`. |
 
 ## Convenções de API (Etapa 0, item 4)
 

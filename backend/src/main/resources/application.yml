@@ -1,6 +1,8 @@
 spring:
   application:
     name: ivis-backend
+  main:
+    lazy-initialization: true
   datasource:
     url: ${IVIS_BD_URL:jdbc:postgresql://localhost:5432/ivis}
     username: ${IVIS_BD_USUARIO:ivis}
@@ -28,7 +30,7 @@ spring:
           writetimeout: 5000
 
 server:
-  port: ${IVIS_PORTA:8081}
+  port: ${PORT:${IVIS_PORTA:8081}}
   # O frontend já espera a base http://localhost:8081/api (clienteHttp.ts);
   # os controladores mapeiam /v1/..., resultando em /api/v1/...
   servlet:
