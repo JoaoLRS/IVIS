@@ -81,12 +81,17 @@ public class ClienteIa {
         } catch (RestClientResponseException excecao) {
             throw traduzirRespostaHttp(excecao);
         } catch (ResourceAccessException excecao) {
+            log.warn(
+                    "Falha de comunicação com a API de IA: endpoint={}, tipo={}, mensagem={}",
+                    caminho,
+                    excecao.getClass().getSimpleName(),
+                    excecao.getMessage(),
+                    excecao);
             if (tempoEsgotado(excecao)) {
                 throw new ExcecaoNegocio(
                         HttpStatus.GATEWAY_TIMEOUT, "tempo_esgotado",
                         "A geração de conteúdo demorou mais que o limite permitido.");
             }
-            log.warn("API de IA indisponível durante chamada ao endpoint {}", caminho);
             throw new ExcecaoNegocio(
                     HttpStatus.SERVICE_UNAVAILABLE, "provedor_indisponivel",
                     "O serviço de IA está temporariamente indisponível.");
