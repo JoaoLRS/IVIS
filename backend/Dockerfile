@@ -9,5 +9,6 @@ WORKDIR /app
 RUN useradd --system --no-create-home --shell /usr/sbin/nologin ivis
 COPY --from=build /app/build/libs/ivis-backend.jar app.jar
 USER ivis
-EXPOSE 8081
+ENV PORT=80
+EXPOSE 80
 ENTRYPOINT ["java", "-Duser.timezone=UTC", "-XX:MaxRAMPercentage=75", "-XX:TieredStopAtLevel=1", "-XX:+UseSerialGC", "-Xshare:auto", "-Xss512k", "-jar", "app.jar"]

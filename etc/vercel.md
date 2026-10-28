@@ -51,7 +51,11 @@ O backend define o cookie de renovação como `HttpOnly`, `Secure` em produção
 
 ## 4. Publique
 
-Conecte o repositório Git à Vercel e mantenha o Root Directory na raiz do repositório para que a configuração [vercel.json](../vercel.json) descubra os três serviços. Ela publica `backend` em `/api/*`, direciona os demais caminhos para o frontend e mantém `api-ia` interna. Cadastre as variáveis de Production descritas acima e faça o deploy. Para testar com segurança, configure também as variáveis de Preview para um banco Neon de teste separado; não use o banco de produção em previews.
+Conecte o repositório Git à Vercel e mantenha o Root Directory na raiz do repositório para que a configuração [vercel.json](../vercel.json) descubra os três serviços. O modelo de serviços e os rewrites já estão declarados nesse arquivo; não é necessário inferir um preset específico do painel apenas pelo fato de o frontend usar Vite. A configuração publica `backend` em `/api/*`, direciona os demais caminhos para o frontend e mantém `api-ia` interna.
+
+O container do backend usa `PORT` e define `80` como padrão na imagem, conforme o [contrato do runtime de container da Vercel](https://vercel.com/docs/functions/runtimes/container). Se configurar `PORT` nas variáveis do projeto, use a porta em que o serviço deve escutar. No Docker Compose local, essa variável é sobrescrita para `8081`, preservando o mapeamento usado pelo frontend e pelos testes locais.
+
+Cadastre as demais variáveis de Production descritas acima e faça o deploy. Para testar com segurança, configure também as variáveis de Preview para um banco Neon de teste separado; não use o banco de produção em previews.
 
 ## 5. Verifique a aplicação publicada
 
@@ -83,6 +87,7 @@ Confira os logs do serviço `backend`, `IVIS_BD_URL`, `IVIS_BD_USUARIO`, `IVIS_B
 ## Referências oficiais
 
 - [Vercel Services](https://vercel.com/docs/services)
+- [Runtime de container da Vercel](https://vercel.com/docs/functions/runtimes/container)
 - [Variáveis de ambiente na Vercel](https://vercel.com/docs/environment-variables)
 - [Integrar Neon com Vercel](https://neon.com/docs/guides/vercel-overview)
 - [Conectar aplicações ao Neon](https://neon.com/docs/connect/connect-from-any-app)
