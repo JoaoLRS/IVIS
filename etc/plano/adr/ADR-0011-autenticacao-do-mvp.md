@@ -2,18 +2,19 @@
 
 - **Status:** Aprovado
 - **Data:** 2026-10-18
-- **Decisores:** Pendente de validação da equipe IVIS
+- **Aprovado em:** 2026-10-27
+- **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md), [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md), [ADR-0010](ADR-0010-modelagem-relacional-do-banco.md)
 
 ## Contexto
 
 O [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md) adota Spring Security e cita JWT, mas deixa em aberto formato, duração, armazenamento e revogação de credenciais. A primeira fatia do MVP (RF01 para Aluno, RF03, RF06 a RF10; ver [`Ordem_de_Entrega_MVP.md`](../Ordem_de_Entrega_MVP.md)) precisa de identidade para associar habilidades, vagas e histórico a cada aluno.
 
-## Decisão proposta
+## Decisão
 
 - **Senha:** armazenada apenas como hash com algoritmo adaptativo fornecido pelo Spring Security (Argon2id ou BCrypt com custo adequado). Nunca registrada em log.
-- **Token de acesso:** JWT assinado pelo backend, de **curta duração** (proposta: 15 minutos), enviado no cabeçalho `Authorization: Bearer`. Contém apenas o identificador da conta e o tipo de conta; plano, modalidade e permissões de negócio **não** são confiados ao token e são consultados no servidor (ADR-0009).
-- **Token de renovação:** valor opaco e aleatório, de uso único com rotação, entregue em cookie `HttpOnly`, `Secure` e `SameSite=Strict`. O backend guarda somente o **hash** do token em tabela própria de sessões, com expiração (proposta: 7 dias) e marcação de revogação. O token de acesso fica apenas em memória no frontend, nunca em `localStorage`.
+- **Token de acesso:** JWT assinado pelo backend, de **curta duração** (15 minutos), enviado no cabeçalho `Authorization: Bearer`. Contém apenas o identificador da conta e o tipo de conta; plano, modalidade e permissões de negócio **não** são confiados ao token e são consultados no servidor (ADR-0009).
+- **Token de renovação:** valor opaco e aleatório, de uso único com rotação, entregue em cookie `HttpOnly`, `Secure` e `SameSite=Strict`. O backend guarda somente o **hash** do token em tabela própria de sessões, com validade de 7 dias e marcação de revogação. O token de acesso fica apenas em memória no frontend, nunca em `localStorage`.
 - **Encerrar sessão:** `sair` revoga o token de renovação. O token de acesso expira sozinho.
 - **Segredo de assinatura:** injetado por variável de ambiente; fora do repositório.
 - **Proteção contra abuso:** limitação de tentativas de login por conta e por origem; resposta de falha idêntica para e-mail inexistente e senha incorreta.
@@ -31,10 +32,10 @@ Esta decisão não define recuperação de senha (RF04), confirmação de e-mail
 
 ### Custos e riscos
 
-- Exige nova tabela de sessões, a incluir em [`Modelo_Relacional_IVIS.md`](../BD/Modelo_Relacional_IVIS.md) antes da migração correspondente.
+- Exige persistência de sessões; a tabela `sessoes_autenticacao` já consta no schema da migration V3 e no [`Modelo_Relacional_IVIS.md`](../BD/Modelo_Relacional_IVIS.md).
 - O cookie de renovação exige configurar CORS com credenciais e o domínio das requisições; frontend e backend precisam ser servidos de forma compatível (mesmo site ou proxy).
 - O frontend precisa renovar o token e repetir a requisição quando receber resposta de token expirado.
-- Duração dos tokens e limites de tentativa são valores iniciais e podem ser ajustados.
+- Os prazos de token e limites de tentativa podem ser revistos após validação operacional; o ADR fixa os prazos iniciais, mas não os valores numéricos dos limites de tentativa.
 
 ## Alternativas consideradas
 

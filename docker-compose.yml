@@ -20,6 +20,16 @@ services:
       retries: 10
     restart: unless-stopped
 
+  ivis-mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: ivis-mailpit
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    networks:
+      - rede-banco
+    restart: unless-stopped
+
   ivis-backend:
     build:
       context: ./backend
@@ -30,6 +40,17 @@ services:
       IVIS_BD_USUARIO: ${IVIS_BD_USUARIO:-ivis}
       IVIS_BD_SENHA: ${IVIS_BD_SENHA:-ivis_local}
       IVIS_CORS_ORIGENS: ${IVIS_CORS_ORIGENS:-http://localhost:8080,http://localhost:5173}
+      IVIS_JWT_CHAVE_ASSINATURA: ${IVIS_JWT_CHAVE_ASSINATURA:?Defina IVIS_JWT_CHAVE_ASSINATURA com pelo menos 32 bytes aleatórios codificados em Base64}
+      IVIS_COOKIE_SEGURO: ${IVIS_COOKIE_SEGURO:-true}
+      IVIS_LOGIN_TENTATIVAS_MAX: ${IVIS_LOGIN_TENTATIVAS_MAX:-10}
+      IVIS_LOGIN_JANELA: ${IVIS_LOGIN_JANELA:-15m}
+      IVIS_RECUPERACAO_TENTATIVAS_MAX: ${IVIS_RECUPERACAO_TENTATIVAS_MAX:-5}
+      IVIS_RECUPERACAO_JANELA: ${IVIS_RECUPERACAO_JANELA:-15m}
+      IVIS_RECUPERACAO_VALIDADE: ${IVIS_RECUPERACAO_VALIDADE:-30m}
+      IVIS_URL_REDEFINICAO_SENHA: ${IVIS_URL_REDEFINICAO_SENHA:-http://localhost:8080/redefinir-senha}
+      IVIS_EMAIL_REMETENTE: ${IVIS_EMAIL_REMETENTE:-no-reply@ivis.local}
+      IVIS_SMTP_HOST: ivis-mailpit
+      IVIS_SMTP_PORTA: 1025
       IVIS_IA_URL: http://ivis-api-ia:8000
       IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
       IVIS_IA_TIMEOUT_PERGUNTA: ${IVIS_IA_TIMEOUT_PERGUNTA:-105s}
@@ -44,6 +65,8 @@ services:
         condition: service_healthy
       ivis-api-ia:
         condition: service_healthy
+      ivis-mailpit:
+        condition: service_started
     restart: unless-stopped
 
   ivis-api-ia:
