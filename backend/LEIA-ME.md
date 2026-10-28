@@ -61,7 +61,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 | `IVIS_IA_CHAVE_SERVICO` | *(obrigatória, mínimo 32 caracteres)* | Chave serviço a serviço enviada ao serviço de IA. Nunca vai para o frontend. |
 | `IVIS_IA_TIMEOUT_PERGUNTA` | `105s` | Timeout para geração de perguntas (90s da NVIDIA mais margem de rede). |
 | `IVIS_IA_TIMEOUT_AVALIACAO` | `110s` | Timeout para avaliação (90s da NVIDIA mais margem de rede). |
-| `SPRING_PROFILES_ACTIVE` | *(vazio)* | `dev` mantém Swagger e OpenAPI ativos; `prod` desativa ambos. `estruturado` liga logs em JSON (ECS); combine perfis com vírgula, por exemplo `prod,estruturado`. |
+| `SPRING_PROFILES_ACTIVE` | *(vazio)* | Swagger e OpenAPI ficam desativados por padrão; `dev` os ativa e `prod` os mantém desativados. `estruturado` liga logs em JSON (ECS); combine perfis com vírgula, por exemplo `prod,estruturado`. |
 
 ## Convenções de API (Etapa 0, item 4)
 

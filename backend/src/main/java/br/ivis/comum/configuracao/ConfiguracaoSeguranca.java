@@ -54,6 +54,7 @@ public class ConfiguracaoSeguranca {
                         .authenticationEntryPoint(naoAutenticado)
                         .accessDeniedHandler(acessoNegado))
                 .authorizeHttpRequests(autorizacao -> autorizacao
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/saude", "/v1/pronto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/sessoes/csrf").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/planos", "/v1/planos/*").permitAll()

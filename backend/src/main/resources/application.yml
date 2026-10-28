@@ -8,6 +8,10 @@ spring:
     username: ${IVIS_BD_USUARIO:ivis}
     # Sem valor padrão de propósito: a aplicação não sobe sem a senha informada.
     password: ${IVIS_BD_SENHA}
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 0
+      initialization-fail-timeout: -1
   jpa:
     open-in-view: false
     hibernate:
@@ -63,3 +67,9 @@ ivis:
 logging:
   pattern:
     level: "%5p [%X{idRequisicao:-sem-id}]"
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
