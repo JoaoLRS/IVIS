@@ -601,6 +601,15 @@ class EsqueletoIntegracaoTest {
         assertEquals("http://localhost:8080",
                 permitida.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
 
+        HttpResponse<String> vercel = obter("/v1/saude", "Origin", "https://ivis-ia.vercel.app");
+        assertEquals("https://ivis-ia.vercel.app",
+                vercel.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+
+        HttpResponse<String> previewVercel = obter(
+                "/v1/saude", "Origin", "https://ivis-b4s65t63k-lucifer-son.vercel.app");
+        assertEquals("https://ivis-b4s65t63k-lucifer-son.vercel.app",
+                previewVercel.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+
         HttpResponse<String> negada = obter("/v1/saude", "Origin", "http://origem-nao-configurada.example");
         assertFalse(negada.headers().firstValue("Access-Control-Allow-Origin").isPresent());
     }

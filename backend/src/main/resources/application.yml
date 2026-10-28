@@ -57,7 +57,7 @@ ivis:
   email:
     remetente: ${IVIS_EMAIL_REMETENTE:no-reply@ivis.local}
   cors:
-    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173}
+    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173,https://ivis-ia.vercel.app,https://ivis-b4s65t63k-lucifer-son.vercel.app}
   ia:
     url: ${IVIS_IA_URL:http://localhost:8000}
     chave-servico: ${IVIS_IA_CHAVE_SERVICO}

@@ -32,7 +32,7 @@ No projeto Vercel, configure as variáveis do ambiente **Production**. As variá
 | `IVIS_BD_SENHA` | Serviço `backend` | Senha do usuário/role; cadastrar como secret. |
 | `IVIS_JWT_CHAVE_ASSINATURA` | Serviço `backend` | Chave exclusiva de produção, Base64 e com ao menos 32 bytes aleatórios. Não reutilize a chave local. |
 | `IVIS_COOKIE_SEGURO` | Serviço `backend` | `true` em HTTPS. |
-| `IVIS_CORS_ORIGENS` | Serviço `backend` | Origem exata do domínio do projeto Vercel, sem barra final, por exemplo `https://ivis-ia.vercel.app`. |
+| `IVIS_CORS_ORIGENS` | Serviço `backend` | Origens exatas dos frontends autorizados, separadas por vírgula e sem barra final. Para Production, use `https://ivis-ia.vercel.app`; para um deployment Preview, inclua a origem exata do Preview, como `https://ivis-b4s65t63k-lucifer-son.vercel.app`, no ambiente correspondente. |
 | `IVIS_URL_REDEFINICAO_SENHA` | Serviço `backend` | URL completa da página do frontend, por exemplo `https://ivis-ia.vercel.app/redefinir-senha`. |
 | `IVIS_IA_CHAVE_SERVICO` | Serviços `backend` e `api-ia` | Mesmo segredo forte e exclusivo nos dois serviços. |
 | `IVIS_IA_USAR_STUB` | Serviço `api-ia` | `true` para a demonstração acadêmica sem chave de modelo; `false` somente se configurar um provedor de IA real. |
@@ -70,7 +70,7 @@ Confirme que o Root Directory da Vercel está na raiz e que o rewrite de fallbac
 
 ### CORS bloqueia a API
 
-Defina `IVIS_CORS_ORIGENS` no serviço `backend` com a origem exata do projeto, sem curingas. Reimplante após alterar a variável.
+Defina `IVIS_CORS_ORIGENS` no serviço `backend` com cada origem exata que deve acessar aquele ambiente, separadas por vírgula e sem curingas ou barra final. Para Production, inclua `https://ivis-ia.vercel.app`. Em Preview, inclua a URL exata do frontend Preview que originou a chamada. Reimplante o backend após alterar a variável.
 
 ### A sessão não renova ou o cookie não é enviado
 

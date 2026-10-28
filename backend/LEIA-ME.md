@@ -62,7 +62,7 @@ Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa
 | `IVIS_BD_USUARIO` | `ivis` | Usuário do banco. |
 | `IVIS_BD_SENHA` | *(obrigatória)* | Senha do banco. Sem padrão no código. |
 | `IVIS_PORTA` | `8081` | Porta HTTP. |
-| `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173` | Origens do frontend, separadas por vírgula. |
+| `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173,https://ivis-ia.vercel.app,https://ivis-b4s65t63k-lucifer-son.vercel.app` | Origens exatas do frontend, separadas por vírgula e sem barra final. Configure os domínios necessários para cada ambiente. |
 | `IVIS_JWT_CHAVE_ASSINATURA` | *(obrigatória, Base64 de pelo menos 32 bytes aleatórios)* | Chave HMAC-SHA256 de assinatura dos JWTs. Gerar por ambiente; nunca versionar nem reutilizar entre ambientes. |
 | `IVIS_COOKIE_SEGURO` | `true` | Habilita `Secure` no cookie de refresh. Pode ser `false` somente para desenvolvimento local HTTP. |
 | `IVIS_LOGIN_TENTATIVAS_MAX` | `10` | Tentativas inválidas por janela, aplicadas ao e-mail normalizado e ao IP de origem. |
