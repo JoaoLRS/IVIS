@@ -336,7 +336,7 @@ onMounted(carregarOferta);
               <RouterLink
                 v-if="resultado.situacaoPagamento === 'APROVADO'"
                 class="checkout-submit"
-                to="/inicio"
+                :to="oferta.modalidade === 'INSTITUCIONAL' ? '/instituicao' : '/inicio'"
               >
                 Ir para minha área
               </RouterLink>

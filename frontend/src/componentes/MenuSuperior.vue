@@ -6,6 +6,7 @@ import {
   MessageSquareText,
   LogOut,
   UserRound,
+  School,
 } from "lucide-vue-next";
 import { RouterLink, useRouter } from "vue-router";
 import type { Component } from "vue";
@@ -29,6 +30,12 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
       { rota: "habilidades", rotulo: "Minhas habilidades", icone: Code2 },
       { rota: "historico", rotulo: "Histórico", icone: Activity },
     ],
+  },
+];
+const gruposInstituicao: { rotulo: string; links: LinkMenu[] }[] = [
+  {
+    rotulo: "Gestão institucional",
+    links: [{ rota: "instituicao", rotulo: "Alunos e vagas", icone: School }],
   },
 ];
 
@@ -71,7 +78,7 @@ onBeforeUnmount(() =>
   >
     <RouterLink
       class="brand d-flex align-items-center text-decoration-none"
-      to="/inicio"
+      :to="sessao.conta?.tipoConta === 'INSTITUICAO' ? '/instituicao' : '/inicio'"
       @click="emit('fechar')"
     >
       IVIS
@@ -79,13 +86,13 @@ onBeforeUnmount(() =>
     <nav class="sidebar-nav">
       <RouterLink
         class="top-menu-text-link"
-        to="/treinos"
+        :to="sessao.conta?.tipoConta === 'INSTITUICAO' ? '/instituicao' : '/treinos'"
         @click="emit('fechar')"
       >
         Iniciar treinamento
       </RouterLink>
       <details
-        v-for="grupo in grupos"
+        v-for="grupo in (sessao.conta?.tipoConta === 'INSTITUICAO' ? gruposInstituicao : grupos)"
         :key="grupo.rotulo"
         class="nav-section nav-section-menu"
       >

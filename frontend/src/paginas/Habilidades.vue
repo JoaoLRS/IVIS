@@ -2,12 +2,20 @@
 import { computed, reactive, ref } from "vue";
 import { Code2, Pencil, Plus, Trash2 } from "lucide-vue-next";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
+import { useEstadoSessao } from "../estados/estadoSessao";
+import {
+  criarHabilidade,
+  atualizarHabilidade,
+  excluirHabilidade,
+  obterTokenCsrf,
+} from "../servicos/perfilAluno";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
 import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
 
 const estado = useEstadoAplicacao();
+const sessao = useEstadoSessao();
 const modal = ref(false);
 const indiceParaExcluir = ref<number | null>(null);
 const indiceEmEdicao = ref<number | null>(null);
@@ -39,13 +47,24 @@ function abrirEdicao(indice: number) {
   modal.value = true;
 }
 
-function salvar() {
+async function salvar() {
+  if (!sessao.accessToken) return;
   const habilidade = { ...formulario };
+  const csrf = await obterTokenCsrf();
   if (indiceEmEdicao.value === null) {
-    estado.adicionarHabilidade(habilidade);
+    const criada = await criarHabilidade(sessao.accessToken, csrf, habilidade);
+    estado.adicionarHabilidade(criada);
     emit("notificar", "Habilidade adicionada ao perfil.");
   } else {
-    estado.editarHabilidade(indiceEmEdicao.value, habilidade);
+    const anterior = estado.habilidades[indiceEmEdicao.value];
+    if (!anterior) return;
+    const atualizada = await atualizarHabilidade(
+      sessao.accessToken,
+      csrf,
+      anterior.id,
+      habilidade,
+    );
+    estado.editarHabilidade(indiceEmEdicao.value, atualizada);
     emit(
       "notificar",
       "Habilidade atualizada. Ela será considerada nos próximos treinos.",
@@ -54,12 +73,17 @@ function salvar() {
   modal.value = false;
 }
 
-function confirmarRemocao() {
+async function confirmarRemocao() {
   const indice = indiceParaExcluir.value;
   if (indice === null) return;
 
   const habilidade = estado.habilidades[indice];
-  if (habilidade) {
+  if (habilidade && sessao.accessToken) {
+    await excluirHabilidade(
+      sessao.accessToken,
+      await obterTokenCsrf(),
+      habilidade.id,
+    );
     estado.removerHabilidade(indice);
     emit("notificar", `Habilidade ${habilidade.nome} removida do perfil.`);
   }

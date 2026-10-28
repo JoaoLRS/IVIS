@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from "axios";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -25,7 +25,7 @@ const modo = ref<"habilidades" | "vaga">(
   estado.vagaEmTreinamento || vagaDaRota ? "vaga" : "habilidades",
 );
 const vagaSelecionada = ref(
-  estado.vagas.find((vaga) => vaga.titulo === vagaDaRota)?.titulo ??
+  estado.vagas.find((vaga) => vaga.id === vagaDaRota)?.titulo ??
     estado.vagas[0]?.titulo ??
     "",
 );
@@ -37,6 +37,24 @@ const mensagemErro = ref("");
 const processando = ref(false);
 const totalPerguntas = 3;
 const perguntas = computed(() => estado.perguntasDoTreino);
+watch(
+  () => estado.vagas,
+  (vagas) => {
+    if (!vagaSelecionada.value && vagas.length) {
+      vagaSelecionada.value = vagas.find((vaga) => vaga.id === vagaDaRota)?.titulo ?? vagas[0].titulo;
+    }
+  },
+  { deep: true },
+);
+watch(
+  () => estado.habilidades,
+  (habilidades) => {
+    if (!habilidadesSelecionadas.value.length && habilidades.length) {
+      habilidadesSelecionadas.value = habilidades.map((habilidade) => habilidade.nome);
+    }
+  },
+  { deep: true },
+);
 const resumoContexto = computed(() => {
   if (modo.value === "vaga") {
     const vaga = estado.vagas.find(
@@ -99,10 +117,18 @@ async function iniciar() {
   }
 }
 
-function encerrar() {
+async function encerrar() {
   if (!estado.avaliacaoPendente) return;
-  estado.concluirTreino();
-  roteador.push("/feedback");
+  processando.value = true;
+  mensagemErro.value = "";
+  try {
+    await estado.concluirTreino();
+    await roteador.push("/feedback");
+  } catch (erro) {
+    mensagemErro.value = mensagemDaFalha(erro, true);
+  } finally {
+    processando.value = false;
+  }
 }
 
 async function responder() {
@@ -240,10 +266,10 @@ async function responder() {
               />
               <span class="vacancy-option-copy">
                 <strong>{{ vaga.titulo }}</strong>
-                <small>{{ vaga.empresa }} · {{ vaga.nivel }}</small>
+                <small>{{ vaga.empresa }} · {{ vaga.senioridade }}</small>
                 <span class="vacancy-tags">
                   <span
-                    v-for="habilidade in vaga.habilidades.slice(0, 3)"
+                    v-for="habilidade in vaga.requisitos.slice(0, 3)"
                     :key="habilidade"
                   >
                     {{ habilidade }}

@@ -227,9 +227,15 @@ const rotuloPrincipal = computed(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 17px;
-  border: 1px solid #d9d5ff;
-  border-radius: 999px;
+  border: 0;
+  border-radius: 0;
   color: #4d43a4;
+  background: transparent;
+  text-decoration: none;
+}
+
+.public-nav .public-login:hover {
+  color: #6757df;
 }
 
 .public-nav .public-logout {

@@ -10,12 +10,20 @@ import {
 } from "lucide-vue-next";
 import { useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
+import { useEstadoSessao } from "../estados/estadoSessao";
+import {
+  atualizarVaga,
+  criarVaga,
+  excluirVaga,
+  obterTokenCsrf,
+} from "../servicos/perfilAluno";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
 import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
 
 const estado = useEstadoAplicacao();
+const sessao = useEstadoSessao();
 const roteador = useRouter();
 const consulta = ref("");
 const modal = ref(false);
@@ -32,7 +40,7 @@ const vagasFiltradas = computed(() =>
   estado.vagas
     .map((vaga, indice) => ({ vaga, indice }))
     .filter(({ vaga }) =>
-      `${vaga.titulo} ${vaga.empresa} ${vaga.habilidades.join(" ")}`
+      `${vaga.titulo} ${vaga.empresa} ${vaga.requisitos.join(" ")}`
         .toLowerCase()
         .includes(consulta.value.toLowerCase()),
     ),
@@ -60,13 +68,14 @@ function abrirEdicao(indice: number) {
   Object.assign(formulario, {
     titulo: vaga.titulo,
     empresa: vaga.empresa,
-    nivel: vaga.nivel,
-    habilidades: vaga.habilidades.join(", "),
+    nivel: vaga.senioridade,
+    habilidades: vaga.requisitos.join(", "),
   });
   modal.value = true;
 }
 
-function salvar() {
+async function salvar() {
+  if (!sessao.accessToken) return;
   const anterior =
     indiceEmEdicao.value === null
       ? undefined
@@ -74,32 +83,42 @@ function salvar() {
   const vaga = {
     titulo: formulario.titulo.trim(),
     empresa: formulario.empresa.trim(),
-    nivel: formulario.nivel,
-    habilidades: formulario.habilidades
+    senioridade: formulario.nivel,
+    requisitos: formulario.habilidades
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean),
-    compatibilidade: anterior?.compatibilidade ?? 76,
+    descricao: anterior?.descricao ?? null,
   };
+  const csrf = await obterTokenCsrf();
   if (indiceEmEdicao.value === null) {
-    estado.adicionarVaga(vaga);
+    const criada = await criarVaga(sessao.accessToken, csrf, vaga);
+    estado.adicionarVaga(criada);
     emit("notificar", "Vaga adicionada.");
   } else {
-    estado.editarVaga(indiceEmEdicao.value, vaga);
+    if (!anterior) return;
+    const atualizada = await atualizarVaga(
+      sessao.accessToken,
+      csrf,
+      anterior.id,
+      vaga,
+    );
+    estado.editarVaga(indiceEmEdicao.value, atualizada);
     emit("notificar", "Vaga atualizada.");
   }
   modal.value = false;
 }
 
-function remover(indice: number) {
+async function remover(indice: number) {
   const vaga = estado.vagas[indice];
-  if (estado.vagaEmTreinamento === vaga.titulo) {
+  if (estado.vagaEmTreinamento === vaga.titulo || !sessao.accessToken) {
     emit(
       "notificar",
       "Esta vaga está vinculada ao treino em andamento e não pode ser excluída.",
     );
     return;
   }
+  await excluirVaga(sessao.accessToken, await obterTokenCsrf(), vaga.id);
   estado.removerVaga(indice);
   emit("notificar", "Vaga removida.");
 }
@@ -117,16 +136,16 @@ function solicitarRemocao(indice: number) {
   indiceParaExcluir.value = indice;
 }
 
-function confirmarRemocao() {
+async function confirmarRemocao() {
   if (indiceParaExcluir.value === null) return;
-  remover(indiceParaExcluir.value);
+  await remover(indiceParaExcluir.value);
   indiceParaExcluir.value = null;
 }
 
 function treinarPara(titulo: string) {
   const vaga = estado.vagas.find((item) => item.titulo === titulo);
   if (!vaga) return;
-  roteador.push({ path: "/treinos", query: { vaga: vaga.titulo } });
+  roteador.push({ path: "/treinos", query: { vaga: vaga.id } });
 }
 </script>
 
@@ -144,8 +163,7 @@ function treinarPara(titulo: string) {
     <div>
       <strong>{{ estado.vagas.length }} vagas cadastradas</strong>
       <p class="mb-0">
-        As informações da vaga serão usadas como contexto de uma entrevista
-        demonstrativa.
+        As informações da vaga serão usadas como contexto de uma entrevista.
       </p>
     </div>
   </div>
@@ -184,27 +202,17 @@ function treinarPara(titulo: string) {
             </div>
           </div>
           <div class="company-meta mt-3">
-            {{ vaga.empresa }} · {{ vaga.nivel }}
+            {{ vaga.empresa }} · {{ vaga.senioridade }}
           </div>
           <h2 class="job-title">{{ vaga.titulo }}</h2>
           <div class="d-flex flex-wrap gap-2">
             <Etiqueta
-              v-for="habilidade in vaga.habilidades"
+              v-for="habilidade in vaga.requisitos"
               :key="habilidade"
               >{{ habilidade }}</Etiqueta
             >
           </div>
           <div class="mt-auto">
-            <div class="match-label mt-4">
-              <span>Compatibilidade demonstrativa</span
-              ><strong>{{ vaga.compatibilidade }}%</strong>
-            </div>
-            <div class="progress mb-3">
-              <div
-                class="progress-bar"
-                :style="{ width: `${vaga.compatibilidade}%` }"
-              />
-            </div>
             <button
               class="btn btn-primary w-100"
               @click="treinarPara(vaga.titulo)"

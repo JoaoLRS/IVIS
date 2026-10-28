@@ -3,6 +3,7 @@ package br.ivis.identidade.servico;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.Capacidade;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoRequisicao;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoResposta;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoPorEmailRequisicao;
 
 import br.ivis.comum.erro.ExcecaoNegocio;
 import java.time.Instant;
@@ -62,12 +63,27 @@ public class ServicoVinculoInstitucional {
 
     @Transactional
     public CriacaoVinculoResposta criarVinculo(UUID instituicaoId, CriacaoVinculoRequisicao requisicao) {
+        return criarVinculo(instituicaoId, requisicao.contratoId(), requisicao.contaAlunoId());
+    }
+
+    @Transactional
+    public CriacaoVinculoResposta criarVinculoPorEmail(UUID instituicaoId, CriacaoVinculoPorEmailRequisicao requisicao) {
+        carregarInstituicaoParaAtualizacao(instituicaoId);
+        Conta aluno = contas.findByEmailNormalizado(requisicao.emailAluno().trim().toLowerCase(java.util.Locale.ROOT))
+                .filter(Conta::estaAtiva)
+                .filter(conta -> "ALUNO".equals(conta.getTipoConta()))
+                .filter(conta -> perfisAlunos.existsById(conta.getId()))
+                .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
+        return criarVinculo(instituicaoId, requisicao.contratoId(), aluno.getId());
+    }
+
+    private CriacaoVinculoResposta criarVinculo(UUID instituicaoId, UUID contratoId, UUID contaAlunoId) {
         Conta instituicao = carregarInstituicaoParaAtualizacao(instituicaoId);
         ContratoInstitucional contrato = contratos.buscarAtivoParaVinculacao(
-                        requisicao.contratoId(), instituicao.getId())
+                        contratoId, instituicao.getId())
                 .orElseThrow(ServicoVinculoInstitucional::contratoNaoEncontrado);
 
-        Conta aluno = contas.buscarPorIdParaAtualizacao(requisicao.contaAlunoId())
+        Conta aluno = contas.buscarPorIdParaAtualizacao(contaAlunoId)
                 .filter(Conta::estaAtiva)
                 .filter(conta -> "ALUNO".equals(conta.getTipoConta()))
                 .filter(conta -> perfisAlunos.existsById(conta.getId()))

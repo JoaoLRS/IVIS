@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
+import type { Treino } from "../tipos/treino";
+import { listarHistorico, salvarTreino } from "../servicos/historico";
 import {
-  habilidadesIniciais,
-  historicoInicial,
-  vagasIniciais,
-  type Habilidade,
-  type Treino,
-  type Vaga,
-} from "../dados/dadosDemonstracao";
+  listarHabilidades,
+  listarVagas,
+  type HabilidadePerfil,
+  type VagaInteressePerfil,
+} from "../servicos/perfilAluno";
 import {
   gerarAvaliacao,
   gerarPergunta,
@@ -20,14 +20,15 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   const totalPerguntas = 3;
   const nomeAluno = ref("Nome do aluno");
   const emailAluno = ref("aluno@exemplo.com");
-  const vagas = ref<Vaga[]>([...vagasIniciais]);
-  const habilidades = ref<Habilidade[]>([...habilidadesIniciais]);
-  const historico = ref<Treino[]>([...historicoInicial]);
+  const vagas = ref<VagaInteressePerfil[]>([]);
+  const habilidades = ref<HabilidadePerfil[]>([]);
+  const historico = ref<Treino[]>([]);
   const treinoAtivo = ref(false);
   const perguntaAtual = ref(0);
   const respostas = ref<string[]>([]);
   const contextoTreino = ref("Perfil de habilidades");
   const vagaEmTreinamento = ref<string | null>(null);
+  const vagaIdEmTreinamento = ref<string | null>(null);
   const habilidadesDoTreino = ref<string[]>([]);
   const perguntasDoTreino = ref<string[]>([]);
   const feedbackAtual = ref<Treino | null>(null);
@@ -40,26 +41,64 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     emailAluno.value = dados.email.trim();
   }
 
-  function adicionarVaga(vaga: Vaga) {
+  function limparDadosDaConta() {
+    nomeAluno.value = "Nome do aluno";
+    emailAluno.value = "";
+    vagas.value = [];
+    habilidades.value = [];
+    historico.value = [];
+    treinoAtivo.value = false;
+    perguntaAtual.value = 0;
+    respostas.value = [];
+    contextoTreino.value = "Perfil de habilidades";
+    vagaEmTreinamento.value = null;
+    vagaIdEmTreinamento.value = null;
+    habilidadesDoTreino.value = [];
+    perguntasDoTreino.value = [];
+    feedbackAtual.value = null;
+    respostaPendente.value = null;
+    avaliacaoPendente.value = null;
+    contextoIa.value = null;
+  }
+
+  async function carregarPerfil(token: string, contaId: string, contaAtual: () => string | null) {
+    const [habilidadesPersistidas, vagasPersistidas, treinosPersistidos] = await Promise.all([
+      listarHabilidades(token),
+      listarVagas(token),
+      listarHistorico(),
+    ]);
+    if (contaAtual() !== contaId) return;
+    habilidades.value = habilidadesPersistidas;
+    vagas.value = vagasPersistidas;
+    historico.value = treinosPersistidos.map((treino) => ({
+      ...treino,
+      data: new Date(treino.data).toLocaleString("pt-BR"),
+      duracao: "Entrevista concluída",
+      pontosFortes: treino.pontosFortes.join(" "),
+      melhorias: treino.pontosMelhoria.join(" "),
+    }));
+  }
+
+  function adicionarVaga(vaga: VagaInteressePerfil) {
     vagas.value.unshift(vaga);
   }
   function removerVaga(indice: number) {
     vagas.value.splice(indice, 1);
   }
-  function editarVaga(indice: number, vaga: Vaga) {
+  function editarVaga(indice: number, vaga: VagaInteressePerfil) {
     vagas.value.splice(indice, 1, vaga);
   }
-  function adicionarHabilidade(habilidade: Habilidade) {
+  function adicionarHabilidade(habilidade: HabilidadePerfil) {
     habilidades.value.unshift(habilidade);
   }
   function removerHabilidade(indice: number) {
     habilidades.value.splice(indice, 1);
   }
-  function editarHabilidade(indice: number, habilidade: Habilidade) {
+  function editarHabilidade(indice: number, habilidade: HabilidadePerfil) {
     habilidades.value.splice(indice, 1, habilidade);
   }
   async function iniciarTreino(
-    vaga?: Vaga,
+    vaga?: VagaInteressePerfil,
     habilidadesSelecionadas?: string[],
   ) {
     perguntaAtual.value = 0;
@@ -68,8 +107,9 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     avaliacaoPendente.value = null;
     perguntasDoTreino.value = [];
     vagaEmTreinamento.value = vaga?.titulo ?? null;
+    vagaIdEmTreinamento.value = vaga?.id ?? null;
     const temas = vaga
-      ? vaga.habilidades
+      ? vaga.requisitos
       : (habilidadesSelecionadas ??
         habilidades.value.map((habilidade) => habilidade.nome));
     habilidadesDoTreino.value = [...temas];
@@ -82,8 +122,8 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
           habilidades: null,
           vaga: {
             titulo: vaga.titulo,
-            senioridade: vaga.nivel,
-            requisitos: vaga.habilidades,
+            senioridade: vaga.senioridade,
+            requisitos: vaga.requisitos,
           },
         }
       : {
@@ -160,11 +200,12 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   function encerrarTreino() {
     treinoAtivo.value = false;
     vagaEmTreinamento.value = null;
+    vagaIdEmTreinamento.value = null;
     contextoIa.value = null;
     respostaPendente.value = null;
     avaliacaoPendente.value = null;
   }
-  function concluirTreino() {
+  async function concluirTreino() {
     if (!avaliacaoPendente.value) {
       throw new Error("A avaliação do treino ainda não está disponível.");
     }
@@ -183,6 +224,21 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       pontosFortes: avaliacao.pontos_fortes.join(" "),
       melhorias: avaliacao.pontos_melhoria.join(" "),
     };
+    const salvo = await salvarTreino({
+      tipoContexto: vagaIdEmTreinamento.value ? "VAGA" : "HABILIDADES",
+      vagaId: vagaIdEmTreinamento.value,
+      contexto: contextoTreino.value,
+      habilidades: habilidadesDoTreino.value,
+      interacoes: respostas.value.map((resposta, indice) => ({
+        numero: indice + 1,
+        pergunta: perguntasDoTreino.value[indice],
+        resposta,
+      })),
+    });
+    treino.id = salvo.id;
+    treino.nota = salvo.nota;
+    treino.pontosFortes = salvo.pontosFortes.join(" ");
+    treino.melhorias = salvo.pontosMelhoria.join(" ");
     historico.value.unshift(treino);
     feedbackAtual.value = treino;
     encerrarTreino();
@@ -199,10 +255,13 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     respostas,
     contextoTreino,
     vagaEmTreinamento,
+    vagaIdEmTreinamento,
     habilidadesDoTreino,
     feedbackAtual,
     respostaPendente,
     avaliacaoPendente,
+    carregarPerfil,
+    limparDadosDaConta,
     atualizarDadosAluno,
     perguntasDoTreino,
     adicionarVaga,

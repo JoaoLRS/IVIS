@@ -11,10 +11,19 @@ const menuAberto = ref(false);
 const sessao = useEstadoSessao();
 const estado = useEstadoAplicacao();
 watch(
-  () => sessao.conta,
-  (conta) => {
-    if (conta)
+  () => [sessao.conta?.id, sessao.accessToken] as const,
+  ([contaId, token], anterior) => {
+    const contaAnterior = anterior?.[0];
+    if (contaId !== contaAnterior) estado.limparDadosDaConta();
+    const conta = sessao.conta;
+    if (conta) {
       estado.atualizarDadosAluno({ nome: conta.nome, email: conta.email });
+      if (token && conta.tipoConta === "ALUNO") {
+        void estado.carregarPerfil(token, conta.id, () => sessao.conta?.id ?? null).catch(() => {
+          // Cada tela apresenta seu próprio estado vazio se a API estiver indisponível.
+        });
+      }
+    }
   },
   { immediate: true },
 );
