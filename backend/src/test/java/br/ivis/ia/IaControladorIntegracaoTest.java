@@ -223,6 +223,16 @@ class IaControladorIntegracaoTest {
     static class ConfiguracaoTeste {
 
         @Bean
+        br.ivis.planos.PlanoRepositorio planos() {
+            return mock(br.ivis.planos.PlanoRepositorio.class);
+        }
+
+        @Bean
+        br.ivis.planos.ContratoPlanoConsultaRepositorio contratosPlanos() {
+            return mock(br.ivis.planos.ContratoPlanoConsultaRepositorio.class);
+        }
+
+        @Bean
         DataSource fonteDeDados() {
             return mock(DataSource.class);
         }

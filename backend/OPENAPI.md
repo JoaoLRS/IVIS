@@ -14,6 +14,43 @@ atualizados. Operações protegidas usam `Authorization: Bearer <access-token>`.
 O refresh token é mantido pelo backend em cookie HttpOnly e não deve ser
 copiado para o frontend ou incluído em logs.
 
+## Consulta de planos (Nickolas)
+
+- `GET /api/v1/planos`: catálogo público de ofertas ativas, ordenado por modalidade,
+  preço e código. Cada oferta contém `id`, `codigo`, `modalidade`, `nome`,
+  `descricao`, `precoCentavos`, `moeda` e `beneficios` na ordem cadastrada.
+- `GET /api/v1/planos/{id}`: detalhes públicos de uma oferta ativa; ofertas
+  inativas e identificadores inexistentes retornam `404 plano_nao_encontrado`.
+- `GET /api/v1/conta/plano`: exige Bearer. A conta é extraída exclusivamente do
+  principal autenticado e precisa continuar ativa no banco. Retorna `situacao`
+  (`COM_PLANO_VIGENTE` ou `SEM_PLANO_VIGENTE`) e a lista `planos`.
+
+Cada item de `planos` contém `contratoId`, `planoId`, `nomePlano`, `origemAcesso`
+(`PROPRIO` ou `VINCULO_INSTITUCIONAL`), `situacao`, `iniciadoEm`, `encerradoEm`,
+`condicoesTitular` e `beneficios`. Somente o titular recebe `condicoesTitular`,
+com `quantidadeVagas`, `precoCentavosContratado` e `moeda`. Para aluno vinculado,
+esse campo é `null`; a API não retorna identificadores da conta institucional.
+
+A consulta considera contrato `ATIVO`, já iniciado e não encerrado. Um aluno
+consulta contratos individuais próprios e contratos institucionais dos seus
+vínculos ativos, já iniciados e não encerrados. Instituições consultam apenas
+seus contratos institucionais. Desativar uma oferta no catálogo não encerra
+contratos existentes. Não se presume exclusividade de contrato enquanto essa
+política permanecer pendente: a resposta admite múltiplos contratos vigentes.
+
+**Limites desta entrega:** o schema atual tem data de início e encerramento,
+mas não possui data de expiração prevista. `encerradoEm` não significa validade
+comercial, e `null` não promete acesso perpétuo. Os benefícios apresentados são
+os do catálogo atual; o schema ainda não tem snapshot dos benefícios contratados.
+O preço, porém, vem do snapshot existente no contrato. A consulta não substitui
+autorização para iniciar treinos nem implementa contratação/pagamento.
+
+Não foram inseridos preços ou ofertas fictícias no catálogo por migration.
+Um banco novo retorna `[]` no catálogo até receber ofertas aprovadas. Valores
+usados nos testes são sintéticos e ficam em banco isolado pelo Testcontainers.
+As rotas são propostas implementadas para revisão da equipe; não se presume
+aprovação de Alisson ou Mariana.
+
 ## Subir a aplicação com Docker
 
 Na raiz do repositório, copie `.env.example` para `.env`, defina
