@@ -1,0 +1,46 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "frontend": {
+      "root": "frontend",
+      "framework": "vite",
+      "rewrites": [
+        {
+          "source": "/(.*)",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    "backend": {
+      "root": "backend",
+      "runtime": "container",
+      "entrypoint": "Dockerfile",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "api-ia",
+          "format": "url",
+          "env": "IVIS_IA_URL"
+        }
+      ]
+    },
+    "api-ia": {
+      "root": "api-ia",
+      "framework": "fastapi"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "backend"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "frontend"
+      }
+    }
+  ]
+}
