@@ -4,7 +4,7 @@ let tokenAcesso: string | null = null;
 
 export const clienteHttp = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "/api",
-  timeout: 15000,
+  timeout: 30_000,
   headers: { "Content-Type": "application/json" },
 });
 
