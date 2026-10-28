@@ -17,6 +17,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
+import br.ivis.identidade.dto.ContratoPerfilAluno;
+import br.ivis.identidade.modelo.HabilidadePerfil;
+import br.ivis.identidade.modelo.VagaInteresse;
+import br.ivis.identidade.repositorio.HabilidadePerfilRepositorio;
+import br.ivis.identidade.repositorio.PerfilAlunoRepositorio;
+import br.ivis.identidade.repositorio.RequisitoVagaRepositorio;
+import br.ivis.identidade.repositorio.VagaInteresseRepositorio;
+import br.ivis.identidade.servico.ServicoPerfilAluno;
+
 class ServicoPerfilAlunoTest {
 
     private PerfilAlunoRepositorio perfis;

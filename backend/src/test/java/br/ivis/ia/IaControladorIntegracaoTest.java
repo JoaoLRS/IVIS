@@ -31,6 +31,18 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import br.ivis.identidade.repositorio.ContaRepositorio;
+import br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio;
+import br.ivis.identidade.repositorio.HabilidadePerfilRepositorio;
+import br.ivis.identidade.repositorio.PerfilAlunoRepositorio;
+import br.ivis.identidade.repositorio.PerfilInstituicaoRepositorio;
+import br.ivis.identidade.repositorio.RequisitoVagaRepositorio;
+import br.ivis.identidade.repositorio.TokenRecuperacaoSenhaRepositorio;
+import br.ivis.identidade.repositorio.VagaInteresseRepositorio;
+import br.ivis.identidade.repositorio.VinculoInstitucionalRepositorio;
+import br.ivis.planos.repositorio.ContratoPlanoConsultaRepositorio;
+import br.ivis.planos.repositorio.PlanoRepositorio;
+
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
@@ -223,13 +235,13 @@ class IaControladorIntegracaoTest {
     static class ConfiguracaoTeste {
 
         @Bean
-        br.ivis.planos.PlanoRepositorio planos() {
-            return mock(br.ivis.planos.PlanoRepositorio.class);
+        br.ivis.planos.repositorio.PlanoRepositorio planos() {
+            return mock(br.ivis.planos.repositorio.PlanoRepositorio.class);
         }
 
         @Bean
-        br.ivis.planos.ContratoPlanoConsultaRepositorio contratosPlanos() {
-            return mock(br.ivis.planos.ContratoPlanoConsultaRepositorio.class);
+        br.ivis.planos.repositorio.ContratoPlanoConsultaRepositorio contratosPlanos() {
+            return mock(br.ivis.planos.repositorio.ContratoPlanoConsultaRepositorio.class);
         }
 
         @Bean
@@ -238,53 +250,53 @@ class IaControladorIntegracaoTest {
         }
 
         @Bean
-        br.ivis.identidade.ContaRepositorio contas() {
-            return mock(br.ivis.identidade.ContaRepositorio.class);
+        br.ivis.identidade.repositorio.ContaRepositorio contas() {
+            return mock(br.ivis.identidade.repositorio.ContaRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.PerfilAlunoRepositorio perfisAlunos() {
-            return mock(br.ivis.identidade.PerfilAlunoRepositorio.class);
+        br.ivis.identidade.repositorio.PerfilAlunoRepositorio perfisAlunos() {
+            return mock(br.ivis.identidade.repositorio.PerfilAlunoRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.PerfilInstituicaoRepositorio perfisInstituicoes() {
-            return mock(br.ivis.identidade.PerfilInstituicaoRepositorio.class);
+        br.ivis.identidade.repositorio.PerfilInstituicaoRepositorio perfisInstituicoes() {
+            return mock(br.ivis.identidade.repositorio.PerfilInstituicaoRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.SessaoRepositorio sessoes() {
-            return mock(br.ivis.identidade.SessaoRepositorio.class);
+        br.ivis.identidade.repositorio.SessaoRepositorio sessoes() {
+            return mock(br.ivis.identidade.repositorio.SessaoRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.TokenRecuperacaoSenhaRepositorio tokensRecuperacaoSenha() {
-            return mock(br.ivis.identidade.TokenRecuperacaoSenhaRepositorio.class);
+        br.ivis.identidade.repositorio.TokenRecuperacaoSenhaRepositorio tokensRecuperacaoSenha() {
+            return mock(br.ivis.identidade.repositorio.TokenRecuperacaoSenhaRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.HabilidadePerfilRepositorio habilidadesPerfil() {
-            return mock(br.ivis.identidade.HabilidadePerfilRepositorio.class);
+        br.ivis.identidade.repositorio.HabilidadePerfilRepositorio habilidadesPerfil() {
+            return mock(br.ivis.identidade.repositorio.HabilidadePerfilRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.VagaInteresseRepositorio vagasInteresse() {
-            return mock(br.ivis.identidade.VagaInteresseRepositorio.class);
+        br.ivis.identidade.repositorio.VagaInteresseRepositorio vagasInteresse() {
+            return mock(br.ivis.identidade.repositorio.VagaInteresseRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.RequisitoVagaRepositorio requisitosVaga() {
-            return mock(br.ivis.identidade.RequisitoVagaRepositorio.class);
+        br.ivis.identidade.repositorio.RequisitoVagaRepositorio requisitosVaga() {
+            return mock(br.ivis.identidade.repositorio.RequisitoVagaRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.ContratoInstitucionalRepositorio contratosInstitucionais() {
-            return mock(br.ivis.identidade.ContratoInstitucionalRepositorio.class);
+        br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio contratosInstitucionais() {
+            return mock(br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio.class);
         }
 
         @Bean
-        br.ivis.identidade.VinculoInstitucionalRepositorio vinculosInstitucionais() {
-            return mock(br.ivis.identidade.VinculoInstitucionalRepositorio.class);
+        br.ivis.identidade.repositorio.VinculoInstitucionalRepositorio vinculosInstitucionais() {
+            return mock(br.ivis.identidade.repositorio.VinculoInstitucionalRepositorio.class);
         }
     }
 }

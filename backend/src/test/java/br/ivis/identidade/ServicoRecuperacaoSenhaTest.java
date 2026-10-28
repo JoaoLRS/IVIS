@@ -23,6 +23,14 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import br.ivis.identidade.modelo.Conta;
+import br.ivis.identidade.modelo.TokenRecuperacaoSenha;
+import br.ivis.identidade.repositorio.ContaRepositorio;
+import br.ivis.identidade.repositorio.SessaoRepositorio;
+import br.ivis.identidade.repositorio.TokenRecuperacaoSenhaRepositorio;
+import br.ivis.identidade.servico.LimiteRecuperacaoSenha;
+import br.ivis.identidade.servico.ServicoRecuperacaoSenha;
+
 class ServicoRecuperacaoSenhaTest {
 
     private ContaRepositorio contas;

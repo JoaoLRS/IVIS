@@ -4,16 +4,20 @@ import {
   BriefcaseBusiness,
   Code2,
   MessageSquareText,
+  LogOut,
   UserRound,
 } from "lucide-vue-next";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import type { Component } from "vue";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
+import { useEstadoSessao } from "../estados/estadoSessao";
 
 defineProps<{ aberto: boolean }>();
 const emit = defineEmits<{ fechar: [] }>();
 const estado = useEstadoAplicacao();
+const sessao = useEstadoSessao();
+const roteador = useRouter();
 const menuRef = ref<HTMLElement | null>(null);
 type LinkMenu = { rota: string; rotulo: string; icone: Component };
 const grupos: { rotulo: string; links: LinkMenu[] }[] = [
@@ -27,6 +31,12 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
     ],
   },
 ];
+
+async function sair() {
+  await sessao.sair();
+  emit("fechar");
+  await roteador.replace("/login");
+}
 
 function fecharGruposAoClicarFora(evento: PointerEvent) {
   const alvo = evento.target;
@@ -98,14 +108,28 @@ onBeforeUnmount(() =>
         </div>
       </details>
     </nav>
-    <RouterLink
-      class="top-menu-profile"
-      to="/conta"
-      aria-label="Editar dados do aluno"
-      @click="emit('fechar')"
-    >
-      <UserRound :size="18" aria-hidden="true" />
-      <span>Aluno - {{ estado.nomeAluno }}</span>
-    </RouterLink>
+    <div class="top-menu-profile">
+      <RouterLink
+        to="/conta"
+        aria-label="Editar dados da conta"
+        @click="emit('fechar')"
+      >
+        <UserRound :size="18" aria-hidden="true" />
+        <span
+          >{{
+            sessao.conta?.tipoConta === "INSTITUICAO" ? "Instituição" : "Aluno"
+          }}
+          - {{ estado.nomeAluno }}</span
+        >
+      </RouterLink>
+      <button
+        type="button"
+        aria-label="Sair da conta"
+        title="Sair"
+        @click="sair"
+      >
+        <LogOut :size="16" aria-hidden="true" />
+      </button>
+    </div>
   </aside>
 </template>

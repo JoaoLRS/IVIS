@@ -1,10 +1,10 @@
 package br.ivis.ia;
 
-import static br.ivis.ia.ContratoIa.GerarAvaliacaoEntrada;
-import static br.ivis.ia.ContratoIa.GerarPerguntaEntrada;
-import static br.ivis.ia.ContratoIa.Habilidade;
-import static br.ivis.ia.ContratoIa.Interacao;
-import static br.ivis.ia.ContratoIa.TipoContexto;
+import static br.ivis.ia.dto.ContratoIa.GerarAvaliacaoEntrada;
+import static br.ivis.ia.dto.ContratoIa.GerarPerguntaEntrada;
+import static br.ivis.ia.dto.ContratoIa.Habilidade;
+import static br.ivis.ia.dto.ContratoIa.Interacao;
+import static br.ivis.ia.dto.ContratoIa.TipoContexto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +26,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import br.ivis.comum.erro.ExcecaoNegocio;
 import org.springframework.web.client.RestClient;
+
+import br.ivis.ia.configuracao.ConfiguracaoClienteIa;
+import br.ivis.ia.servico.ClienteIa;
 
 class ClienteIaTest {
 

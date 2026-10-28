@@ -1,20 +1,36 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import MenuLateral from "./componentes/MenuSuperior.vue";
 import BarraSuperior from "./componentes/BarraSuperior.vue";
+import { useEstadoAplicacao } from "./estados/estadoAplicacao";
+import { useEstadoSessao } from "./estados/estadoSessao";
 
 const rota = useRoute();
 const menuAberto = ref(false);
-const titulos: Record<string, string> = {
+const sessao = useEstadoSessao();
+const estado = useEstadoAplicacao();
+watch(
+  () => sessao.conta,
+  (conta) => {
+    if (conta)
+      estado.atualizarDadosAluno({ nome: conta.nome, email: conta.email });
+  },
+  { immediate: true },
+);
+const titulos = computed<Record<string, string>>(() => ({
   inicio: "Início",
   vagas: "Vagas de interesse",
   habilidades: "Minhas habilidades",
   treinos: "Meus treinos",
   historico: "Histórico",
   feedback: "Seu feedback",
-  conta: "Dados do aluno",
-};
+  conta:
+    sessao.conta?.tipoConta === "INSTITUICAO"
+      ? "Dados da instituição"
+      : "Dados do aluno",
+  planos: "Planos disponíveis",
+}));
 </script>
 
 <template>

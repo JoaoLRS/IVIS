@@ -30,7 +30,8 @@ public class ConfiguracaoCors {
         configuracao.setAllowedOrigins(List.of(origensPermitidas));
         configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuracao.setAllowedHeaders(
-                List.of("Authorization", "Content-Type", "X-Id-Requisicao", "X-XSRF-TOKEN"));
+                List.of("Authorization", "Content-Type", "Idempotency-Key",
+                        "X-Id-Requisicao", "X-XSRF-TOKEN"));
         configuracao.setExposedHeaders(List.of("X-Id-Requisicao"));
         configuracao.setAllowCredentials(true);
         configuracao.setMaxAge(3600L);
