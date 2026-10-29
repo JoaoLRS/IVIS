@@ -132,14 +132,14 @@ public class ServicoIdentidade {
 
     @Transactional(readOnly = true)
     public ContaResposta buscarMinhaConta(UUID contaId) {
-        Conta conta = contas.findById(contaId).filter(Conta::estaAtiva)
+        Conta conta = contas.findById(contaId).filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(ServicoIdentidade::sessaoInvalida);
         return resumoConta(conta);
     }
 
     @Transactional
     public ContaResposta atualizarMinhaConta(UUID contaId, AtualizacaoContaRequisicao requisicao) {
-        Conta conta = contas.buscarPorIdParaAtualizacao(contaId).filter(Conta::estaAtiva)
+        Conta conta = contas.buscarPorIdParaAtualizacao(contaId).filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(ServicoIdentidade::sessaoInvalida);
         Instant agora = Instant.now();
         if (requisicao.email() != null) {
@@ -206,7 +206,7 @@ public class ServicoIdentidade {
 
     @Transactional
     public void trocarSenha(UUID contaId, TrocaSenhaRequisicao requisicao) {
-        Conta conta = contas.buscarPorIdParaAtualizacao(contaId).filter(Conta::estaAtiva)
+        Conta conta = contas.buscarPorIdParaAtualizacao(contaId).filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(ServicoIdentidade::sessaoInvalida);
         if (!codificadorSenha.matches(requisicao.senhaAtual(), conta.getHashSenha())) {
             throw senhaAtualInvalida();
@@ -225,7 +225,7 @@ public class ServicoIdentidade {
                 .filter(sessao -> sessao.estaAtivaEm(agora))
                 .orElseThrow(ServicoIdentidade::sessaoInvalida);
         Conta conta = contas.findById(anterior.getContaId())
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(ServicoIdentidade::sessaoInvalida);
 
         EmissaoSessao nova = criarSessao(conta);

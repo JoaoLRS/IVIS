@@ -8,9 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import br.ivis.identidade.dto.VinculoInstitucionalResumo;
-import br.ivis.identidade.modelo.Conta;
-import br.ivis.identidade.modelo.ContratoInstitucional;
-import br.ivis.identidade.modelo.PerfilAluno;
 import br.ivis.identidade.modelo.VinculoInstitucional;
 
 public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoInstitucional, UUID> {

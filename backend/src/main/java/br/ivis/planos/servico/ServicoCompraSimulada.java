@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.ivis.identidade.repositorio.ContaRepositorio;
-import br.ivis.planos.modelo.Plano;
 
 @Service
 public class ServicoCompraSimulada {
@@ -35,7 +34,7 @@ public class ServicoCompraSimulada {
     @Transactional
     public Resposta contratar(UUID contaId, String chaveIdempotencia, Requisicao requisicao) {
         Conta conta = contas.buscarPorIdParaAtualizacao(contaId)
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(() -> new ExcecaoNegocio(HttpStatus.FORBIDDEN,
                         "acesso_negado", "A conta não está habilitada para esta operação."));
         OfertaCompra oferta = buscarOferta(requisicao.planoId());
@@ -229,7 +228,7 @@ public class ServicoCompraSimulada {
     }
 
     private String formatarValor(long centavos, String moeda) {
-        return java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR"))
+        return java.text.NumberFormat.getCurrencyInstance(java.util.Locale.of("pt", "BR"))
                 .format(centavos / 100.0) + " " + moeda;
     }
 
@@ -238,7 +237,7 @@ public class ServicoCompraSimulada {
     }
 
     private ExcecaoNegocio cartaoInvalido() {
-        return new ExcecaoNegocio(HttpStatus.UNPROCESSABLE_ENTITY, "cartao_teste_invalido",
+        return new ExcecaoNegocio(HttpStatus.UNPROCESSABLE_CONTENT, "cartao_teste_invalido",
                 "Use um dos cartões fictícios aceitos pelo simulador e uma validade futura.");
     }
 

@@ -4,7 +4,6 @@ import static br.ivis.identidade.dto.ContratoIdentidade.LoginRequisicao;
 import static br.ivis.identidade.dto.ContratoIdentidade.SessaoResposta;
 import static br.ivis.identidade.dto.ContratoIdentidade.TokenCsrfResposta;
 
-import br.ivis.comum.erro.ExcecaoNegocio;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

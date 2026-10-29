@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.ivis.identidade.dto.ContratoInstitucionalResposta;
 import br.ivis.identidade.dto.VinculoInstitucionalResumo;
 import br.ivis.identidade.modelo.Conta;
 import br.ivis.identidade.modelo.ContratoInstitucional;
@@ -70,7 +69,7 @@ public class ServicoVinculoInstitucional {
     public CriacaoVinculoResposta criarVinculoPorEmail(UUID instituicaoId, CriacaoVinculoPorEmailRequisicao requisicao) {
         carregarInstituicaoParaAtualizacao(instituicaoId);
         Conta aluno = contas.findByEmailNormalizado(requisicao.emailAluno().trim().toLowerCase(java.util.Locale.ROOT))
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .filter(conta -> "ALUNO".equals(conta.getTipoConta()))
                 .filter(conta -> perfisAlunos.existsById(conta.getId()))
                 .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
@@ -84,7 +83,7 @@ public class ServicoVinculoInstitucional {
                 .orElseThrow(ServicoVinculoInstitucional::contratoNaoEncontrado);
 
         Conta aluno = contas.buscarPorIdParaAtualizacao(contaAlunoId)
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .filter(conta -> "ALUNO".equals(conta.getTipoConta()))
                 .filter(conta -> perfisAlunos.existsById(conta.getId()))
                 .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
@@ -136,14 +135,14 @@ public class ServicoVinculoInstitucional {
 
     private Conta carregarInstituicaoParaAtualizacao(UUID instituicaoId) {
         return contas.buscarPorIdParaAtualizacao(instituicaoId)
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .filter(conta -> "INSTITUICAO".equals(conta.getTipoConta()))
                 .orElseThrow(ServicoVinculoInstitucional::instituicaoNaoEncontrada);
     }
 
     private void validarInstituicao(UUID instituicaoId) {
         contas.findById(instituicaoId)
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .filter(conta -> "INSTITUICAO".equals(conta.getTipoConta()))
                 .orElseThrow(ServicoVinculoInstitucional::instituicaoNaoEncontrada);
     }

@@ -40,7 +40,7 @@ public class ServicoConsultaPlanos {
     }
 
     public PlanoDaConta consultarPlanoDaConta(UUID contaId) {
-        Conta conta = contas.findById(contaId).filter(Conta::estaAtiva)
+        Conta conta = contas.findById(contaId).filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(() -> new ExcecaoNegocio(HttpStatus.FORBIDDEN, "acesso_negado",
                         "A conta não está habilitada para esta operação."));
         String modalidade = switch (conta.getTipoConta()) {

@@ -157,7 +157,7 @@ public class ServicoPerfilAluno {
 
     private VagaResposta respostaVaga(VagaInteresse vaga) {
         List<String> textos = requisitos.findAllByVagaInteresseIdOrderByOrdem(vaga.getId()).stream()
-                .map(RequisitoVaga::getTexto)
+                .map(requisito -> requisito.getTexto())
                 .toList();
         return new VagaResposta(
                 vaga.getId(), vaga.getTitulo(), vaga.getEmpresa(), vaga.getSenioridade(),
@@ -204,9 +204,9 @@ public class ServicoPerfilAluno {
             throw campoInvalido("requisitos", "Informe entre 1 e 20 requisitos.");
         }
         List<String> normalizados = requisicao.requisitos().stream()
-                .map(String::trim)
+                .map(texto -> texto.trim())
                 .toList();
-        if (normalizados.stream().anyMatch(String::isBlank)) {
+        if (normalizados.stream().anyMatch(texto -> texto.isBlank())) {
             throw campoInvalido("requisitos", "Os requisitos não podem ficar vazios.");
         }
         Set<String> unicos = new HashSet<>();
