@@ -1,11 +1,17 @@
 spring:
   application:
     name: ivis-backend
+  main:
+    lazy-initialization: true
   datasource:
     url: ${IVIS_BD_URL:jdbc:postgresql://localhost:5432/ivis}
     username: ${IVIS_BD_USUARIO:ivis}
     # Sem valor padrão de propósito: a aplicação não sobe sem a senha informada.
     password: ${IVIS_BD_SENHA}
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 0
+      initialization-fail-timeout: -1
   jpa:
     open-in-view: false
     hibernate:
@@ -28,7 +34,7 @@ spring:
           writetimeout: 5000
 
 server:
-  port: ${IVIS_PORTA:8081}
+  port: ${PORT:${IVIS_PORTA:8081}}
   # O frontend já espera a base http://localhost:8081/api (clienteHttp.ts);
   # os controladores mapeiam /v1/..., resultando em /api/v1/...
   servlet:
@@ -51,7 +57,7 @@ ivis:
   email:
     remetente: ${IVIS_EMAIL_REMETENTE:no-reply@ivis.local}
   cors:
-    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173}
+    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173,https://ivis-ia.vercel.app,https://ivis-b4s65t63k-lucifer-son.vercel.app}
   ia:
     url: ${IVIS_IA_URL:http://localhost:8000}
     chave-servico: ${IVIS_IA_CHAVE_SERVICO}
@@ -61,3 +67,9 @@ ivis:
 logging:
   pattern:
     level: "%5p [%X{idRequisicao:-sem-id}]"
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

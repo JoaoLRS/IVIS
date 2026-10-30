@@ -38,15 +38,31 @@ O Gradle Wrapper ainda não foi gerado. Uma vez, com Gradle instalado, rode `gra
 
 Testes (exigem Docker, usam Testcontainers): `gradle test`.
 
+## Compilar como GraalVM Native Image
+
+O build usa o plugin oficial GraalVM Native Build Tools (`1.1.17`) e gera o executável `ivis-backend` com `-march=compatibility` para evitar instruções específicas da CPU de build.
+
+Pré-requisitos: GraalVM for JDK 25 com Native Image instalado e, no Windows, a toolchain C/C++ e o Windows SDK exigidos pelo Native Image. Confira a instalação com `native-image --version`.
+
+Na pasta `backend/`, compile e execute:
+
+```bash
+gradle nativeCompile
+```
+
+O executável fica em `build/native/nativeCompile/ivis-backend` (Linux/macOS) ou `build/native/nativeCompile/ivis-backend.exe` (Windows). A aplicação continua precisando das mesmas variáveis de ambiente documentadas acima, incluindo as credenciais do banco e a chave JWT.
+
+Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa também requer Docker porque os testes de integração usam Testcontainers.
+
 ## Variáveis de ambiente
 
 | Variável | Padrão | Uso |
 |---|---|---|
-| `IVIS_BD_URL` | `jdbc:postgresql://localhost:5432/ivis` | Conexão JDBC. |
+| `IVIS_BD_URL` | `jdbc:postgresql://localhost:5432/ivis` | Conexão JDBC. Em produção no Neon, use `jdbc:postgresql://HOST.neon.tech/BANCO?sslmode=require`. |
 | `IVIS_BD_USUARIO` | `ivis` | Usuário do banco. |
 | `IVIS_BD_SENHA` | *(obrigatória)* | Senha do banco. Sem padrão no código. |
 | `IVIS_PORTA` | `8081` | Porta HTTP. |
-| `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173` | Origens do frontend, separadas por vírgula. |
+| `IVIS_CORS_ORIGENS` | `http://localhost:8080,http://localhost:5173,https://ivis-ia.vercel.app,https://ivis-b4s65t63k-lucifer-son.vercel.app` | Origens exatas do frontend, separadas por vírgula e sem barra final. Configure os domínios necessários para cada ambiente. |
 | `IVIS_JWT_CHAVE_ASSINATURA` | *(obrigatória, Base64 de pelo menos 32 bytes aleatórios)* | Chave HMAC-SHA256 de assinatura dos JWTs. Gerar por ambiente; nunca versionar nem reutilizar entre ambientes. |
 | `IVIS_COOKIE_SEGURO` | `true` | Habilita `Secure` no cookie de refresh. Pode ser `false` somente para desenvolvimento local HTTP. |
 | `IVIS_LOGIN_TENTATIVAS_MAX` | `10` | Tentativas inválidas por janela, aplicadas ao e-mail normalizado e ao IP de origem. |
@@ -61,7 +77,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
 | `IVIS_IA_CHAVE_SERVICO` | *(obrigatória, mínimo 32 caracteres)* | Chave serviço a serviço enviada ao serviço de IA. Nunca vai para o frontend. |
 | `IVIS_IA_TIMEOUT_PERGUNTA` | `105s` | Timeout para geração de perguntas (90s da NVIDIA mais margem de rede). |
 | `IVIS_IA_TIMEOUT_AVALIACAO` | `110s` | Timeout para avaliação (90s da NVIDIA mais margem de rede). |
-| `SPRING_PROFILES_ACTIVE` | *(vazio)* | `estruturado` liga logs em JSON (ECS). |
+| `SPRING_PROFILES_ACTIVE` | *(vazio)* | Swagger e OpenAPI ficam desativados por padrão; `dev` os ativa e `prod` os mantém desativados. `estruturado` liga logs em JSON (ECS); combine perfis com vírgula, por exemplo `prod,estruturado`. |
 
 ## Convenções de API (Etapa 0, item 4)
 
@@ -101,7 +117,7 @@ Testes (exigem Docker, usam Testcontainers): `gradle test`.
   `campos` é sempre uma lista (vazia quando não se aplica). As mensagens de erro do framework são fixas e não repetem o texto da exceção. Erros de regra de negócio usam `ExcecaoNegocio`.
 - **Logs:** só método, caminho, status e duração por requisição. Nada de corpo, cabeçalhos, consulta, senhas ou tokens.
 - **CORS:** só as origens de `IVIS_CORS_ORIGENS`, com credenciais (cookie de renovação do ADR-0011).
-- **CSRF:** buscar `GET /api/v1/sessoes/csrf` antes de chamadas mutáveis e enviar o cookie `XSRF-TOKEN` junto do cabeçalho `X-XSRF-TOKEN`. `ivis_refresh` é HttpOnly, SameSite Strict e Secure por padrão.
+- **CSRF:** buscar `GET /api/v1/sessoes/csrf` antes de chamadas mutáveis e enviar o cookie `XSRF-TOKEN` junto do cabeçalho `X-XSRF-TOKEN`. O cookie CSRF usa `Path=/` para ficar disponível em toda a aplicação. `ivis_refresh` é HttpOnly, SameSite Strict e Secure por padrão.
 
 ## Preparação de segurança
 

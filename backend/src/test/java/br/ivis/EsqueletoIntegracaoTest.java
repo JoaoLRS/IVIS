@@ -12,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -26,9 +27,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
-
-import br.ivis.identidade.modelo.Conta;
-import br.ivis.planos.modelo.Plano;
 
 /** Sobe a aplicação inteira contra um PostgreSQL vazio (Testcontainers); exige Docker. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -175,10 +173,10 @@ class EsqueletoIntegracaoTest {
 
         assertEquals(401, senhaIncorreta.statusCode());
         assertEquals(401, emailInexistente.statusCode());
-        assertEquals(json().readTree(senhaIncorreta.body()).get("codigo").asText(),
-                json().readTree(emailInexistente.body()).get("codigo").asText());
-        assertEquals(json().readTree(senhaIncorreta.body()).get("mensagem").asText(),
-                json().readTree(emailInexistente.body()).get("mensagem").asText());
+        assertEquals(json().readTree(senhaIncorreta.body()).get("codigo").asString(),
+                json().readTree(emailInexistente.body()).get("codigo").asString());
+        assertEquals(json().readTree(senhaIncorreta.body()).get("mensagem").asString(),
+                json().readTree(emailInexistente.body()).get("mensagem").asString());
     }
 
     @Test
@@ -203,13 +201,13 @@ class EsqueletoIntegracaoTest {
                 null);
         assertEquals(200, login.statusCode());
         assertTrue(login.body().contains("\"tipoToken\":\"Bearer\""));
-        String accessToken = json().readTree(login.body()).get("accessToken").asText();
+        String accessToken = json().readTree(login.body()).get("accessToken").asString();
         String tokenAntigo = valorCookie(login, "ivis_refresh");
 
         HttpResponse<String> renovacao = postarComCsrf(
                 "/v1/sessoes/renovacao", "{}", csrf, tokenAntigo);
         assertEquals(200, renovacao.statusCode());
-        String accessTokenNovo = json().readTree(renovacao.body()).get("accessToken").asText();
+        String accessTokenNovo = json().readTree(renovacao.body()).get("accessToken").asString();
         String tokenNovo = valorCookie(renovacao, "ivis_refresh");
         assertNotEquals(tokenAntigo, tokenNovo);
 
@@ -245,7 +243,7 @@ class EsqueletoIntegracaoTest {
                 csrf,
                 tokenAluno);
         assertEquals(201, habilidadeCriada.statusCode());
-        String habilidadeId = json().readTree(habilidadeCriada.body()).get("id").asText();
+        String habilidadeId = json().readTree(habilidadeCriada.body()).get("id").asString();
         assertEquals(409, postarAutenticado(
                 "/v1/habilidades",
                 """
@@ -272,8 +270,8 @@ class EsqueletoIntegracaoTest {
                 csrf,
                 tokenAluno);
         assertEquals(201, vagaCriada.statusCode());
-        String vagaId = json().readTree(vagaCriada.body()).get("id").asText();
-        assertEquals("Java", json().readTree(vagaCriada.body()).get("requisitos").get(0).asText());
+        String vagaId = json().readTree(vagaCriada.body()).get("id").asString();
+        assertEquals("Java", json().readTree(vagaCriada.body()).get("requisitos").get(0).asString());
 
         String snapshot = """
                 {"titulo":"Desenvolvedor Java","requisitos":["Java","PostgreSQL"]}
@@ -383,9 +381,9 @@ class EsqueletoIntegracaoTest {
         assertEquals(0, json().readTree(listaInstituicaoB.body()).size());
 
         var vinculo = json().readTree(listaInstituicaoA.body()).get(0);
-        String vinculoId = vinculo.get("id").asText();
-        assertTrue(vinculo.get("contaAlunoId").asText().equals(idConta(emailAlunoA).toString())
-                || vinculo.get("contaAlunoId").asText().equals(idConta(emailAlunoB).toString()));
+        String vinculoId = vinculo.get("id").asString();
+        assertTrue(vinculo.get("contaAlunoId").asString().equals(idConta(emailAlunoA).toString())
+                || vinculo.get("contaAlunoId").asString().equals(idConta(emailAlunoB).toString()));
         assertEquals(404, deletarAutenticado(
                 "/v1/instituicao/vinculos/" + vinculoId, csrf, tokenInstituicaoB).statusCode());
         assertEquals(204, deletarAutenticado(
@@ -488,7 +486,7 @@ class EsqueletoIntegracaoTest {
                 csrf,
                 null);
         assertEquals(200, login.statusCode());
-        return json().readTree(login.body()).get("accessToken").asText();
+        return json().readTree(login.body()).get("accessToken").asString();
     }
 
     private HttpResponse<String> postarAutenticado(
@@ -536,10 +534,15 @@ class EsqueletoIntegracaoTest {
 
     private ProtecaoCsrf obterProtecaoCsrf() throws Exception {
         HttpResponse<String> resposta = obter("/v1/sessoes/csrf");
-        String cookie = resposta.headers().allValues("Set-Cookie").stream()
+        String cookieCsrf = resposta.headers().allValues("Set-Cookie").stream()
                 .filter(valor -> valor.startsWith("XSRF-TOKEN="))
-                .findFirst().orElseThrow().split(";", 2)[0];
-        String token = json().readTree(resposta.body()).get("token").asText();
+                .findFirst().orElseThrow();
+        String token = json().readTree(resposta.body()).get("token").asString();
+        assertTrue(Arrays.stream(cookieCsrf.split(";"))
+                .map(valor -> valor.trim())
+                .anyMatch("Path=/"::equals));
+        String cookie = cookieCsrf.split(";", 2)[0];
+        assertEquals(token, cookie.substring("XSRF-TOKEN=".length()));
         return new ProtecaoCsrf(cookie, token);
     }
 
@@ -594,6 +597,15 @@ class EsqueletoIntegracaoTest {
         HttpResponse<String> permitida = obter("/v1/saude", "Origin", "http://localhost:8080");
         assertEquals("http://localhost:8080",
                 permitida.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+
+        HttpResponse<String> vercel = obter("/v1/saude", "Origin", "https://ivis-ia.vercel.app");
+        assertEquals("https://ivis-ia.vercel.app",
+                vercel.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
+
+        HttpResponse<String> previewVercel = obter(
+                "/v1/saude", "Origin", "https://ivis-b4s65t63k-lucifer-son.vercel.app");
+        assertEquals("https://ivis-b4s65t63k-lucifer-son.vercel.app",
+                previewVercel.headers().firstValue("Access-Control-Allow-Origin").orElse(""));
 
         HttpResponse<String> negada = obter("/v1/saude", "Origin", "http://origem-nao-configurada.example");
         assertFalse(negada.headers().firstValue("Access-Control-Allow-Origin").isPresent());

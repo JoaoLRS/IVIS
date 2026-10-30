@@ -4,7 +4,6 @@ import br.ivis.comum.erro.ExcecaoNegocio;
 import br.ivis.ia.servico.ClienteIa;
 import static br.ivis.ia.dto.ContratoIa.*;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

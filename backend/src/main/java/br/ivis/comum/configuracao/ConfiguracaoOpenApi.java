@@ -8,7 +8,6 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
 import java.util.List;
 import java.util.Set;
@@ -58,13 +57,5 @@ public class ConfiguracaoOpenApi {
                         operation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
                     }
                 }));
-    }
-
-    @Bean
-    WebSecurityCustomizer documentacaoPublica() {
-        return web -> web.ignoring().requestMatchers(
-                "/v3/api-docs/**",
-                "/swagger-ui/**",
-                "/swagger-ui.html");
     }
 }

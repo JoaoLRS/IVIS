@@ -1,6 +1,5 @@
 package br.ivis.identidade.dto;
 
-import java.time.Instant;
 import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 

@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import br.ivis.identidade.modelo.ContratoInstitucional;
-import br.ivis.identidade.modelo.PlanoContrato;
 
 public interface ContratoInstitucionalRepositorio extends JpaRepository<ContratoInstitucional, UUID> {
 

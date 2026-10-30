@@ -31,18 +31,6 @@ import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
-import br.ivis.identidade.repositorio.ContaRepositorio;
-import br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio;
-import br.ivis.identidade.repositorio.HabilidadePerfilRepositorio;
-import br.ivis.identidade.repositorio.PerfilAlunoRepositorio;
-import br.ivis.identidade.repositorio.PerfilInstituicaoRepositorio;
-import br.ivis.identidade.repositorio.RequisitoVagaRepositorio;
-import br.ivis.identidade.repositorio.TokenRecuperacaoSenhaRepositorio;
-import br.ivis.identidade.repositorio.VagaInteresseRepositorio;
-import br.ivis.identidade.repositorio.VinculoInstitucionalRepositorio;
-import br.ivis.planos.repositorio.ContratoPlanoConsultaRepositorio;
-import br.ivis.planos.repositorio.PlanoRepositorio;
-
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {

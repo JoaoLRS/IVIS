@@ -54,6 +54,7 @@ public class ConfiguracaoSeguranca {
                         .authenticationEntryPoint(naoAutenticado)
                         .accessDeniedHandler(acessoNegado))
                 .authorizeHttpRequests(autorizacao -> autorizacao
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/saude", "/v1/pronto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/sessoes/csrf").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/planos", "/v1/planos/*").permitAll()
@@ -75,7 +76,7 @@ public class ConfiguracaoSeguranca {
     CookieCsrfTokenRepository repositorioCsrf(
             @Value("${ivis.sessao.cookie-seguro:true}") boolean cookieSeguro) {
         CookieCsrfTokenRepository repositorio = CookieCsrfTokenRepository.withHttpOnlyFalse();
-        repositorio.setCookieCustomizer(cookie -> cookie.path("/api").secure(cookieSeguro).sameSite("Strict"));
+        repositorio.setCookieCustomizer(cookie -> cookie.path("/").secure(cookieSeguro).sameSite("Strict"));
         return repositorio;
     }
 

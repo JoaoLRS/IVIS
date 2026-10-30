@@ -80,7 +80,8 @@ public class ServicoRecuperacaoSenha {
     public String solicitar(String email, String enderecoOrigem) {
         String normalizado = email.trim().toLowerCase(Locale.ROOT);
         limite.registrarSolicitacao(normalizado, enderecoOrigem);
-        Conta conta = contas.findByEmailNormalizado(normalizado).filter(Conta::estaAtiva).orElse(null);
+        Conta conta = contas.findByEmailNormalizado(normalizado).filter(contaEncontrada -> contaEncontrada.estaAtiva())
+                .orElse(null);
         if (conta != null) {
             Instant agora = Instant.now();
             tokens.consumirTodosAtivosDaConta(conta.getId());
@@ -110,7 +111,7 @@ public class ServicoRecuperacaoSenha {
                 .filter(item -> item.estaValidoEm(agora))
                 .orElseThrow(ServicoRecuperacaoSenha::tokenInvalido);
         Conta conta = contas.buscarPorIdParaAtualizacao(registro.getContaId())
-                .filter(Conta::estaAtiva)
+                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(ServicoRecuperacaoSenha::tokenInvalido);
         conta.atualizarSenha(codificadorSenha.encode(novaSenha), agora);
         registro.consumir(agora);
