@@ -182,8 +182,8 @@ que o provedor NVIDIA. Ele não usa rede nem uma chave NVIDIA.
 
 - Gera uma pergunta escolhendo uma frase fixa e preenchendo o tema com uma
   habilidade ou um requisito da vaga.
-- A nota de avaliação depende do tamanho das respostas, não da correção ou da
-  qualidade técnica delas.
+- Não aplica avaliação qualitativa; devolve nota `null` e nenhum ponto forte ou
+  melhoria para não apresentar volume de texto como qualidade.
 - `IVIS_IA_STUB_FALHA=indisponivel` simula `503`.
 - `IVIS_IA_STUB_FALHA=tempo_esgotado` simula `504`.
 
@@ -215,7 +215,8 @@ O adaptador envia um JSON Schema para cada operação:
 - Pergunta: objeto com `pergunta.texto`.
 - Avaliação: rubrica por pergunta (`CORRECAO_TECNICA`, `COMPLETUDE` e
   `CLAREZA`), justificativas com trechos literais, confiança qualitativa e
-  limitações. A API calcula a `nota` a partir dos critérios.
+  limitações. A API calcula a `nota` ponderando correção técnica (60%),
+  completude (25%) e clareza (15%). O stub não atribui nota.
 
 O modelo é chamado com `stream: false`, `max_tokens: 1024` e
 `chat_template_kwargs.enable_thinking: false`. Depois, o código lê
@@ -233,7 +234,7 @@ Timeouts viram `504`. Problemas de rede ou erros HTTP do provedor viram
 `502`.
 
 O adaptador devolve `versao_modelo` com o identificador configurado e
-`versao_prompt` com `perguntas-1` ou `avaliacao-2`. Esses valores ajudam a
+`versao_prompt` com `perguntas-1` ou `avaliacao-3`. Esses valores ajudam a
 identificar qual modelo e qual versão do prompt foram usados pela aplicação.
 
 ## 9. Saúde e prontidão

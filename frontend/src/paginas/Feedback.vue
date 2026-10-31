@@ -55,7 +55,7 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
             :style="{ '--score': `${treino?.nota ?? 0}%` }"
           >
             <div>
-              <strong>{{ treino?.nota ?? 0 }}</strong
+              <strong>{{ treino?.nota ?? "—" }}</strong
               ><small>pontos</small>
             </div>
           </div>
@@ -93,7 +93,7 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
         <div class="card-body feedback-body">
           <div class="eyebrow">ANÁLISE DA ENTREVISTA</div>
           <h2>Resumo da sua entrevista</h2>
-          <div class="feedback-point">
+          <div v-if="treino?.avaliacaoQualitativa" class="feedback-point">
             <span class="point-icon"><Check :size="15" /></span>
             <div>
               <strong>Seus pontos fortes</strong>
@@ -105,7 +105,10 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
               </p>
             </div>
           </div>
-          <div class="feedback-point improvement">
+          <div
+            v-if="treino?.avaliacaoQualitativa"
+            class="feedback-point improvement"
+          >
             <span class="point-icon"><ArrowUpRight :size="15" /></span>
             <div>
               <strong>Para continuar evoluindo</strong>
@@ -117,6 +120,10 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
               </p>
             </div>
           </div>
+          <p v-else class="feedback-disclaimer">
+            A avaliação qualitativa não está disponível neste modo. Ative um
+            provedor de IA para analisar os critérios e gerar feedback.
+          </p>
           <div class="feedback-meta">
             <span><Clock3 :size="14" /> {{ treino?.duracao ?? "—" }}</span
             ><span

@@ -14,17 +14,21 @@ import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 
 const estado = useEstadoAplicacao();
 const totalTreinos = computed(() => estado.historico.length);
-const mediaNotas = computed(() =>
-  totalTreinos.value
-    ? Math.round(
-        estado.historico.reduce((soma, treino) => soma + treino.nota, 0) /
-          totalTreinos.value,
-      )
-    : 0,
+const treinosAvaliados = computed(() =>
+  estado.historico.filter((treino) => treino.nota !== null),
 );
+const mediaNotas = computed(() => {
+  if (!treinosAvaliados.value.length) return null;
+  const total = treinosAvaliados.value.reduce(
+    (soma, treino) => soma + (treino.nota ?? 0),
+    0,
+  );
+  return Math.round(total / treinosAvaliados.value.length);
+});
 const variacaoRecente = computed(() => {
-  if (totalTreinos.value < 2) return null;
-  return estado.historico[0].nota - estado.historico[1].nota;
+  if (treinosAvaliados.value.length < 2) return null;
+  const [maisRecente, anterior] = treinosAvaliados.value;
+  return (maisRecente.nota ?? 0) - (anterior.nota ?? 0);
 });
 const ultimoTreino = computed(() => estado.historico[0] ?? null);
 </script>
@@ -62,8 +66,8 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
     <article class="progress-card">
       <span class="progress-icon"><TrendingUp :size="18" /></span>
       <span class="progress-label">Média das notas</span>
-      <strong>{{ totalTreinos ? `${mediaNotas}/100` : "—" }}</strong>
-      <small>calculada com seus resultados</small>
+      <strong>{{ mediaNotas !== null ? `${mediaNotas}/100` : "—" }}</strong>
+      <small>somente treinos com rubrica qualitativa</small>
     </article>
     <article class="progress-card">
       <span class="progress-icon"><ArrowUpRight :size="18" /></span>
@@ -134,7 +138,8 @@ const ultimoTreino = computed(() => estado.historico[0] ?? null);
         <span class="latest-feedback-link">Ver feedback <ArrowRight :size="14" /></span>
       </span>
       <span class="latest-score">
-        <strong>{{ ultimoTreino.nota }}</strong><small>/100</small>
+        <strong>{{ ultimoTreino.nota ?? "—" }}</strong>
+        <small>{{ ultimoTreino.nota === null ? "sem nota qualitativa" : "/100" }}</small>
       </span>
     </RouterLink>
     <div v-else class="home-empty-state">

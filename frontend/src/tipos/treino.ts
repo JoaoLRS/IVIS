@@ -18,7 +18,7 @@ export interface Treino {
   titulo: string;
   contexto: string;
   data: string;
-  nota: number;
+  nota: number | null;
   duracao: string;
   pontosFortes?: string;
   melhorias?: string;

@@ -108,16 +108,16 @@ Resposta `200`:
   "avaliacao_qualitativa": true,
   "nivel_confianca": "MEDIA",
   "limitacoes": "…",
-  "versao_modelo": "stub-1",
-  "versao_prompt": "avaliacao-2"
+  "versao_modelo": "nvidia/modelo-configurado",
+  "versao_prompt": "avaliacao-3"
 }
 ```
 
-- `nota`: inteiro de **0 a 100**, calculado pela API de IA a partir da média dos critérios (cada um de 0 a 5); não é garantia de acerto.
-- `pontos_fortes` e `pontos_melhoria`: de 1 a 5 itens de texto cada.
+- `nota`: inteiro de **0 a 100**, calculado a partir da rubrica ponderada (correção técnica 60%, completude 25% e clareza 15%). O tamanho da resposta não é critério; respostas concisas podem receber nota alta se forem corretas e completas. A nota não é garantia de acerto.
+- `pontos_fortes` e `pontos_melhoria`: de 1 a 5 itens de texto na avaliação qualitativa; ficam vazios no stub.
 - `avaliacoes_por_pergunta`: uma avaliação por interação; a rubrica usa `CORRECAO_TECNICA`, `COMPLETUDE` e `CLAREZA`, cada uma de 0 a 5. `trecho_resposta` deve ser uma citação literal da resposta e é validado pela API.
 - `nivel_confianca`: estimativa qualitativa (`BAIXA`, `MEDIA` ou `ALTA`), não calibrada. `limitacao` e `limitacoes` registram ressalvas específicas e gerais.
-- `avaliacao_qualitativa`: informa se os critérios realmente foram avaliados. É `false` no stub; nesse caso, as listas por pergunta não contêm notas.
+- `avaliacao_qualitativa`: informa se os critérios realmente foram avaliados. É `false` no stub; nesse caso, `nota` é `null`, listas de pontos fortes e melhorias ficam vazias e os critérios por pergunta não contêm notas.
 
 ### `GET /saude` e `GET /pronto`
 
@@ -153,8 +153,8 @@ Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação e
 ## Comportamento do stub
 
 - Gera perguntas a partir de um conjunto fixo, variando pelo tema (habilidade ou requisito) e pelo `numero_pergunta`.
-- Calcula `nota` de forma determinística a partir do tamanho das respostas (respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**. A resposta declara `avaliacao_qualitativa: false`, confiança baixa e explica que a nota não avalia qualidade nem correção técnica.
-- Devolve `versao_modelo: "stub-1"` e `versao_prompt: "avaliacao-2"`. Um treino avaliado pelo stub é identificável pela versão persistida em `avaliacoes_treinamento`.
+- Não avalia o conteúdo e não produz nota nem feedback resumido. A resposta declara `avaliacao_qualitativa: false`, confiança baixa e orienta configurar um provedor real.
+- Devolve `versao_modelo: "stub-1"` e `versao_prompt: "avaliacao-3"`. Um treino sem avaliação qualitativa é identificável pela versão persistida em `avaliacoes_treinamento`.
 - Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição); a readiness fica indisponível quando a simulação de falha está ativa.
 
 ## Pendências

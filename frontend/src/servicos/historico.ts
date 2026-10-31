@@ -6,7 +6,7 @@ export interface TreinoPersistido {
   id: string;
   titulo: string;
   contexto: string;
-  nota: number;
+  nota: number | null;
   data: string;
   pontosFortes: string[];
   pontosMelhoria: string[];

@@ -49,7 +49,7 @@ class IaControladorIntegracaoTest {
             "{\"pergunta\":{\"texto\":\"Como você usa Vue?\"},"
                     + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"perguntas-1\"}";
     private static final String RESPOSTA_AVALIACAO =
-            "{\"nota\":80,\"pontos_fortes\":[\"Exemplos claros.\"],"
+            "{\"nota\":78,\"pontos_fortes\":[\"Exemplos claros.\"],"
                     + "\"pontos_melhoria\":[\"Detalhe os resultados.\"],"
                     + "\"avaliacoes_por_pergunta\":[{\"numero\":1,"
                     + "\"pergunta\":\"Como usa Vue?\",\"criterios\":["
@@ -67,7 +67,7 @@ class IaControladorIntegracaoTest {
                     + "\"avaliacao_qualitativa\":true,"
                     + "\"nivel_confianca\":\"MEDIA\","
                     + "\"limitacoes\":\"Resposta curta.\","
-                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-2\"}";
+                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-3\"}";
     private static final List<String> caminhos = new CopyOnWriteArrayList<>();
     private static final List<String> chaves = new CopyOnWriteArrayList<>();
     private static volatile String corpoServicoIa = RESPOSTA_PERGUNTA;
@@ -139,7 +139,7 @@ class IaControladorIntegracaoTest {
                 """);
 
         assertEquals(200, resposta.statusCode());
-        assertTrue(resposta.body().contains("\"nota\":80"));
+        assertTrue(resposta.body().contains("\"nota\":78"));
         assertEquals(List.of("/v1/avaliacoes/gerar"), caminhos);
         assertEquals(List.of(CHAVE_SERVICO), chaves);
     }

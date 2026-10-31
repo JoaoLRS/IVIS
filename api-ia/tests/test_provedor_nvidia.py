@@ -186,13 +186,14 @@ def test_provedor_nvidia_retorna_rubrica_com_evidencia_literal(monkeypatch) -> N
     resultado = asyncio.run(ProvedorNvidia().gerar_avaliacao(entrada))
 
     assert resultado["avaliacao_qualitativa"] is True
+    assert "nota" not in resultado
     assert resultado["avaliacoes_por_pergunta"] == [
         {
             **corpo_avaliacao["avaliacoes_por_pergunta"][0],
             "pergunta": "Como trataria falhas?",
         }
     ]
-    assert resultado["versao_prompt"] == "avaliacao-2"
+    assert resultado["versao_prompt"] == "avaliacao-3"
 
 
 def test_provedor_nvidia_consulta_resultado_assincrono(monkeypatch) -> None:

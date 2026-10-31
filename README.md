@@ -351,8 +351,8 @@ continua chamando somente o backend.
 No modo NVIDIA, o feedback apresenta critérios por pergunta, justificativas
 ancoradas em trechos literais da resposta e uma indicação qualitativa de
 confiança e limitações. Essa confiança não é calibrada e a IA pode errar. O stub
-padrão é demonstrativo: sua nota depende do tamanho do texto e não avalia se a
-resposta está correta.
+padrão não avalia qualidade e não atribui nota. Configure `IVIS_IA_USAR_STUB=false`
+e `NVIDIA_API_KEY` na API de IA para receber avaliação por critérios.
 
 ---
 

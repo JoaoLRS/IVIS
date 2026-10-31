@@ -5,9 +5,10 @@
 Este roteiro prepara a demonstração da integração do fluxo de treino com a API
 de IA. O stub atual permite demonstrar chamadas, validação de contrato e
 comportamento de falhas, mas **não avalia qualidade semântica**. A avaliação do
-stub depende do tamanho das respostas; ela não é evidência de qualidade de um
-modelo. Ainda não há adaptador NIM nem modelo de inferência confirmado, então
-qualidade do modelo e latência NIM permanecem pendentes.
+stub não calcula nota nem produz feedback. Para uma avaliação qualitativa,
+configure o provedor NVIDIA conforme o LEIA-ME; ela usa uma rubrica ponderada,
+mas ainda requer validação humana para medir se as notas são confiáveis.
+Qualidade do modelo e latência NIM permanecem pendentes.
 
 Os alvos p95 de 10 s para pergunta e 20 s para avaliação são propostas a medir,
 não SLAs aprovados. A execução integrada de Compose requer Docker e as medições

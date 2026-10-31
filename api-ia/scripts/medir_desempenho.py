@@ -49,11 +49,21 @@ def validar_resposta(operacao: str, corpo: object) -> bool:
 
     avaliacao_qualitativa = corpo.get("avaliacao_qualitativa")
     avaliacoes = corpo.get("avaliacoes_por_pergunta")
+    if avaliacao_qualitativa is True:
+        nota_valida = type(corpo.get("nota")) is int and 0 <= corpo["nota"] <= 100
+        feedback_valido = (
+            _lista_de_textos_valida(corpo.get("pontos_fortes"))
+            and _lista_de_textos_valida(corpo.get("pontos_melhoria"))
+        )
+    else:
+        nota_valida = corpo.get("nota") is None
+        feedback_valido = (
+            corpo.get("pontos_fortes") == []
+            and corpo.get("pontos_melhoria") == []
+        )
     return (
-        type(corpo.get("nota")) is int
-        and 0 <= corpo["nota"] <= 100
-        and _lista_de_textos_valida(corpo.get("pontos_fortes"))
-        and _lista_de_textos_valida(corpo.get("pontos_melhoria"))
+        nota_valida
+        and feedback_valido
         and type(avaliacao_qualitativa) is bool
         and _avaliacoes_por_pergunta_validas(avaliacoes, avaliacao_qualitativa)
         and corpo.get("nivel_confianca") in {"BAIXA", "MEDIA", "ALTA"}

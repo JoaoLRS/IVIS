@@ -74,7 +74,7 @@ describe("treino integrado ao backend de IA", () => {
           nivel_confianca: "BAIXA",
           limitacoes: "As respostas do teste são curtas.",
           versao_modelo: "nvidia/fake-1",
-          versao_prompt: "avaliacao-2",
+          versao_prompt: "avaliacao-3",
         },
       });
     }).as("gerarAvaliacao");

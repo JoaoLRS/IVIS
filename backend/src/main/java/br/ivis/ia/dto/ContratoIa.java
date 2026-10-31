@@ -120,10 +120,10 @@ public final class ContratoIa {
     }
 
     public record GerarAvaliacaoResposta(
-            @NotNull @Min(0) @Max(100) Integer nota,
-            @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_fortes")
+            @Min(0) @Max(100) Integer nota,
+            @NotNull @Size(max = 5) @JsonProperty("pontos_fortes")
                     List<@NotBlank String> pontosFortes,
-            @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_melhoria")
+            @NotNull @Size(max = 5) @JsonProperty("pontos_melhoria")
                     List<@NotBlank String> pontosMelhoria,
             @NotNull @Size(max = 10) @JsonProperty("avaliacoes_por_pergunta")
                     List<@Valid AvaliacaoPergunta> avaliacoesPorPergunta,
@@ -135,11 +135,13 @@ public final class ContratoIa {
 
         @AssertTrue(message = "A rubrica não corresponde ao indicador qualitativo.")
         public boolean isRubricaConsistente() {
-            if (avaliacaoQualitativa == null || avaliacoesPorPergunta == null) {
+            if (avaliacaoQualitativa == null || avaliacoesPorPergunta == null
+                    || pontosFortes == null || pontosMelhoria == null) {
                 return false;
             }
             if (avaliacaoQualitativa) {
                 boolean criteriosValidos = !avaliacoesPorPergunta.isEmpty()
+                        && !pontosFortes.isEmpty() && !pontosMelhoria.isEmpty()
                         && avaliacoesPorPergunta.stream().allMatch(item -> {
                             if (item == null) {
                                 return false;
@@ -157,12 +159,18 @@ public final class ContratoIa {
                 }
                 int total = avaliacoesPorPergunta.stream()
                         .flatMap(item -> item.criterios().stream())
-                        .mapToInt(CriterioAvaliacao::nota)
+                        .mapToInt(criterio -> criterio.nota()
+                                * switch (criterio.criterio()) {
+                                    case CORRECAO_TECNICA -> 60;
+                                    case COMPLETUDE -> 25;
+                                    case CLAREZA -> 15;
+                                })
                         .sum();
-                int maximo = avaliacoesPorPergunta.size() * 3 * 5;
-                return nota == (total * 100 + maximo / 2) / maximo;
+                int divisor = avaliacoesPorPergunta.size() * 5;
+                return nota.equals((total + divisor / 2) / divisor);
             }
-            return avaliacoesPorPergunta.stream()
+            return nota == null && pontosFortes.isEmpty() && pontosMelhoria.isEmpty()
+                    && avaliacoesPorPergunta.stream()
                     .allMatch(item -> item != null && item.criterios() != null
                             && item.criterios().isEmpty());
         }

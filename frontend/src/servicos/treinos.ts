@@ -31,7 +31,7 @@ export interface GerarPerguntaResposta {
 }
 
 export interface GerarAvaliacaoResposta {
-  nota: number;
+  nota: number | null;
   pontos_fortes: string[];
   pontos_melhoria: string[];
   avaliacoes_por_pergunta: AvaliacaoPergunta[];

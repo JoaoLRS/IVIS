@@ -88,9 +88,9 @@ class GerarPerguntaResposta(EsquemaBase):
 
 
 class GerarAvaliacaoResposta(EsquemaBase):
-    nota: int = Field(default=0, ge=0, le=100)
-    pontos_fortes: list[str] = Field(min_length=1, max_length=5)
-    pontos_melhoria: list[str] = Field(min_length=1, max_length=5)
+    nota: int | None = Field(default=None, ge=0, le=100)
+    pontos_fortes: list[str] = Field(max_length=5)
+    pontos_melhoria: list[str] = Field(max_length=5)
     avaliacoes_por_pergunta: list[AvaliacaoPergunta] = Field(max_length=10)
     avaliacao_qualitativa: bool
     nivel_confianca: Literal["BAIXA", "MEDIA", "ALTA"]
@@ -102,20 +102,40 @@ class GerarAvaliacaoResposta(EsquemaBase):
     def validar_disponibilidade_da_rubrica(self) -> "GerarAvaliacaoResposta":
         if self.avaliacao_qualitativa and not self.avaliacoes_por_pergunta:
             raise ValueError("A avaliação qualitativa exige avaliações por pergunta.")
-        if not self.avaliacao_qualitativa and any(
-            avaliacao.criterios for avaliacao in self.avaliacoes_por_pergunta
+        if self.avaliacao_qualitativa:
+            if not self.pontos_fortes or not self.pontos_melhoria:
+                raise ValueError("A avaliação qualitativa exige feedback resumido.")
+            if any(
+                len(avaliacao.criterios) != 3
+                or {criterio.criterio for criterio in avaliacao.criterios}
+                != {"CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA"}
+                for avaliacao in self.avaliacoes_por_pergunta
+            ):
+                raise ValueError("Cada pergunta exige os três critérios da rubrica.")
+        elif (
+            self.nota is not None
+            or self.pontos_fortes
+            or self.pontos_melhoria
+            or any(avaliacao.criterios for avaliacao in self.avaliacoes_por_pergunta)
         ):
-            raise ValueError("A rubrica não pode conter notas sem avaliação qualitativa.")
+            raise ValueError(
+                "Uma avaliação não qualitativa não pode conter nota ou feedback inferido."
+            )
         return self
 
 
 def calcular_nota_rubrica(avaliacoes: list[AvaliacaoPergunta]) -> int:
-    criterios = [
-        criterio
+    pesos = {
+        "CORRECAO_TECNICA": 60,
+        "COMPLETUDE": 25,
+        "CLAREZA": 15,
+    }
+    notas_ponderadas = [
+        criterio.nota * pesos[criterio.criterio]
         for avaliacao in avaliacoes
         for criterio in avaliacao.criterios
     ]
-    if not criterios:
+    if not notas_ponderadas:
         return 0
-    total_maximo = len(criterios) * 5
-    return (sum(criterio.nota for criterio in criterios) * 100 + total_maximo // 2) // total_maximo
+    divisor = 5 * len(avaliacoes)
+    return (sum(notas_ponderadas) + divisor // 2) // divisor

@@ -3,6 +3,7 @@ from pydantic import SecretStr
 
 from app import auth, config, rotas
 from app.main import app
+from app.schemas import AvaliacaoPergunta, calcular_nota_rubrica
 from app.servico import ServicoIA
 
 CHAVE_TESTE = "chave-de-teste-com-mais-de-32-caracteres"
@@ -208,7 +209,7 @@ def test_rota_avaliacao_usa_provedor_injetado(monkeypatch) -> None:
     )
 
     assert resposta.status_code == 200
-    assert resposta.json() == {**resposta_provedor, "nota": 80}
+    assert resposta.json() == {**resposta_provedor, "nota": 78}
 
 
 def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
@@ -342,7 +343,7 @@ def test_gerar_pergunta_varia_com_numero_e_contexto() -> None:
     )
 
 
-def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
+def test_stub_nao_avalia_a_qualidade_nem_o_tamanho_das_respostas() -> None:
     payload = {
         "id_correlacao": "correlacao-123",
         "tipo_contexto": "HABILIDADES",
@@ -361,15 +362,22 @@ def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
     )
 
     assert resposta.status_code == 200
-    assert resposta.json() == {
-        "nota": 25,
-        "pontos_fortes": [
-            "Esta avaliação demonstrativa considera o volume de texto das respostas.",
-            "As respostas enviadas contêm texto para análise.",
-        ],
-        "pontos_melhoria": [
-            "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
-        ],
+    resposta_curta = resposta.json()
+    payload["interacoes"][0]["resposta"] = "x"
+    payload["interacoes"][1]["resposta"] = "y" * 4000
+    resposta_longa = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json=payload,
+    )
+
+    assert resposta.status_code == 200
+    assert resposta_longa.status_code == 200
+    assert resposta_curta == resposta_longa.json()
+    assert resposta_curta == {
+        "nota": None,
+        "pontos_fortes": [],
+        "pontos_melhoria": [],
         "avaliacoes_por_pergunta": [
             {
                 "numero": 1,
@@ -377,8 +385,9 @@ def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
                 "criterios": [],
                 "nivel_confianca": "BAIXA",
                 "limitacao": (
-                    "Modo demonstrativo: a nota considera somente o volume de texto "
-                    "e não avalia a qualidade nem a correção técnica."
+                    "Modo demonstrativo: a avaliação qualitativa está desativada. "
+                    "Configure um provedor de IA para receber feedback sobre a "
+                    "qualidade das respostas."
                 ),
             },
             {
@@ -387,20 +396,54 @@ def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
                 "criterios": [],
                 "nivel_confianca": "BAIXA",
                 "limitacao": (
-                    "Modo demonstrativo: a nota considera somente o volume de texto "
-                    "e não avalia a qualidade nem a correção técnica."
+                    "Modo demonstrativo: a avaliação qualitativa está desativada. "
+                    "Configure um provedor de IA para receber feedback sobre a "
+                    "qualidade das respostas."
                 ),
             },
         ],
         "avaliacao_qualitativa": False,
         "nivel_confianca": "BAIXA",
         "limitacoes": (
-            "Modo demonstrativo: a nota considera somente o volume de texto e não "
-            "avalia a qualidade nem a correção técnica."
+            "Modo demonstrativo: a avaliação qualitativa está desativada. Configure "
+            "um provedor de IA para receber feedback sobre a qualidade das respostas."
         ),
         "versao_modelo": "stub-1",
-        "versao_prompt": "avaliacao-2",
+        "versao_prompt": "avaliacao-3",
     }
+
+
+def test_nota_pondera_correcao_tecnica_acima_de_estilo() -> None:
+    avaliacao = AvaliacaoPergunta.model_validate(
+        {
+            "numero": 1,
+            "pergunta": "Como aplica Python?",
+            "criterios": [
+                {
+                    "criterio": "CORRECAO_TECNICA",
+                    "nota": 5,
+                    "justificativa": "Resposta tecnicamente correta.",
+                    "trecho_resposta": "Trecho literal.",
+                },
+                {
+                    "criterio": "COMPLETUDE",
+                    "nota": 0,
+                    "justificativa": "Faltam detalhes.",
+                    "trecho_resposta": "Trecho literal.",
+                },
+                {
+                    "criterio": "CLAREZA",
+                    "nota": 0,
+                    "justificativa": "Pouco claro.",
+                    "trecho_resposta": "Trecho literal.",
+                },
+            ],
+            "nivel_confianca": "MEDIA",
+            "limitacao": "Exemplo para teste.",
+        }
+    )
+
+    assert calcular_nota_rubrica([avaliacao]) == 60
 
 
 def test_stub_mapeia_indisponibilidade_e_timeout() -> None:

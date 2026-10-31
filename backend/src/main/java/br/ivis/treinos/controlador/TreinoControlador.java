@@ -93,7 +93,9 @@ public class TreinoControlador {
         UUID contaId = UUID.fromString(jwt.getSubject());
         validarAlunoComAcesso(contaId);
         return banco.query("""
-                select t.id, t.tipo_contexto, t.iniciado_em, a.nota, v.titulo, v.empresa,
+                select t.id, t.tipo_contexto, t.iniciado_em,
+                       case when a.avaliacao_qualitativa then a.nota end as nota,
+                       v.titulo, v.empresa,
                        a.avaliacao_qualitativa, a.nivel_confianca, a.limitacoes,
                        a.avaliacoes_por_pergunta::text as avaliacoes_por_pergunta,
                        t.contexto_registrado ->> 'descricao' as contexto
@@ -104,7 +106,8 @@ public class TreinoControlador {
                 UUID treinoId = rs.getObject("id", UUID.class);
                 return new Resumo(treinoId,
                 "VAGA".equals(rs.getString("tipo_contexto")) ? "Entrevista · " + rs.getString("titulo") : "Entrevista por habilidades",
-                rs.getString("contexto"), rs.getInt("nota"), rs.getTimestamp("iniciado_em").toInstant(),
+                rs.getString("contexto"), rs.getObject("nota", Integer.class),
+                rs.getTimestamp("iniciado_em").toInstant(),
                 listarItens(treinoId, "PONTO_FORTE"), listarItens(treinoId, "PONTO_MELHORIA"),
                 rs.getBoolean("avaliacao_qualitativa"), rs.getString("nivel_confianca"),
                 rs.getString("limitacoes"), desserializarAvaliacoes(
@@ -206,7 +209,7 @@ public class TreinoControlador {
                             @NotEmpty @Size(max=10) List<@Valid Interacao> interacoes,
                             @NotNull @Size(max=30) List<@NotBlank String> habilidades) { }
     public record Resumo(
-            UUID id, String titulo, String contexto, int nota, Instant data,
+            UUID id, String titulo, String contexto, Integer nota, Instant data,
             List<String> pontosFortes, List<String> pontosMelhoria,
             boolean avaliacaoQualitativa, String nivelConfianca, String limitacoes,
             List<AvaliacaoPergunta> avaliacoesPorPergunta) { }

@@ -13,8 +13,10 @@ import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 const estado = useEstadoAplicacao();
 const roteador = useRouter();
 const mediaNotas = computed(() => {
-  if (!estado.historico.length) return 0;
-  return Math.round(estado.historico.reduce((total, treino) => total + treino.nota, 0) / estado.historico.length);
+  const avaliados = estado.historico.filter((treino) => treino.nota !== null);
+  if (!avaliados.length) return null;
+  const total = avaliados.reduce((soma, treino) => soma + (treino.nota ?? 0), 0);
+  return Math.round(total / avaliados.length);
 });
 </script>
 
@@ -40,7 +42,7 @@ const mediaNotas = computed(() => {
       <div class="history-stat card">
         <TrendingUp /><span
           ><small>PONTUAÇÃO MÉDIA</small
-          ><strong>{{ mediaNotas || "—" }} <small v-if="mediaNotas">/100</small></strong></span
+          ><strong>{{ mediaNotas ?? "—" }} <small v-if="mediaNotas !== null">/100</small></strong></span
         >
       </div>
     </div>
@@ -76,9 +78,13 @@ const mediaNotas = computed(() => {
           ><small class="d-block">{{ treino.contexto }}</small></span
         ><span class="history-result"
           ><small>RESULTADO</small
-          ><strong>{{ treino.nota }}<small>/100</small></strong></span
+          ><strong>{{ treino.nota ?? "—" }}<small v-if="treino.nota !== null">/100</small></strong></span
         ><span class="result-label">{{
-          treino.nota >= 80 ? "Ótimo resultado" : "Boa evolução"
+          treino.nota === null
+            ? "Avaliação qualitativa indisponível"
+            : treino.nota >= 80
+              ? "Ótimo resultado"
+              : "Boa evolução"
         }}</span></RouterLink
       >
     </div>

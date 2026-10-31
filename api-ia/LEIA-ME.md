@@ -34,12 +34,13 @@ não imprime a chave nem os prompts/respostas nos logs.
 
 As rotas de negócio exigem `X-Chave-Servico`. A variável
 `IVIS_IA_CHAVE_SERVICO` é obrigatória e deve ser diferente da chave NVIDIA.
-As avaliações do stub são demonstrativas: a nota depende somente do tamanho das
-respostas, não da sua qualidade técnica. A resposta declara explicitamente que
-não aplicou a rubrica e informa confiança baixa. Com NVIDIA, cada resposta é
-avaliada em correção técnica, completude e clareza, com justificativa baseada
-em trecho literal; o backend calcula o índice a partir dos critérios. A
-confiança é qualitativa, não calibrada, e não confirma que a resposta está certa.
+O stub não avalia as respostas: devolve nota nula e nenhum ponto forte ou
+melhoria inventados. Para receber feedback qualitativo, configure NVIDIA com
+`IVIS_IA_USAR_STUB=false` e `NVIDIA_API_KEY`. Cada resposta então é avaliada em
+correção técnica (60%), completude (25%) e clareza (15%), com justificativa
+ancorada em trecho literal. A nota é calculada a partir desses critérios, não
+do tamanho do texto. A confiança é qualitativa, não calibrada, e a IA ainda
+pode errar; confira conceitos técnicos em fontes confiáveis.
 
 As rotas delegam a geração ao contrato interno `ProvedorIA`. Com
 `IVIS_IA_USAR_STUB=true`, usa o stub local sem chamadas externas. Com

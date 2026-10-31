@@ -29,15 +29,9 @@ _PERGUNTAS = (
     "Descreva um desafio envolvendo {tema} e como avaliaria as alternativas para resolvê-lo.",
     "Quais cuidados e boas práticas são essenciais ao trabalhar com {tema}?",
 )
-_PONTO_FORTE = (
-    "Esta avaliação demonstrativa considera o volume de texto das respostas."
-)
-_PONTO_MELHORIA = (
-    "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
-)
 _LIMITACAO_STUB = (
-    "Modo demonstrativo: a nota considera somente o volume de texto e não "
-    "avalia a qualidade nem a correção técnica."
+    "Modo demonstrativo: a avaliação qualitativa está desativada. Configure "
+    "um provedor de IA para receber feedback sobre a qualidade das respostas."
 )
 
 
@@ -88,26 +82,10 @@ def gerar_pergunta(entrada: GerarPerguntaEntrada) -> GerarPerguntaResposta:
 
 def gerar_avaliacao(entrada: GerarAvaliacaoEntrada) -> GerarAvaliacaoResposta:
     _verificar_disponibilidade()
-    if entrada.interacoes:
-        caracteres_por_resposta = sum(
-            min(len(interacao.resposta), 500) for interacao in entrada.interacoes
-        ) / len(entrada.interacoes)
-        nota = int(caracteres_por_resposta / 5)
-    else:
-        nota = 0
-
-    pontos_fortes = [_PONTO_FORTE]
-    if nota > 0:
-        pontos_fortes.append("As respostas enviadas contêm texto para análise.")
-
-    pontos_melhoria = [_PONTO_MELHORIA]
-    if nota == 0:
-        pontos_melhoria.append("Envie respostas para que o stub possa calcular uma nota.")
-
     return GerarAvaliacaoResposta(
-        nota=nota,
-        pontos_fortes=pontos_fortes,
-        pontos_melhoria=pontos_melhoria,
+        nota=None,
+        pontos_fortes=[],
+        pontos_melhoria=[],
         avaliacoes_por_pergunta=[
             {
                 "numero": interacao.numero,
@@ -122,5 +100,5 @@ def gerar_avaliacao(entrada: GerarAvaliacaoEntrada) -> GerarAvaliacaoResposta:
         nivel_confianca="BAIXA",
         limitacoes=_LIMITACAO_STUB,
         versao_modelo="stub-1",
-        versao_prompt="avaliacao-2",
+        versao_prompt="avaliacao-3",
     )

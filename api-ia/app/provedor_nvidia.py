@@ -9,7 +9,7 @@ from app.config import configuracoes
 from app.schemas import GerarAvaliacaoEntrada, GerarPerguntaEntrada
 
 _VERSAO_PROMPT_PERGUNTA = "perguntas-1"
-_VERSAO_PROMPT_AVALIACAO = "avaliacao-2"
+_VERSAO_PROMPT_AVALIACAO = "avaliacao-3"
 _MAX_TOKENS = 1024
 _ESQUEMA_PERGUNTA = {
     "type": "object",
@@ -148,7 +148,14 @@ class ProvedorNvidia:
                 "Avalie cada resposta em português do Brasil com uma rubrica fixa: "
                 "CORRECAO_TECNICA (correção em relação ao contexto), COMPLETUDE "
                 "(cobertura do que a pergunta solicita) e CLAREZA (organização e "
-                "compreensibilidade), cada critério de 0 a 5. Retorne exatamente "
+                "compreensibilidade), cada critério de 0 a 5. Use estes níveis: "
+                "0 ausente ou incorreto; 1 majoritariamente incorreto; 2 parcialmente "
+                "correto, faltando pontos centrais; 3 correto no essencial com lacunas; "
+                "4 correto e completo com pequenas lacunas; 5 correto e completo em "
+                "relação ao que foi perguntado. Correção técnica tem peso 60%, "
+                "completude 25% e clareza 15%; a nota final será calculada fora do "
+                "modelo. Não pontue por extensão: uma resposta concisa e completa pode "
+                "receber nota máxima. Retorne exatamente "
                 "uma avaliação por interação, na mesma ordem e usando o numero "
                 "correspondente. "
                 "Justifique cada nota com um trecho_resposta copiado literalmente "
