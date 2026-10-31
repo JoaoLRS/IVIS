@@ -3,6 +3,9 @@ package br.ivis.treinos.controlador;
 import br.ivis.comum.erro.ExcecaoNegocio;
 import br.ivis.ia.servico.ClienteIa;
 import static br.ivis.ia.dto.ContratoIa.*;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -30,10 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class TreinoControlador {
     private final JdbcTemplate banco;
     private final ClienteIa clienteIa;
+    private final ObjectMapper mapeadorJson;
 
-    public TreinoControlador(JdbcTemplate banco, ClienteIa clienteIa) {
+    public TreinoControlador(
+            JdbcTemplate banco, ClienteIa clienteIa, ObjectMapper mapeadorJson) {
         this.banco = banco;
         this.clienteIa = clienteIa;
+        this.mapeadorJson = mapeadorJson;
     }
 
     @PostMapping("/concluidos")
@@ -65,14 +71,21 @@ public class TreinoControlador {
         }
         UUID avaliacaoId = UUID.randomUUID();
         banco.update("""
-                insert into avaliacoes_treinamento (id, treinamento_id, nota, versao_modelo, versao_prompt, gerado_em)
-                values (?, ?, ?, ?, ?, ?)
+                insert into avaliacoes_treinamento (
+                  id, treinamento_id, nota, versao_modelo, versao_prompt, gerado_em,
+                  avaliacao_qualitativa, nivel_confianca, limitacoes, avaliacoes_por_pergunta)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
                 """, avaliacaoId, treinoId, avaliacao.nota(),
-                avaliacao.versaoModelo(), avaliacao.versaoPrompt(), agoraSql);
+                avaliacao.versaoModelo(), avaliacao.versaoPrompt(), agoraSql,
+                avaliacao.avaliacaoQualitativa(), avaliacao.nivelConfianca().name(),
+                avaliacao.limitacoes(),
+                serializarAvaliacoes(avaliacao.avaliacoesPorPergunta()));
         inserirItens(avaliacaoId, "PONTO_FORTE", avaliacao.pontosFortes());
         inserirItens(avaliacaoId, "PONTO_MELHORIA", avaliacao.pontosMelhoria());
         return new Resumo(treinoId, titulo(entrada, contaId), entrada.contexto(), avaliacao.nota(), agora,
-                avaliacao.pontosFortes(), avaliacao.pontosMelhoria());
+                avaliacao.pontosFortes(), avaliacao.pontosMelhoria(),
+                avaliacao.avaliacaoQualitativa(), avaliacao.nivelConfianca().name(),
+                avaliacao.limitacoes(), avaliacao.avaliacoesPorPergunta());
     }
 
     @GetMapping
@@ -81,6 +94,8 @@ public class TreinoControlador {
         validarAlunoComAcesso(contaId);
         return banco.query("""
                 select t.id, t.tipo_contexto, t.iniciado_em, a.nota, v.titulo, v.empresa,
+                       a.avaliacao_qualitativa, a.nivel_confianca, a.limitacoes,
+                       a.avaliacoes_por_pergunta::text as avaliacoes_por_pergunta,
                        t.contexto_registrado ->> 'descricao' as contexto
                 from treinamentos t join avaliacoes_treinamento a on a.treinamento_id=t.id
                 left join vagas_interesse v on v.id=t.vaga_interesse_id
@@ -90,7 +105,10 @@ public class TreinoControlador {
                 return new Resumo(treinoId,
                 "VAGA".equals(rs.getString("tipo_contexto")) ? "Entrevista · " + rs.getString("titulo") : "Entrevista por habilidades",
                 rs.getString("contexto"), rs.getInt("nota"), rs.getTimestamp("iniciado_em").toInstant(),
-                listarItens(treinoId, "PONTO_FORTE"), listarItens(treinoId, "PONTO_MELHORIA"));
+                listarItens(treinoId, "PONTO_FORTE"), listarItens(treinoId, "PONTO_MELHORIA"),
+                rs.getBoolean("avaliacao_qualitativa"), rs.getString("nivel_confianca"),
+                rs.getString("limitacoes"), desserializarAvaliacoes(
+                        rs.getString("avaliacoes_por_pergunta")));
                 }, contaId);
     }
 
@@ -106,6 +124,23 @@ public class TreinoControlador {
                 join avaliacoes_treinamento a on a.id=i.avaliacao_id
                 where a.treinamento_id=? and i.tipo=? order by i.ordem
                 """, (rs, linha) -> rs.getString("texto"), treinoId, tipo);
+    }
+
+    private String serializarAvaliacoes(List<AvaliacaoPergunta> avaliacoes) {
+        try {
+            return mapeadorJson.writeValueAsString(avaliacoes);
+        } catch (JacksonException erro) {
+            throw new IllegalStateException("Não foi possível serializar a rubrica da avaliação.", erro);
+        }
+    }
+
+    private List<AvaliacaoPergunta> desserializarAvaliacoes(String avaliacoes) {
+        try {
+            return mapeadorJson.readValue(
+                    avaliacoes, new TypeReference<List<AvaliacaoPergunta>>() {});
+        } catch (JacksonException erro) {
+            throw new IllegalStateException("Não foi possível ler a rubrica salva.", erro);
+        }
     }
 
     private GerarAvaliacaoResposta avaliar(UUID contaId, Conclusao entrada) {
@@ -170,6 +205,9 @@ public class TreinoControlador {
     public record Conclusao(@NotBlank String tipoContexto, UUID vagaId, @NotBlank String contexto,
                             @NotEmpty @Size(max=10) List<@Valid Interacao> interacoes,
                             @NotNull @Size(max=30) List<@NotBlank String> habilidades) { }
-    public record Resumo(UUID id, String titulo, String contexto, int nota, Instant data,
-                         List<String> pontosFortes, List<String> pontosMelhoria) { }
+    public record Resumo(
+            UUID id, String titulo, String contexto, int nota, Instant data,
+            List<String> pontosFortes, List<String> pontosMelhoria,
+            boolean avaliacaoQualitativa, String nivelConfianca, String limitacoes,
+            List<AvaliacaoPergunta> avaliacoesPorPergunta) { }
 }

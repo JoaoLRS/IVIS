@@ -14,6 +14,22 @@ const treino = computed(() => {
     ? estado.historico[indice]
     : (estado.feedbackAtual ?? estado.historico[0]);
 });
+const avaliacoesPorPergunta = computed(
+  () => treino.value?.avaliacoesPorPergunta ?? [],
+);
+const nomesCriterios = {
+  CORRECAO_TECNICA: "Correção técnica",
+  COMPLETUDE: "Completude",
+  CLAREZA: "Clareza",
+};
+const descricoesCriterios = {
+  CORRECAO_TECNICA: "Adequação técnica ao contexto fornecido",
+  COMPLETUDE: "Cobertura do que a pergunta solicita",
+  CLAREZA: "Organização e compreensão do raciocínio",
+};
+function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
+  return { BAIXA: "Baixa", MEDIA: "Média", ALTA: "Alta" }[nivel ?? "BAIXA"];
+}
 </script>
 
 <template>
@@ -25,7 +41,15 @@ const treino = computed(() => {
     <div class="col-md-4">
       <section class="card score-card h-100">
         <div class="card-body text-center">
-          <div class="eyebrow">SUA PONTUAÇÃO</div>
+          <div class="eyebrow">
+            {{
+              !treino
+                ? "SEM RESULTADO"
+                : treino.avaliacaoQualitativa
+                  ? "ÍNDICE DE REFERÊNCIA"
+                  : "RESULTADO DEMONSTRATIVO"
+            }}
+          </div>
           <div
             class="score-ring"
             :style="{ '--score': `${treino?.nota ?? 0}%` }"
@@ -35,8 +59,32 @@ const treino = computed(() => {
               ><small>pontos</small>
             </div>
           </div>
-          <Etiqueta tom="green">Avaliação concluída</Etiqueta>
-          <p>Resultado registrado ao concluir o treino.</p>
+          <Etiqueta
+            :tom="
+              !treino
+                ? 'neutral'
+                : treino.avaliacaoQualitativa
+                  ? 'green'
+                  : 'orange'
+            "
+          >
+            {{
+              !treino
+                ? "Nenhum treino selecionado"
+                : treino.avaliacaoQualitativa
+                  ? "Rubrica aplicada"
+                  : "Sem avaliação qualitativa"
+            }}
+          </Etiqueta>
+          <p>
+            {{
+              !treino
+                ? "Conclua um treino para ver o resultado."
+                : treino.avaliacaoQualitativa
+                  ? "Índice calculado pela média dos critérios, não é garantia de acerto."
+                  : "A nota demonstrativa não mede a qualidade nem a correção das respostas."
+            }}
+          </p>
         </div>
       </section>
     </div>
@@ -80,6 +128,64 @@ const treino = computed(() => {
       </section>
     </div>
   </div>
+  <section v-if="treino" class="card mt-3">
+    <div class="card-body">
+      <div class="eyebrow">CONFIANÇA E LIMITAÇÕES</div>
+      <p class="feedback-disclaimer">
+        A confiança é uma estimativa qualitativa não calibrada. A IA pode errar;
+        confirme conteúdos técnicos em fontes confiáveis.
+      </p>
+      <div class="feedback-confidence">
+        <strong>Confiança indicada: {{ confiancaEmPortugues(treino.nivelConfianca) }}</strong>
+        <p>{{ treino.limitacoes ?? "Não há detalhes adicionais de limitação." }}</p>
+      </div>
+    </div>
+  </section>
+  <section
+    v-if="avaliacoesPorPergunta.length"
+    class="card mt-3"
+  >
+    <div class="card-body">
+      <div class="eyebrow">RUBRICA POR PERGUNTA</div>
+      <p class="feedback-disclaimer">
+        Os trechos mostram o que a IA considerou; não comprovam, por si só, que
+        a análise técnica está correta.
+      </p>
+      <article
+        v-for="avaliacao in avaliacoesPorPergunta"
+        :key="avaliacao.numero"
+        class="question-review"
+      >
+        <h3>Pergunta {{ avaliacao.numero }}</h3>
+        <p class="question-review-prompt">{{ avaliacao.pergunta }}</p>
+        <template v-if="avaliacao.criterios.length">
+          <div
+            v-for="criterio in avaliacao.criterios"
+            :key="criterio.criterio"
+            class="criterion-review"
+          >
+            <div class="criterion-review-heading">
+              <strong>{{ nomesCriterios[criterio.criterio] }}</strong>
+              <span>{{ criterio.nota }}/5</span>
+            </div>
+            <small>{{ descricoesCriterios[criterio.criterio] }}</small>
+            <p>{{ criterio.justificativa }}</p>
+            <blockquote v-if="criterio.trechoResposta">
+              “{{ criterio.trechoResposta }}”
+            </blockquote>
+            <small v-else>Sem trecho citado da resposta.</small>
+          </div>
+        </template>
+        <p v-else class="feedback-disclaimer">
+          A rubrica não foi aplicada neste treino demonstrativo.
+        </p>
+        <div class="feedback-confidence">
+          <strong>Confiança indicada: {{ confiancaEmPortugues(avaliacao.nivelConfianca) }}</strong>
+          <p>{{ avaliacao.limitacao }}</p>
+        </div>
+      </article>
+    </div>
+  </section>
   <div class="d-flex justify-content-start gap-2 mt-4">
     <button
       class="btn btn-outline-secondary"

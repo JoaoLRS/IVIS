@@ -41,11 +41,40 @@ describe("treino integrado ao backend de IA", () => {
       requisicao.reply({
         statusCode: 200,
         body: {
-          nota: 81,
+          nota: 80,
           pontos_fortes: ["Respostas objetivas."],
           pontos_melhoria: ["Inclua mais exemplos."],
-          versao_modelo: "stub-1",
-          versao_prompt: "avaliacao-1",
+          avaliacoes_por_pergunta: [1, 2, 3].map((numero) => ({
+            numero,
+            pergunta: `Pergunta ${numero}`,
+            criterios: [
+              {
+                criterio: "CORRECAO_TECNICA",
+                nota: 4,
+                justificativa: "Resposta objetiva, mas precisa de mais detalhe.",
+                trecho_resposta: "Resposta",
+              },
+              {
+                criterio: "COMPLETUDE",
+                nota: 4,
+                justificativa: "Inclua mais exemplos.",
+                trecho_resposta: "Resposta",
+              },
+              {
+                criterio: "CLAREZA",
+                nota: 4,
+                justificativa: "A ideia principal está compreensível.",
+                trecho_resposta: "Resposta",
+              },
+            ],
+            nivel_confianca: "BAIXA",
+            limitacao: "As respostas do teste são curtas.",
+          })),
+          avaliacao_qualitativa: true,
+          nivel_confianca: "BAIXA",
+          limitacoes: "As respostas do teste são curtas.",
+          versao_modelo: "nvidia/fake-1",
+          versao_prompt: "avaliacao-2",
         },
       });
     }).as("gerarAvaliacao");
@@ -97,7 +126,10 @@ describe("treino integrado ao backend de IA", () => {
     });
 
     cy.contains("button", "Finalizar e ver feedback").click();
-    cy.contains("strong", "81").should("be.visible");
+    cy.contains("strong", "80").should("be.visible");
     cy.contains("Respostas objetivas.").should("be.visible");
+    cy.contains("RUBRICA POR PERGUNTA").should("be.visible");
+    cy.contains("Correção técnica").should("be.visible");
+    cy.contains("Os trechos mostram o que a IA considerou").should("be.visible");
   });
 });

@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import pytest
 from fastapi import HTTPException
@@ -6,7 +7,7 @@ from pydantic import SecretStr
 
 from app import config, provedor_nvidia
 from app.provedor_nvidia import ProvedorNvidia
-from app.schemas import GerarPerguntaEntrada
+from app.schemas import GerarAvaliacaoEntrada, GerarPerguntaEntrada
 
 
 class RespostaFalsa:
@@ -114,6 +115,84 @@ def test_provedor_nvidia_rejeita_json_invalido(monkeypatch) -> None:
         asyncio.run(ProvedorNvidia().gerar_pergunta(entrada))
     assert erro.value.status_code == 502
     assert erro.value.detail["codigo"] == "saida_invalida"
+
+
+def test_provedor_nvidia_retorna_rubrica_com_evidencia_literal(monkeypatch) -> None:
+    corpo_avaliacao = {
+        "avaliacoes_por_pergunta": [
+            {
+                "numero": 1,
+                "criterios": [
+                    {
+                        "criterio": criterio,
+                        "nota": nota,
+                        "justificativa": justificativa,
+                        "trecho_resposta": "Use timeout e backoff.",
+                    }
+                    for criterio, nota, justificativa in [
+                        ("CORRECAO_TECNICA", 4, "Aponta medidas adequadas."),
+                        ("COMPLETUDE", 3, "Não detalha limites de retentativa."),
+                        ("CLAREZA", 5, "A frase é direta."),
+                    ]
+                ],
+                "nivel_confianca": "MEDIA",
+                "limitacao": "A resposta não inclui um exemplo prático.",
+            }
+        ],
+        "pontos_fortes": ["Menciona timeout."],
+        "pontos_melhoria": ["Detalhar o backoff."],
+        "nivel_confianca": "MEDIA",
+        "limitacoes": "Uma resposta curta pode omitir detalhes.",
+    }
+
+    class ClienteFalso:
+        def __init__(self, **kwargs) -> None:
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args) -> None:
+            return None
+
+        async def post(self, *args, **kwargs):
+            return RespostaFalsa(
+                {
+                    "choices": [
+                        {"message": {"content": json.dumps(corpo_avaliacao)}}
+                    ]
+                }
+            )
+
+    config.configuracoes.chave_nvidia = SecretStr("token-de-teste")
+    config.configuracoes.modelo_nvidia = "nvidia/nemotron-3.5-bolt-e4b"
+    monkeypatch.setattr(provedor_nvidia.httpx, "AsyncClient", ClienteFalso)
+    entrada = GerarAvaliacaoEntrada.model_validate(
+        {
+            "id_correlacao": "correlacao-teste",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Resiliência", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [
+                {
+                    "numero": 1,
+                    "pergunta": "Como trataria falhas?",
+                    "resposta": "Use timeout e backoff.",
+                }
+            ],
+        }
+    )
+
+    resultado = asyncio.run(ProvedorNvidia().gerar_avaliacao(entrada))
+
+    assert resultado["avaliacao_qualitativa"] is True
+    assert resultado["avaliacoes_por_pergunta"] == [
+        {
+            **corpo_avaliacao["avaliacoes_por_pergunta"][0],
+            "pergunta": "Como trataria falhas?",
+        }
+    ]
+    assert resultado["versao_prompt"] == "avaliacao-2"
 
 
 def test_provedor_nvidia_consulta_resultado_assincrono(monkeypatch) -> None:

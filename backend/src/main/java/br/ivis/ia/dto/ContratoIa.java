@@ -21,6 +21,18 @@ public final class ContratoIa {
         VAGA
     }
 
+    public enum CriterioRubrica {
+        CORRECAO_TECNICA,
+        COMPLETUDE,
+        CLAREZA
+    }
+
+    public enum NivelConfianca {
+        BAIXA,
+        MEDIA,
+        ALTA
+    }
+
     public record Habilidade(
             @NotBlank String nome,
             @NotNull @Min(1) @Max(5) Integer nivel) {
@@ -92,14 +104,68 @@ public final class ContratoIa {
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
     }
 
+    public record CriterioAvaliacao(
+            @NotNull CriterioRubrica criterio,
+            @NotNull @Min(0) @Max(5) Integer nota,
+            @NotBlank @Size(max = 500) String justificativa,
+            @NotNull @Size(max = 500) @JsonProperty("trecho_resposta") String trechoResposta) {
+    }
+
+    public record AvaliacaoPergunta(
+            @NotNull @Min(1) Integer numero,
+            @NotBlank @Size(max = 1000) String pergunta,
+            @NotNull @Size(max = 3) List<@Valid CriterioAvaliacao> criterios,
+            @NotNull @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
+            @NotBlank @Size(max = 500) String limitacao) {
+    }
+
     public record GerarAvaliacaoResposta(
             @NotNull @Min(0) @Max(100) Integer nota,
             @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_fortes")
                     List<@NotBlank String> pontosFortes,
             @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_melhoria")
                     List<@NotBlank String> pontosMelhoria,
+            @NotNull @Size(max = 10) @JsonProperty("avaliacoes_por_pergunta")
+                    List<@Valid AvaliacaoPergunta> avaliacoesPorPergunta,
+            @NotNull @JsonProperty("avaliacao_qualitativa") Boolean avaliacaoQualitativa,
+            @NotNull @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
+            @NotBlank @Size(max = 1000) String limitacoes,
             @NotBlank @JsonProperty("versao_modelo") String versaoModelo,
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
+
+        @AssertTrue(message = "A rubrica não corresponde ao indicador qualitativo.")
+        public boolean isRubricaConsistente() {
+            if (avaliacaoQualitativa == null || avaliacoesPorPergunta == null) {
+                return false;
+            }
+            if (avaliacaoQualitativa) {
+                boolean criteriosValidos = !avaliacoesPorPergunta.isEmpty()
+                        && avaliacoesPorPergunta.stream().allMatch(item -> {
+                            if (item == null) {
+                                return false;
+                            }
+                            var criterios = item.criterios();
+                            return criterios != null && criterios.size() == 3
+                                    && criterios.stream().allMatch(criterio ->
+                                            criterio != null && criterio.criterio() != null
+                                                    && criterio.nota() != null)
+                                    && criterios.stream().map(CriterioAvaliacao::criterio)
+                                            .distinct().count() == 3;
+                        });
+                if (!criteriosValidos || nota == null) {
+                    return false;
+                }
+                int total = avaliacoesPorPergunta.stream()
+                        .flatMap(item -> item.criterios().stream())
+                        .mapToInt(CriterioAvaliacao::nota)
+                        .sum();
+                int maximo = avaliacoesPorPergunta.size() * 3 * 5;
+                return nota == (total * 100 + maximo / 2) / maximo;
+            }
+            return avaliacoesPorPergunta.stream()
+                    .allMatch(item -> item != null && item.criterios() != null
+                            && item.criterios().isEmpty());
+        }
     }
 
     private static boolean contextoValido(

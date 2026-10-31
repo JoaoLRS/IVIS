@@ -47,7 +47,7 @@ Resposta `200`:
 ```json
 {
   "pergunta": { "texto": "…" },
-  "versao_modelo": "stub-1",
+  "versao_modelo": "nvidia/modelo-configurado",
   "versao_prompt": "perguntas-1"
 }
 ```
@@ -74,16 +74,50 @@ Resposta `200`:
 
 ```json
 {
-  "nota": 78,
+  "nota": 80,
   "pontos_fortes": ["…"],
   "pontos_melhoria": ["…"],
+  "avaliacoes_por_pergunta": [
+    {
+      "numero": 1,
+      "pergunta": "…",
+      "criterios": [
+        {
+          "criterio": "CORRECAO_TECNICA",
+          "nota": 4,
+          "justificativa": "…",
+          "trecho_resposta": "trecho literal da resposta"
+        },
+        {
+          "criterio": "COMPLETUDE",
+          "nota": 4,
+          "justificativa": "…",
+          "trecho_resposta": "trecho literal da resposta"
+        },
+        {
+          "criterio": "CLAREZA",
+          "nota": 4,
+          "justificativa": "…",
+          "trecho_resposta": "trecho literal da resposta"
+        }
+      ],
+      "nivel_confianca": "MEDIA",
+      "limitacao": "…"
+    }
+  ],
+  "avaliacao_qualitativa": true,
+  "nivel_confianca": "MEDIA",
+  "limitacoes": "…",
   "versao_modelo": "stub-1",
-  "versao_prompt": "avaliacao-1"
+  "versao_prompt": "avaliacao-2"
 }
 ```
 
-- `nota`: inteiro de **0 a 100** (proposta; o protótipo do frontend já usa essa escala).
+- `nota`: inteiro de **0 a 100**, calculado pela API de IA a partir da média dos critérios (cada um de 0 a 5); não é garantia de acerto.
 - `pontos_fortes` e `pontos_melhoria`: de 1 a 5 itens de texto cada.
+- `avaliacoes_por_pergunta`: uma avaliação por interação; a rubrica usa `CORRECAO_TECNICA`, `COMPLETUDE` e `CLAREZA`, cada uma de 0 a 5. `trecho_resposta` deve ser uma citação literal da resposta e é validado pela API.
+- `nivel_confianca`: estimativa qualitativa (`BAIXA`, `MEDIA` ou `ALTA`), não calibrada. `limitacao` e `limitacoes` registram ressalvas específicas e gerais.
+- `avaliacao_qualitativa`: informa se os critérios realmente foram avaliados. É `false` no stub; nesse caso, as listas por pergunta não contêm notas.
 
 ### `GET /saude` e `GET /pronto`
 
@@ -119,13 +153,13 @@ Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação e
 ## Comportamento do stub
 
 - Gera perguntas a partir de um conjunto fixo, variando pelo tema (habilidade ou requisito) e pelo `numero_pergunta`.
-- Calcula `nota` de forma determinística a partir do tamanho das respostas (respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**. Essa nota não representa uma avaliação qualitativa.
-- Devolve `versao_modelo: "stub-1"`. Um treino avaliado pelo stub é identificável pela versão persistida em `avaliacoes_treinamento`.
+- Calcula `nota` de forma determinística a partir do tamanho das respostas (respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**. A resposta declara `avaliacao_qualitativa: false`, confiança baixa e explica que a nota não avalia qualidade nem correção técnica.
+- Devolve `versao_modelo: "stub-1"` e `versao_prompt: "avaliacao-2"`. Um treino avaliado pelo stub é identificável pela versão persistida em `avaliacoes_treinamento`.
 - Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição); a readiness fica indisponível quando a simulação de falha está ativa.
 
 ## Pendências
 
 - Modelo e endpoint específicos da NVIDIA NGC e limites de uso.
-- Escala final e critérios de avaliação (rubrica).
+- Validar a rubrica e a calibração da confiança com especialistas e respostas de referência.
 - Política de retenção e diagnóstico de prompts e respostas (LGPD, RNF09).
 - Mecanismo definitivo de autenticação serviço a serviço.

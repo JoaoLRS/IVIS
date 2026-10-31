@@ -1,9 +1,19 @@
 import { clienteHttp } from "./clienteHttp";
 import { obterTokenCsrf } from "./perfilAluno";
+import type { AvaliacaoPergunta } from "./treinos";
 
 export interface TreinoPersistido {
-  id: string; titulo: string; contexto: string; nota: number; data: string;
-  pontosFortes: string[]; pontosMelhoria: string[];
+  id: string;
+  titulo: string;
+  contexto: string;
+  nota: number;
+  data: string;
+  pontosFortes: string[];
+  pontosMelhoria: string[];
+  avaliacaoQualitativa: boolean;
+  nivelConfianca: "BAIXA" | "MEDIA" | "ALTA";
+  limitacoes: string;
+  avaliacoesPorPergunta: AvaliacaoPergunta[];
 }
 export async function listarHistorico(): Promise<TreinoPersistido[]> {
   return (await clienteHttp.get<TreinoPersistido[]>("/v1/treinos")).data;

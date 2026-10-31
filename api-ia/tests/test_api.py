@@ -11,6 +11,7 @@ cliente = TestClient(app)
 
 def setup_function() -> None:
     config.configuracoes.chave_servico = SecretStr(CHAVE_TESTE)
+    config.configuracoes.chave_nvidia = None
     config.configuracoes.usar_stub = True
     config.configuracoes.falha_stub = "nenhuma"
 
@@ -140,8 +141,39 @@ def test_rota_avaliacao_usa_provedor_injetado(monkeypatch) -> None:
         "nota": 82,
         "pontos_fortes": ["Explicou a solução com clareza."],
         "pontos_melhoria": ["Detalhar as alternativas consideradas."],
+        "avaliacoes_por_pergunta": [
+            {
+                "numero": 1,
+                "pergunta": "Como usa Python?",
+                "criterios": [
+                    {
+                        "criterio": "CORRECAO_TECNICA",
+                        "nota": 4,
+                        "justificativa": "A resposta menciona experiência.",
+                        "trecho_resposta": "Tenho experiência.",
+                    },
+                    {
+                        "criterio": "COMPLETUDE",
+                        "nota": 3,
+                        "justificativa": "Não detalha exemplos.",
+                        "trecho_resposta": "Tenho experiência.",
+                    },
+                    {
+                        "criterio": "CLAREZA",
+                        "nota": 5,
+                        "justificativa": "A frase é direta.",
+                        "trecho_resposta": "Tenho experiência.",
+                    },
+                ],
+                "nivel_confianca": "MEDIA",
+                "limitacao": "A resposta é curta para confirmar domínio técnico.",
+            }
+        ],
+        "avaliacao_qualitativa": True,
+        "nivel_confianca": "MEDIA",
+        "limitacoes": "Uma resposta curta pode omitir conhecimentos relevantes.",
         "versao_modelo": "fake-1",
-        "versao_prompt": "fake-prompt-1",
+        "versao_prompt": "fake-prompt-2",
     }
 
     class ProvedorFalso:
@@ -165,12 +197,18 @@ def test_rota_avaliacao_usa_provedor_injetado(monkeypatch) -> None:
             "tipo_contexto": "HABILIDADES",
             "habilidades": [{"nome": "Python", "nivel": 4}],
             "vaga": None,
-            "interacoes": [],
+            "interacoes": [
+                {
+                    "numero": 1,
+                    "pergunta": "Como usa Python?",
+                    "resposta": "Tenho experiência.",
+                }
+            ],
         },
     )
 
     assert resposta.status_code == 200
-    assert resposta.json() == resposta_provedor
+    assert resposta.json() == {**resposta_provedor, "nota": 80}
 
 
 def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
@@ -209,6 +247,72 @@ def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
         "codigo": "saida_invalida",
         "mensagem": "O provedor retornou uma resposta inválida.",
     }
+
+
+def test_rota_avaliacao_rejeita_evidencia_que_nao_existe_na_resposta(monkeypatch) -> None:
+    class ProvedorFalso:
+        async def gerar_pergunta(self, recebido):
+            raise AssertionError("Não deveria gerar pergunta neste teste.")
+
+        async def gerar_avaliacao(self, recebido):
+            criterios = [
+                {
+                    "criterio": criterio,
+                    "nota": 4,
+                    "justificativa": "Justificativa de teste.",
+                    "trecho_resposta": "Trecho inventado.",
+                }
+                for criterio in (
+                    "CORRECAO_TECNICA",
+                    "COMPLETUDE",
+                    "CLAREZA",
+                )
+            ]
+            return {
+                "nota": 80,
+                "pontos_fortes": ["Resposta objetiva."],
+                "pontos_melhoria": ["Inclua detalhes."],
+                "avaliacoes_por_pergunta": [
+                    {
+                        "numero": 1,
+                        "pergunta": "Como usa Python?",
+                        "criterios": criterios,
+                        "nivel_confianca": "MEDIA",
+                        "limitacao": "Resposta curta.",
+                    }
+                ],
+                "avaliacao_qualitativa": True,
+                "nivel_confianca": "MEDIA",
+                "limitacoes": "Resposta curta.",
+                "versao_modelo": "fake-1",
+                "versao_prompt": "fake-prompt-2",
+            }
+
+    monkeypatch.setattr(
+        rotas,
+        "obter_servico_ativo",
+        lambda: ServicoIA(ProvedorFalso()),
+    )
+    resposta = cliente.post(
+        "/v1/avaliacoes/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "vaga": None,
+            "interacoes": [
+                {
+                    "numero": 1,
+                    "pergunta": "Como usa Python?",
+                    "resposta": "Tenho experiência.",
+                }
+            ],
+        },
+    )
+
+    assert resposta.status_code == 502
+    assert resposta.json()["codigo"] == "saida_invalida"
 
 
 def test_gerar_pergunta_varia_com_numero_e_contexto() -> None:
@@ -266,8 +370,36 @@ def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
         "pontos_melhoria": [
             "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
         ],
+        "avaliacoes_por_pergunta": [
+            {
+                "numero": 1,
+                "pergunta": "Pergunta",
+                "criterios": [],
+                "nivel_confianca": "BAIXA",
+                "limitacao": (
+                    "Modo demonstrativo: a nota considera somente o volume de texto "
+                    "e não avalia a qualidade nem a correção técnica."
+                ),
+            },
+            {
+                "numero": 2,
+                "pergunta": "Pergunta",
+                "criterios": [],
+                "nivel_confianca": "BAIXA",
+                "limitacao": (
+                    "Modo demonstrativo: a nota considera somente o volume de texto "
+                    "e não avalia a qualidade nem a correção técnica."
+                ),
+            },
+        ],
+        "avaliacao_qualitativa": False,
+        "nivel_confianca": "BAIXA",
+        "limitacoes": (
+            "Modo demonstrativo: a nota considera somente o volume de texto e não "
+            "avalia a qualidade nem a correção técnica."
+        ),
         "versao_modelo": "stub-1",
-        "versao_prompt": "avaliacao-1",
+        "versao_prompt": "avaliacao-2",
     }
 
 

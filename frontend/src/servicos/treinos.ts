@@ -34,8 +34,27 @@ export interface GerarAvaliacaoResposta {
   nota: number;
   pontos_fortes: string[];
   pontos_melhoria: string[];
+  avaliacoes_por_pergunta: AvaliacaoPergunta[];
+  avaliacao_qualitativa: boolean;
+  nivel_confianca: "BAIXA" | "MEDIA" | "ALTA";
+  limitacoes: string;
   versao_modelo: string;
   versao_prompt: string;
+}
+
+export interface CriterioAvaliacao {
+  criterio: "CORRECAO_TECNICA" | "COMPLETUDE" | "CLAREZA";
+  nota: number;
+  justificativa: string;
+  trecho_resposta: string;
+}
+
+export interface AvaliacaoPergunta {
+  numero: number;
+  pergunta: string;
+  criterios: CriterioAvaliacao[];
+  nivel_confianca: "BAIXA" | "MEDIA" | "ALTA";
+  limitacao: string;
 }
 
 export async function gerarPergunta(

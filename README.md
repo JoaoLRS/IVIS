@@ -348,6 +348,12 @@ usam o stub por padrão. Para testar o provedor NVIDIA no módulo Python, config
 `api-ia/.env` conforme [`api-ia/LEIA-ME.md`](api-ia/LEIA-ME.md). O navegador
 continua chamando somente o backend.
 
+No modo NVIDIA, o feedback apresenta critérios por pergunta, justificativas
+ancoradas em trechos literais da resposta e uma indicação qualitativa de
+confiança e limitações. Essa confiança não é calibrada e a IA pode errar. O stub
+padrão é demonstrativo: sua nota depende do tamanho do texto e não avalia se a
+resposta está correta.
+
 ---
 
 ## 📌 Status do Projeto

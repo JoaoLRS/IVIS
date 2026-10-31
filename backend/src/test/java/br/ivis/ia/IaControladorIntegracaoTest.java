@@ -49,9 +49,25 @@ class IaControladorIntegracaoTest {
             "{\"pergunta\":{\"texto\":\"Como você usa Vue?\"},"
                     + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"perguntas-1\"}";
     private static final String RESPOSTA_AVALIACAO =
-            "{\"nota\":78,\"pontos_fortes\":[\"Exemplos claros.\"],"
+            "{\"nota\":80,\"pontos_fortes\":[\"Exemplos claros.\"],"
                     + "\"pontos_melhoria\":[\"Detalhe os resultados.\"],"
-                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-1\"}";
+                    + "\"avaliacoes_por_pergunta\":[{\"numero\":1,"
+                    + "\"pergunta\":\"Como usa Vue?\",\"criterios\":["
+                    + "{\"criterio\":\"CORRECAO_TECNICA\",\"nota\":4,"
+                    + "\"justificativa\":\"Menciona experiência.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"},"
+                    + "{\"criterio\":\"COMPLETUDE\",\"nota\":3,"
+                    + "\"justificativa\":\"Faltam detalhes.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"},"
+                    + "{\"criterio\":\"CLAREZA\",\"nota\":5,"
+                    + "\"justificativa\":\"Frase direta.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"}],"
+                    + "\"nivel_confianca\":\"MEDIA\","
+                    + "\"limitacao\":\"Resposta curta.\"}],"
+                    + "\"avaliacao_qualitativa\":true,"
+                    + "\"nivel_confianca\":\"MEDIA\","
+                    + "\"limitacoes\":\"Resposta curta.\","
+                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-2\"}";
     private static final List<String> caminhos = new CopyOnWriteArrayList<>();
     private static final List<String> chaves = new CopyOnWriteArrayList<>();
     private static volatile String corpoServicoIa = RESPOSTA_PERGUNTA;
@@ -123,7 +139,7 @@ class IaControladorIntegracaoTest {
                 """);
 
         assertEquals(200, resposta.statusCode());
-        assertTrue(resposta.body().contains("\"nota\":78"));
+        assertTrue(resposta.body().contains("\"nota\":80"));
         assertEquals(List.of("/v1/avaliacoes/gerar"), caminhos);
         assertEquals(List.of(CHAVE_SERVICO), chaves);
     }

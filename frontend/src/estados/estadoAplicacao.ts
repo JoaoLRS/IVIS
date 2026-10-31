@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import type { Treino } from "../tipos/treino";
+import type { AvaliacaoPerguntaTreino, Treino } from "../tipos/treino";
 import { listarHistorico, salvarTreino } from "../servicos/historico";
 import {
   listarHabilidades,
@@ -13,8 +13,26 @@ import {
   gerarPergunta,
   type ContextoTreinoIa,
   type GerarAvaliacaoResposta,
+  type AvaliacaoPergunta,
   type InteracaoIa,
 } from "../servicos/treinos";
+
+function converterAvaliacaoPergunta(
+  avaliacao: AvaliacaoPergunta,
+): AvaliacaoPerguntaTreino {
+  return {
+    numero: avaliacao.numero,
+    pergunta: avaliacao.pergunta,
+    limitacao: avaliacao.limitacao,
+    nivelConfianca: avaliacao.nivel_confianca,
+    criterios: avaliacao.criterios.map((criterio) => ({
+      criterio: criterio.criterio,
+      nota: criterio.nota,
+      justificativa: criterio.justificativa,
+      trechoResposta: criterio.trecho_resposta,
+    })),
+  };
+}
 
 export const useEstadoAplicacao = defineStore("aplicacao", () => {
   const totalPerguntas = 3;
@@ -76,6 +94,12 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       duracao: "Entrevista concluída",
       pontosFortes: treino.pontosFortes.join(" "),
       melhorias: treino.pontosMelhoria.join(" "),
+      avaliacaoQualitativa: treino.avaliacaoQualitativa,
+      nivelConfianca: treino.nivelConfianca,
+      limitacoes: treino.limitacoes,
+      avaliacoesPorPergunta: treino.avaliacoesPorPergunta.map(
+        converterAvaliacaoPergunta,
+      ),
     }));
   }
 
@@ -223,6 +247,12 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       duracao: "Sessão atual",
       pontosFortes: avaliacao.pontos_fortes.join(" "),
       melhorias: avaliacao.pontos_melhoria.join(" "),
+      avaliacaoQualitativa: avaliacao.avaliacao_qualitativa,
+      nivelConfianca: avaliacao.nivel_confianca,
+      limitacoes: avaliacao.limitacoes,
+      avaliacoesPorPergunta: avaliacao.avaliacoes_por_pergunta.map(
+        converterAvaliacaoPergunta,
+      ),
     };
     const salvo = await salvarTreino({
       tipoContexto: vagaIdEmTreinamento.value ? "VAGA" : "HABILIDADES",
@@ -239,6 +269,12 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     treino.nota = salvo.nota;
     treino.pontosFortes = salvo.pontosFortes.join(" ");
     treino.melhorias = salvo.pontosMelhoria.join(" ");
+    treino.avaliacaoQualitativa = salvo.avaliacaoQualitativa;
+    treino.nivelConfianca = salvo.nivelConfianca;
+    treino.limitacoes = salvo.limitacoes;
+    treino.avaliacoesPorPergunta = salvo.avaliacoesPorPergunta.map(
+      converterAvaliacaoPergunta,
+    );
     historico.value.unshift(treino);
     feedbackAtual.value = treino;
     encerrarTreino();

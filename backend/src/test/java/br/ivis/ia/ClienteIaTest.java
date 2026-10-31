@@ -4,6 +4,7 @@ import static br.ivis.ia.dto.ContratoIa.GerarAvaliacaoEntrada;
 import static br.ivis.ia.dto.ContratoIa.GerarPerguntaEntrada;
 import static br.ivis.ia.dto.ContratoIa.Habilidade;
 import static br.ivis.ia.dto.ContratoIa.Interacao;
+import static br.ivis.ia.dto.ContratoIa.NivelConfianca;
 import static br.ivis.ia.dto.ContratoIa.TipoContexto;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,9 +38,25 @@ class ClienteIaTest {
             "{\"pergunta\":{\"texto\":\"Como você usa Vue?\"},"
                     + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"perguntas-1\"}";
     private static final String RESPOSTA_AVALIACAO =
-            "{\"nota\":78,\"pontos_fortes\":[\"Exemplos claros.\"],"
+            "{\"nota\":80,\"pontos_fortes\":[\"Exemplos claros.\"],"
                     + "\"pontos_melhoria\":[\"Detalhe os resultados.\"],"
-                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-1\"}";
+                    + "\"avaliacoes_por_pergunta\":[{\"numero\":1,"
+                    + "\"pergunta\":\"Como usa Vue?\",\"criterios\":["
+                    + "{\"criterio\":\"CORRECAO_TECNICA\",\"nota\":4,"
+                    + "\"justificativa\":\"Menciona experiência.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"},"
+                    + "{\"criterio\":\"COMPLETUDE\",\"nota\":3,"
+                    + "\"justificativa\":\"Faltam detalhes.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"},"
+                    + "{\"criterio\":\"CLAREZA\",\"nota\":5,"
+                    + "\"justificativa\":\"Frase direta.\","
+                    + "\"trecho_resposta\":\"Tenho experiência.\"}],"
+                    + "\"nivel_confianca\":\"MEDIA\","
+                    + "\"limitacao\":\"Resposta curta.\"}],"
+                    + "\"avaliacao_qualitativa\":true,"
+                    + "\"nivel_confianca\":\"MEDIA\","
+                    + "\"limitacoes\":\"Resposta curta.\","
+                    + "\"versao_modelo\":\"stub-1\",\"versao_prompt\":\"avaliacao-2\"}";
 
     private final List<String> caminhos = new CopyOnWriteArrayList<>();
     private final List<String> corpos = new CopyOnWriteArrayList<>();
@@ -82,9 +99,14 @@ class ClienteIaTest {
         var avaliacao = clienteIa.gerarAvaliacao(entradaAvaliacao());
 
         assertEquals("Como você usa Vue?", pergunta.pergunta().texto());
-        assertEquals(78, avaliacao.nota());
+        assertEquals(80, avaliacao.nota());
         assertEquals(List.of("Exemplos claros."), avaliacao.pontosFortes());
         assertEquals(List.of("Detalhe os resultados."), avaliacao.pontosMelhoria());
+        assertTrue(avaliacao.avaliacaoQualitativa());
+        assertEquals(NivelConfianca.MEDIA, avaliacao.nivelConfianca());
+        assertEquals("Tenho experiência.",
+                avaliacao.avaliacoesPorPergunta().getFirst()
+                        .criterios().getFirst().trechoResposta());
         assertEquals(
                 List.of("/v1/perguntas/gerar", "/v1/avaliacoes/gerar"),
                 caminhos);

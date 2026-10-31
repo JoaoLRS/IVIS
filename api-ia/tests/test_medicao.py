@@ -71,8 +71,12 @@ def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
             "nota": 80,
             "pontos_fortes": ["Ponto forte"],
             "pontos_melhoria": ["Ponto de melhoria"],
+            "avaliacoes_por_pergunta": [],
+            "avaliacao_qualitativa": False,
+            "nivel_confianca": "BAIXA",
+            "limitacoes": "Modo demonstrativo.",
             "versao_modelo": "stub-1",
-            "versao_prompt": "avaliacao-1",
+            "versao_prompt": "avaliacao-2",
         },
     )
     assert not validar_resposta(
@@ -81,7 +85,11 @@ def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
             "nota": True,
             "pontos_fortes": ["Ponto forte"],
             "pontos_melhoria": ["Ponto de melhoria"],
+            "avaliacoes_por_pergunta": [],
+            "avaliacao_qualitativa": False,
+            "nivel_confianca": "BAIXA",
+            "limitacoes": "Modo demonstrativo.",
             "versao_modelo": "stub-1",
-            "versao_prompt": "avaliacao-1",
+            "versao_prompt": "avaliacao-2",
         },
     )

@@ -213,7 +213,9 @@ de avaliação também pede que o modelo não infira atributos pessoais.
 O adaptador envia um JSON Schema para cada operação:
 
 - Pergunta: objeto com `pergunta.texto`.
-- Avaliação: `nota`, `pontos_fortes` e `pontos_melhoria`.
+- Avaliação: rubrica por pergunta (`CORRECAO_TECNICA`, `COMPLETUDE` e
+  `CLAREZA`), justificativas com trechos literais, confiança qualitativa e
+  limitações. A API calcula a `nota` a partir dos critérios.
 
 O modelo é chamado com `stream: false`, `max_tokens: 1024` e
 `chat_template_kwargs.enable_thinking: false`. Depois, o código lê
@@ -231,7 +233,7 @@ Timeouts viram `504`. Problemas de rede ou erros HTTP do provedor viram
 `502`.
 
 O adaptador devolve `versao_modelo` com o identificador configurado e
-`versao_prompt` com `perguntas-1` ou `avaliacao-1`. Esses valores ajudam a
+`versao_prompt` com `perguntas-1` ou `avaliacao-2`. Esses valores ajudam a
 identificar qual modelo e qual versão do prompt foram usados pela aplicação.
 
 ## 9. Saúde e prontidão

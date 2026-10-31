@@ -1777,6 +1777,71 @@ body {
   gap: 5px;
 }
 
+.feedback-disclaimer,
+.feedback-confidence p,
+.question-review-prompt,
+.criterion-review p,
+.criterion-review blockquote,
+.criterion-review small {
+  color: var(--ivis-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.feedback-confidence {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7f7fb;
+}
+
+.feedback-confidence strong,
+.question-review h3,
+.criterion-review-heading {
+  font-size: 14px;
+}
+
+.feedback-confidence p,
+.feedback-disclaimer,
+.question-review-prompt,
+.criterion-review p {
+  margin: 5px 0 0;
+}
+
+.question-review {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--ivis-border);
+}
+
+.question-review:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.question-review h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.criterion-review {
+  padding: 12px 0 0 14px;
+  border-left: 2px solid #e8e5fb;
+  margin-top: 12px;
+}
+
+.criterion-review-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.criterion-review blockquote {
+  border-left: 2px solid #c9c2f6;
+  margin: 8px 0 0;
+  padding-left: 10px;
+  font-style: italic;
+}
+
 .current-plan {
   padding: 22px 24px;
   border: 0;

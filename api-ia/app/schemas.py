@@ -52,6 +52,31 @@ class GerarAvaliacaoEntrada(ContextoEntrada):
     pass
 
 
+class CriterioAvaliacao(EsquemaBase):
+    criterio: Literal["CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA"]
+    nota: int = Field(ge=0, le=5)
+    justificativa: str = Field(min_length=1, max_length=500)
+    trecho_resposta: str = Field(max_length=500)
+
+
+class AvaliacaoPergunta(EsquemaBase):
+    numero: int = Field(ge=1)
+    pergunta: str = Field(min_length=1, max_length=1000)
+    criterios: list[CriterioAvaliacao] = Field(max_length=3)
+    nivel_confianca: Literal["BAIXA", "MEDIA", "ALTA"]
+    limitacao: str = Field(min_length=1, max_length=500)
+
+    @model_validator(mode="after")
+    def validar_criterios(self) -> "AvaliacaoPergunta":
+        nomes = [criterio.criterio for criterio in self.criterios]
+        esperados = {"CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA"}
+        if self.criterios and set(nomes) != esperados:
+            raise ValueError("A rubrica exige exatamente os três critérios.")
+        if len(nomes) != len(set(nomes)):
+            raise ValueError("A rubrica não aceita critérios duplicados.")
+        return self
+
+
 class PerguntaGerada(EsquemaBase):
     texto: str = Field(min_length=1, max_length=1000)
 
@@ -63,8 +88,34 @@ class GerarPerguntaResposta(EsquemaBase):
 
 
 class GerarAvaliacaoResposta(EsquemaBase):
-    nota: int = Field(ge=0, le=100)
+    nota: int = Field(default=0, ge=0, le=100)
     pontos_fortes: list[str] = Field(min_length=1, max_length=5)
     pontos_melhoria: list[str] = Field(min_length=1, max_length=5)
+    avaliacoes_por_pergunta: list[AvaliacaoPergunta] = Field(max_length=10)
+    avaliacao_qualitativa: bool
+    nivel_confianca: Literal["BAIXA", "MEDIA", "ALTA"]
+    limitacoes: str = Field(min_length=1, max_length=1000)
     versao_modelo: str = Field(min_length=1)
     versao_prompt: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validar_disponibilidade_da_rubrica(self) -> "GerarAvaliacaoResposta":
+        if self.avaliacao_qualitativa and not self.avaliacoes_por_pergunta:
+            raise ValueError("A avaliação qualitativa exige avaliações por pergunta.")
+        if not self.avaliacao_qualitativa and any(
+            avaliacao.criterios for avaliacao in self.avaliacoes_por_pergunta
+        ):
+            raise ValueError("A rubrica não pode conter notas sem avaliação qualitativa.")
+        return self
+
+
+def calcular_nota_rubrica(avaliacoes: list[AvaliacaoPergunta]) -> int:
+    criterios = [
+        criterio
+        for avaliacao in avaliacoes
+        for criterio in avaliacao.criterios
+    ]
+    if not criterios:
+        return 0
+    total_maximo = len(criterios) * 5
+    return (sum(criterio.nota for criterio in criterios) * 100 + total_maximo // 2) // total_maximo

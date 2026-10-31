@@ -35,6 +35,10 @@ _PONTO_FORTE = (
 _PONTO_MELHORIA = (
     "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
 )
+_LIMITACAO_STUB = (
+    "Modo demonstrativo: a nota considera somente o volume de texto e não "
+    "avalia a qualidade nem a correção técnica."
+)
 
 
 def _verificar_disponibilidade() -> None:
@@ -104,6 +108,19 @@ def gerar_avaliacao(entrada: GerarAvaliacaoEntrada) -> GerarAvaliacaoResposta:
         nota=nota,
         pontos_fortes=pontos_fortes,
         pontos_melhoria=pontos_melhoria,
+        avaliacoes_por_pergunta=[
+            {
+                "numero": interacao.numero,
+                "pergunta": interacao.pergunta,
+                "criterios": [],
+                "nivel_confianca": "BAIXA",
+                "limitacao": _LIMITACAO_STUB,
+            }
+            for interacao in entrada.interacoes
+        ],
+        avaliacao_qualitativa=False,
+        nivel_confianca="BAIXA",
+        limitacoes=_LIMITACAO_STUB,
         versao_modelo="stub-1",
-        versao_prompt="avaliacao-1",
+        versao_prompt="avaliacao-2",
     )
