@@ -1,7 +1,5 @@
 package br.ivis.identidade.modelo;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -10,8 +8,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "requisitos_vaga")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RequisitoVaga {
+
+    protected RequisitoVaga() {
+    }
 
     @Id
     private UUID id;
@@ -33,6 +33,14 @@ public RequisitoVaga(UUID id, UUID vagaInteresseId, String texto, short ordem) {
 
     public String getTexto() {
         return texto;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public UUID getVagaInteresseId() {
+        return vagaInteresseId;
     }
 
     public short getOrdem() {

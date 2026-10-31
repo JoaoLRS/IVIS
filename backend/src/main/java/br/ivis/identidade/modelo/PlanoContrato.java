@@ -1,7 +1,5 @@
 package br.ivis.identidade.modelo;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -10,8 +8,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "planos")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlanoContrato {
+
+    protected PlanoContrato() {
+    }
 
     @Id
     private UUID id;
@@ -21,4 +21,8 @@ public class PlanoContrato {
 public String getModalidade() {
         return modalidade;
     }
+
+public UUID getId() {
+    return id;
+}
 }

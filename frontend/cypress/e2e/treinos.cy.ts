@@ -1,5 +1,52 @@
 describe("treino integrado ao backend de IA", () => {
   it("mantém a resposta quando a próxima pergunta falha e permite tentar de novo", () => {
+    cy.intercept("GET", "**/api/v1/sessoes/csrf", {
+      statusCode: 200,
+      body: { token: "csrf-de-teste" },
+    });
+    cy.intercept("POST", "**/api/v1/sessoes/renovacao", {
+      statusCode: 200,
+      body: {
+        accessToken: "token-de-teste",
+        tipoToken: "Bearer",
+        expiraEmSegundos: 3600,
+        conta: {
+          id: "conta-de-teste",
+          tipoConta: "ALUNO",
+          email: "aluno@exemplo.com",
+          nome: "Aluno de teste",
+        },
+      },
+    });
+    cy.intercept("GET", "**/api/v1/conta/plano", {
+      statusCode: 200,
+      body: {
+        situacao: "COM_PLANO_VIGENTE",
+        planos: [{ situacao: "ATIVO", origemAcesso: "INDIVIDUAL" }],
+      },
+    });
+    cy.intercept("GET", "**/api/v1/habilidades", {
+      statusCode: 200,
+      body: [
+        {
+          id: "habilidade-de-teste",
+          nome: "JavaScript",
+          categoria: null,
+          nivel: 3,
+          criadoEm: "2025-01-15T12:00:00Z",
+          atualizadoEm: "2025-01-15T12:00:00Z",
+        },
+      ],
+    });
+    cy.intercept("GET", "**/api/v1/vagas", {
+      statusCode: 200,
+      body: [],
+    });
+    cy.intercept("GET", "**/api/v1/treinos", {
+      statusCode: 200,
+      body: [],
+    });
+
     let chamadasPergunta = 0;
     cy.intercept("POST", "**/api/v1/ia/perguntas/gerar", (requisicao) => {
       chamadasPergunta += 1;
@@ -24,10 +71,10 @@ describe("treino integrado ao backend de IA", () => {
       });
     }).as("gerarPergunta");
 
-    let chamadasAvaliacao = 0;
-    cy.intercept("POST", "**/api/v1/ia/avaliacoes/gerar", (requisicao) => {
-      chamadasAvaliacao += 1;
-      if (chamadasAvaliacao === 1) {
+    let chamadasSalvamento = 0;
+    cy.intercept("POST", "**/api/v1/treinos/concluidos", (requisicao) => {
+      chamadasSalvamento += 1;
+      if (chamadasSalvamento === 1) {
         requisicao.reply({
           statusCode: 504,
           body: {
@@ -41,10 +88,14 @@ describe("treino integrado ao backend de IA", () => {
       requisicao.reply({
         statusCode: 200,
         body: {
+          id: "treino-de-teste",
+          titulo: "Entrevista por habilidades",
+          contexto: "Habilidades: JavaScript",
           nota: 80,
-          pontos_fortes: ["Respostas objetivas."],
-          pontos_melhoria: ["Inclua mais exemplos."],
-          avaliacoes_por_pergunta: [1, 2, 3].map((numero) => ({
+          data: "2025-01-15T12:00:00Z",
+          pontosFortes: ["Respostas objetivas."],
+          pontosMelhoria: ["Inclua mais exemplos."],
+          avaliacoesPorPergunta: [1, 2, 3].map((numero) => ({
             numero,
             pergunta: `Pergunta ${numero}`,
             criterios: [
@@ -70,14 +121,12 @@ describe("treino integrado ao backend de IA", () => {
             nivel_confianca: "BAIXA",
             limitacao: "As respostas do teste são curtas.",
           })),
-          avaliacao_qualitativa: true,
-          nivel_confianca: "BAIXA",
+          avaliacaoQualitativa: true,
+          nivelConfianca: "BAIXA",
           limitacoes: "As respostas do teste são curtas.",
-          versao_modelo: "nvidia/fake-1",
-          versao_prompt: "avaliacao-3",
         },
       });
-    }).as("gerarAvaliacao");
+    }).as("salvarTreino");
 
     cy.visit("/treinos");
     cy.contains("button", "Iniciar entrevista").click();
@@ -108,28 +157,27 @@ describe("treino integrado ao backend de IA", () => {
     cy.wait("@gerarPergunta");
     cy.get('textarea[name="resposta"]').type("Resposta da terceira pergunta");
     cy.contains("button", "Enviar resposta").click();
-    cy.wait("@gerarAvaliacao");
-    cy.contains("Sua resposta foi mantida; tente novamente.").should(
+    cy.contains("Você respondeu às três perguntas.").should("be.visible");
+    cy.contains("button", "Finalizar e ver feedback").click();
+    cy.wait("@salvarTreino");
+    cy.contains("A avaliação está temporariamente indisponível.").should(
       "be.visible",
     );
-    cy.get('textarea[name="resposta"]').should(
-      "have.value",
-      "Resposta da terceira pergunta",
-    );
-
-    cy.contains("button", "Tentar novamente").click();
-    cy.wait("@gerarAvaliacao").then(({ request }) => {
+    cy.contains("button", "Finalizar e ver feedback").click();
+    cy.wait("@salvarTreino").then(({ request }) => {
       expect(request.body.interacoes).to.have.length(3);
       expect(request.body.interacoes[2].resposta).to.equal(
         "Resposta da terceira pergunta",
       );
     });
-
-    cy.contains("button", "Finalizar e ver feedback").click();
     cy.contains("strong", "80").should("be.visible");
     cy.contains("Respostas objetivas.").should("be.visible");
     cy.contains("RUBRICA POR PERGUNTA").should("be.visible");
     cy.contains("Correção técnica").should("be.visible");
     cy.contains("Os trechos mostram o que a IA considerou").should("be.visible");
+    cy.contains("button", "Ver histórico").click();
+    cy.contains("80/100").should("be.visible");
+    cy.get(".history-list-row").click();
+    cy.contains("strong", "80").should("be.visible");
   });
 });

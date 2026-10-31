@@ -1,7 +1,5 @@
 package br.ivis.identidade.modelo;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "sessoes_autenticacao")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SessaoAutenticacao {
+
+    protected SessaoAutenticacao() {
+    }
 
     @Id
     private UUID id;
@@ -52,6 +52,18 @@ public SessaoAutenticacao(UUID id, UUID contaId, String hashTokenRenovacao, Inst
 
     public Instant getExpiraEm() {
         return expiraEm;
+    }
+
+    public String getHashTokenRenovacao() {
+        return hashTokenRenovacao;
+    }
+
+    public UUID getSubstituidaPorId() {
+        return substituidaPorId;
+    }
+
+    public Instant getCriadoEm() {
+        return criadoEm;
     }
 
     public boolean estaAtivaEm(Instant agora) {

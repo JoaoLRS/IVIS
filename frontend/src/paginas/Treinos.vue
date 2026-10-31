@@ -118,14 +118,18 @@ async function iniciar() {
 }
 
 async function encerrar() {
-  if (!estado.avaliacaoPendente) return;
+  if (estado.perguntaAtual < perguntas.value.length) return;
   processando.value = true;
   mensagemErro.value = "";
   try {
     await estado.concluirTreino();
     await roteador.push("/feedback");
   } catch (erro) {
-    mensagemErro.value = mensagemDaFalha(erro, true);
+    if (!axios.isAxiosError(erro)) throw erro;
+    mensagemErro.value =
+      erro.response?.status === 503 || erro.response?.status === 504
+        ? "A avaliação está temporariamente indisponível. Suas respostas foram mantidas; tente finalizar novamente."
+        : "Não foi possível registrar a entrevista. Suas respostas foram mantidas; tente finalizar novamente.";
   } finally {
     processando.value = false;
   }
@@ -324,7 +328,7 @@ async function responder() {
     <div class="interview-top">
       <button
         class="btn btn-link p-0"
-        :disabled="!estado.avaliacaoPendente || processando"
+        :disabled="estado.perguntaAtual < perguntas.length || processando"
         @click="encerrar"
       >
         <ChevronLeft :size="16" /> Finalizar treino</button

@@ -1,7 +1,5 @@
 package br.ivis.identidade.modelo;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "perfis_aluno")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PerfilAluno {
+
+    protected PerfilAluno() {
+    }
 
     @Id
     @Column(name = "conta_id")
@@ -38,6 +38,22 @@ public PerfilAluno(UUID contaId, String nomeExibicao, Instant agora) {
 
     public String getNomeExibicao() {
         return nomeExibicao;
+    }
+
+    public UUID getContaId() {
+        return contaId;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
+    public Instant getCriadoEm() {
+        return criadoEm;
+    }
+
+    public Instant getAtualizadoEm() {
+        return atualizadoEm;
     }
 
     public void atualizarNome(String nome, Instant agora) {

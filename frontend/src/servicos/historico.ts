@@ -20,5 +20,15 @@ export async function listarHistorico(): Promise<TreinoPersistido[]> {
 }
 export async function salvarTreino(entrada: object): Promise<TreinoPersistido> {
   const csrf = await obterTokenCsrf();
-  return (await clienteHttp.post<TreinoPersistido>("/v1/treinos/concluidos", entrada, { withCredentials: true, headers: { "X-XSRF-TOKEN": csrf } })).data;
+  return (
+    await clienteHttp.post<TreinoPersistido>(
+      "/v1/treinos/concluidos",
+      entrada,
+      {
+        timeout: 120_000,
+        withCredentials: true,
+        headers: { "X-XSRF-TOKEN": csrf },
+      },
+    )
+  ).data;
 }

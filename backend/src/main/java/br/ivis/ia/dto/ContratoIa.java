@@ -134,6 +134,7 @@ public final class ContratoIa {
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
 
         @AssertTrue(message = "A rubrica não corresponde ao indicador qualitativo.")
+        @SuppressWarnings("null")
         public boolean isRubricaConsistente() {
             if (avaliacaoQualitativa == null || avaliacoesPorPergunta == null
                     || pontosFortes == null || pontosMelhoria == null) {

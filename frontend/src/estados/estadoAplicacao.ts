@@ -9,10 +9,8 @@ import {
   type VagaInteressePerfil,
 } from "../servicos/perfilAluno";
 import {
-  gerarAvaliacao,
   gerarPergunta,
   type ContextoTreinoIa,
-  type GerarAvaliacaoResposta,
   type AvaliacaoPergunta,
   type InteracaoIa,
 } from "../servicos/treinos";
@@ -51,7 +49,6 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   const perguntasDoTreino = ref<string[]>([]);
   const feedbackAtual = ref<Treino | null>(null);
   const respostaPendente = ref<string | null>(null);
-  const avaliacaoPendente = ref<GerarAvaliacaoResposta | null>(null);
   const contextoIa = ref<Omit<ContextoTreinoIa, "interacoes"> | null>(null);
 
   function atualizarDadosAluno(dados: { nome: string; email: string }) {
@@ -75,7 +72,6 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     perguntasDoTreino.value = [];
     feedbackAtual.value = null;
     respostaPendente.value = null;
-    avaliacaoPendente.value = null;
     contextoIa.value = null;
   }
 
@@ -128,7 +124,6 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     perguntaAtual.value = 0;
     respostas.value = [];
     respostaPendente.value = null;
-    avaliacaoPendente.value = null;
     perguntasDoTreino.value = [];
     vagaEmTreinamento.value = vaga?.titulo ?? null;
     vagaIdEmTreinamento.value = vaga?.id ?? null;
@@ -207,9 +202,7 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       interacoes,
     };
 
-    if (interacoes.length === totalPerguntas) {
-      avaliacaoPendente.value = await gerarAvaliacao(contextoAtual);
-    } else {
+    if (interacoes.length < totalPerguntas) {
       const proximaPergunta = await gerarPergunta(
         contextoAtual,
         interacoes.length + 1,
@@ -227,33 +220,11 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     vagaIdEmTreinamento.value = null;
     contextoIa.value = null;
     respostaPendente.value = null;
-    avaliacaoPendente.value = null;
   }
   async function concluirTreino() {
-    if (!avaliacaoPendente.value) {
-      throw new Error("A avaliação do treino ainda não está disponível.");
+    if (respostas.value.length !== totalPerguntas || !contextoIa.value) {
+      throw new Error("O treino precisa estar completo para ser concluído.");
     }
-    const avaliacao = avaliacaoPendente.value;
-    const treino: Treino = {
-      titulo: vagaEmTreinamento.value
-        ? `Entrevista · ${vagaEmTreinamento.value}`
-        : "Entrevista por habilidades",
-      contexto: contextoTreino.value,
-      data: new Date().toLocaleString("pt-BR", {
-        dateStyle: "short",
-        timeStyle: "short",
-      }),
-      nota: avaliacao.nota,
-      duracao: "Sessão atual",
-      pontosFortes: avaliacao.pontos_fortes.join(" "),
-      melhorias: avaliacao.pontos_melhoria.join(" "),
-      avaliacaoQualitativa: avaliacao.avaliacao_qualitativa,
-      nivelConfianca: avaliacao.nivel_confianca,
-      limitacoes: avaliacao.limitacoes,
-      avaliacoesPorPergunta: avaliacao.avaliacoes_por_pergunta.map(
-        converterAvaliacaoPergunta,
-      ),
-    };
     const salvo = await salvarTreino({
       tipoContexto: vagaIdEmTreinamento.value ? "VAGA" : "HABILIDADES",
       vagaId: vagaIdEmTreinamento.value,
@@ -265,16 +236,22 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
         resposta,
       })),
     });
-    treino.id = salvo.id;
-    treino.nota = salvo.nota;
-    treino.pontosFortes = salvo.pontosFortes.join(" ");
-    treino.melhorias = salvo.pontosMelhoria.join(" ");
-    treino.avaliacaoQualitativa = salvo.avaliacaoQualitativa;
-    treino.nivelConfianca = salvo.nivelConfianca;
-    treino.limitacoes = salvo.limitacoes;
-    treino.avaliacoesPorPergunta = salvo.avaliacoesPorPergunta.map(
-      converterAvaliacaoPergunta,
-    );
+    const treino: Treino = {
+      id: salvo.id,
+      titulo: salvo.titulo,
+      contexto: salvo.contexto,
+      data: new Date(salvo.data).toLocaleString("pt-BR"),
+      nota: salvo.nota,
+      duracao: "Sessão atual",
+      pontosFortes: salvo.pontosFortes.join(" "),
+      melhorias: salvo.pontosMelhoria.join(" "),
+      avaliacaoQualitativa: salvo.avaliacaoQualitativa,
+      nivelConfianca: salvo.nivelConfianca,
+      limitacoes: salvo.limitacoes,
+      avaliacoesPorPergunta: salvo.avaliacoesPorPergunta.map(
+        converterAvaliacaoPergunta,
+      ),
+    };
     historico.value.unshift(treino);
     feedbackAtual.value = treino;
     encerrarTreino();
@@ -295,7 +272,6 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     habilidadesDoTreino,
     feedbackAtual,
     respostaPendente,
-    avaliacaoPendente,
     carregarPerfil,
     limparDadosDaConta,
     atualizarDadosAluno,
