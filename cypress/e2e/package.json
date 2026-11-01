@@ -1,0 +1,15 @@
+{
+  "name": "ivis-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "testar:e2e": "cypress run --config-file configuracao.cypress.ts"
+  },
+  "devDependencies": {
+    "cypress": "^15.1.0"
+  },
+  "allowScripts": {
+    "cypress@15.21.1": true
+  }
+}

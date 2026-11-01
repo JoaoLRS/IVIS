@@ -4,8 +4,9 @@ node_modules/
 
 # Frontend build output
 frontend/dist/
-frontend/cypress/videos/
-frontend/cypress/screenshots/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
 frontend/.vercel/
 
 # Local environment files

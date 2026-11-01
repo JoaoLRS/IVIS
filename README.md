@@ -315,6 +315,24 @@ Esse documento contém a especificação inicial de visão, escopo, stakeholders
 
 A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10) está em `etc/plano/Ordem_de_Entrega_MVP.md`.
 
+## Verificação de dependências
+
+Para conferir as ferramentas e dependências locais do frontend, backend e API de IA,
+execute na raiz do repositório:
+
+```bash
+node verificar-dependencias.mjs
+```
+
+O verificador lista o que estiver ausente ou incompatível e mostra os comandos de
+instalação correspondentes. Ele não instala pacotes automaticamente. Também pode
+ser chamado de dentro da raiz por `npm run deps:check`. Para revisar se os
+pacotes declarados estão usados e se os imports estão declarados, use
+`npm run deps:audit`. A instalação inicial dos pacotes JavaScript roda com
+`npm run setup:inicial`; o Cypress pertence ao pacote `cypress/e2e`.
+Execute `npm run testar:e2e` para gerar os vídeos em `cypress/downloads`;
+o modo interativo `cypress open` não grava vídeos automaticamente.
+
 ## 🤖 API de IA
 
 O banco PostgreSQL, a API de IA e o backend podem ser iniciados com o script na

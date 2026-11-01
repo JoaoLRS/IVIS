@@ -7,7 +7,8 @@
     "dev": "vite --config configuracao.vite.ts --host 0.0.0.0",
     "build": "vue-tsc --noEmit -p tsconfig.json && vite build --config configuracao.vite.ts",
     "preview": "vite preview --config configuracao.vite.ts --host 0.0.0.0",
-    "testar:e2e": "cypress run --config-file configuracao.cypress.ts",
+    "testar:e2e": "npm --prefix ../cypress/e2e run testar:e2e",
+    "verificar:dependencias": "node ../verificar-dependencias.mjs",
     "formatar": "prettier --write \"src/**/*.{vue,ts}\"",
     "verificar-estilo": "eslint --config configuracao.eslint.js src"
   },
@@ -23,7 +24,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.18.3",
-    "cypress": "^15.1.0",
     "eslint": "^9.35.0",
     "eslint-plugin-vue": "^10.4.0",
     "prettier": "^3.6.2",
@@ -32,7 +32,6 @@
     "vue-tsc": "^3.0.6"
   },
   "allowScripts": {
-    "cypress@15.21.1": true,
     "esbuild@0.28.2": true
   }
 }
