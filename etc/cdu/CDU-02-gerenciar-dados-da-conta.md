@@ -1,4 +1,4 @@
-# CDU-03 - Gerenciar dados da conta
+# CDU-02 - Gerenciar dados da conta
 
 ## Atores
 

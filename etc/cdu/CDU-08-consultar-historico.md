@@ -1,4 +1,4 @@
-# CDU-09 - Consultar histórico de treinos
+# CDU-08 - Consultar histórico de treinos
 
 ## Atores
 
@@ -20,7 +20,7 @@
 
 ## Fluxos alternativos e exceções
 
-- **A1 — Histórico vazio:** o sistema informa que ainda não há treinos concluídos e permite iniciar um treino conforme CDU-08.
+- **A1 — Histórico vazio:** o sistema informa que ainda não há treinos concluídos e permite iniciar um treino conforme CDU-07.
 - **A2 — Registro não encontrado ou fora da conta:** o sistema não apresenta os dados solicitados.
 - **A3 — Treino incompleto:** não é listado, pois o histórico inclui somente treinos finalizados com avaliação.
 - **E1 — Falha na consulta:** o sistema informa que não foi possível carregar o histórico.

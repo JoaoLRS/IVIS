@@ -1,4 +1,4 @@
-# CDU-06 - Consultar plano vigente
+# CDU-05 - Consultar plano vigente
 
 ## Atores
 
@@ -18,7 +18,7 @@
 3. Para o aluno, o sistema considera plano individual próprio e eventual vínculo institucional ativo.
 4. Para a instituição, o sistema considera somente contratos cujo titular é a própria instituição.
 5. O sistema apresenta modalidade, plano, origem do acesso, situação, validade, benefícios e limites disponíveis para aquele perfil.
-6. Se não houver acesso vigente, o sistema informa a situação e permite consultar as ofertas públicas conforme CDU-10.
+6. Se não houver acesso vigente, o sistema informa a situação e permite consultar as ofertas públicas conforme CDU-09.
 
 ## Fluxos alternativos e exceções
 

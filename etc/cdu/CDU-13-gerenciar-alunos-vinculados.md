@@ -1,4 +1,4 @@
-# CDU-14 - Gerenciar alunos vinculados
+# CDU-13 - Gerenciar alunos vinculados
 
 ## Atores
 
@@ -20,7 +20,7 @@
 5. O sistema cria o vínculo e atualiza lista e capacidade.
 6. Para remover, a instituição seleciona um vínculo e aciona Remover.
 7. O sistema encerra o vínculo, preserva seu registro histórico e libera a vaga.
-8. O acesso do aluno passa a depender de vínculo e contrato vigentes, conforme CDU-15.
+8. O acesso do aluno passa a depender de vínculo e contrato vigentes, conforme CDU-14.
 
 ## Fluxos alternativos e exceções
 
@@ -39,7 +39,7 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno já existentes e remove vínculos. O backend verifica capacidade, perfil e titularidade. Inclusão e remoção ainda não geram eventos de auditoria (CDU-16).
+Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno já existentes e remove vínculos. O backend verifica capacidade, perfil e titularidade. Inclusão e remoção ainda não geram eventos de auditoria (CDU-15).
 
 ## Diagrama de ações do ator
 

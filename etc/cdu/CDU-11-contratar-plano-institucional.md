@@ -1,4 +1,4 @@
-# CDU-12 - Contratar plano institucional
+# CDU-11 - Contratar plano institucional
 
 ## Atores
 
@@ -13,13 +13,13 @@
 
 ## Fluxo principal
 
-1. A instituição seleciona uma oferta institucional conforme CDU-10.
+1. A instituição seleciona uma oferta institucional conforme CDU-09.
 2. O sistema verifica o tipo da conta e apresenta preço, duração, benefícios e capacidade incluída na oferta.
-3. A instituição revisa as condições e segue ao checkout simulado conforme CDU-13.
+3. A instituição revisa as condições e segue ao checkout simulado conforme CDU-12.
 4. O backend valida o resultado do pagamento simulado.
 5. Se aprovado, o sistema registra contrato, preço e capacidade definidos pelo catálogo.
 6. O sistema registra evento de contratação e confirma a ativação.
-7. A instituição pode seguir para gerenciar alunos e vagas conforme CDU-14.
+7. A instituição pode seguir para gerenciar alunos e vagas conforme CDU-13.
 
 ## Fluxos alternativos e exceções
 

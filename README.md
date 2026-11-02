@@ -167,26 +167,25 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 
 ## 🧩 Casos de Uso
 
-As especificações detalhadas, com fluxos principais, exceções, estado de implementação e diagrama de ações do ator, estão em [`etc/cdu/`](etc/cdu/IVIS_Casos_de_Uso.md).
+As especificações detalhadas, com fluxos principais, exceções, estado de implementação e diagrama de ações do ator, estão nos [documentos CDU](etc/cdu/IVIS_Casos_de_Uso.md).
 
 | ID | Caso de Uso |
 | --- | --- |
-| CDU-01 | Criar conta |
-| CDU-02 | Fazer login |
-| CDU-03 | Gerenciar dados da conta |
-| CDU-04 | Gerenciar habilidades |
-| CDU-05 | Recuperar acesso |
-| CDU-06 | Consultar plano vigente |
-| CDU-07 | Gerenciar vaga de interesse |
-| CDU-08 | Realizar treinamento e receber feedback |
-| CDU-09 | Consultar histórico de treinos |
-| CDU-10 | Visualizar planos disponíveis |
-| CDU-11 | Contratar plano individual |
-| CDU-12 | Contratar plano institucional |
-| CDU-13 | Efetuar pagamento |
-| CDU-14 | Gerenciar alunos vinculados |
-| CDU-15 | Aplicar acesso conforme modalidade |
-| CDU-16 | Registrar auditoria de operações sensíveis |
+| CDU-01 | Acesso IVIS (criar conta e fazer login) |
+| CDU-02 | Gerenciar dados da conta |
+| CDU-03 | Gerenciar habilidades |
+| CDU-04 | Recuperar acesso |
+| CDU-05 | Consultar plano vigente |
+| CDU-06 | Gerenciar vaga de interesse |
+| CDU-07 | Realizar treinamento e receber feedback |
+| CDU-08 | Consultar histórico de treinos |
+| CDU-09 | Visualizar planos disponíveis |
+| CDU-10 | Contratar plano individual |
+| CDU-11 | Contratar plano institucional |
+| CDU-12 | Efetuar pagamento |
+| CDU-13 | Gerenciar alunos vinculados |
+| CDU-14 | Aplicar acesso conforme modalidade |
+| CDU-15 | Registrar auditoria de operações sensíveis |
 
 ## 📖 Histórias de Usuário
 

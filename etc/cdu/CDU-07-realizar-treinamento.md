@@ -1,4 +1,4 @@
-# CDU-08 - Realizar treinamento e receber feedback
+# CDU-07 - Realizar treinamento e receber feedback
 
 ## Atores
 
@@ -23,7 +23,7 @@
 7. O sistema solicita uma avaliação ao serviço de IA.
 8. O aluno escolhe finalizar e ver o feedback.
 9. O sistema persiste o treino, as perguntas e respostas, o contexto, a nota e os pontos fortes e de melhoria.
-10. O sistema apresenta o feedback e disponibiliza o resultado no histórico conforme CDU-09.
+10. O sistema apresenta o feedback e disponibiliza o resultado no histórico conforme CDU-08.
 
 ## Fluxos alternativos e exceções
 

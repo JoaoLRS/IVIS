@@ -1,4 +1,4 @@
-# CDU-15 - Aplicar acesso conforme modalidade
+# CDU-14 - Aplicar acesso conforme modalidade
 
 ## Atores
 
@@ -25,7 +25,7 @@
 
 - **A1 — Aluno com plano individual vigente:** o sistema permite as funções cobertas pela oferta.
 - **A2 — Aluno com vínculo institucional vigente:** o sistema permite as funções cobertas, sem acesso à gestão do contrato da instituição.
-- **A3 — Aluno vinculado tenta contratar plano individual:** o backend rejeita a contratação conforme RF19 e CDU-11.
+- **A3 — Aluno vinculado tenta contratar plano individual:** o backend rejeita a contratação conforme RF19 e CDU-10.
 - **A4 — Plano expirado ou vínculo removido:** o sistema nega novas operações protegidas.
 - **A5 — Tipo de conta incompatível:** o sistema rejeita a chamada e mantém o usuário na área correspondente ao seu perfil.
 - **E1 — Estado de acesso não verificável:** o sistema nega a operação protegida.

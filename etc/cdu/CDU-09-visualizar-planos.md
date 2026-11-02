@@ -1,4 +1,4 @@
-# CDU-10 - Visualizar planos disponíveis
+# CDU-09 - Visualizar planos disponíveis
 
 ## Atores
 
@@ -29,7 +29,7 @@
 ## Pós-condições
 
 - Consultar o catálogo não altera conta, plano ou contrato.
-- A contratação começa somente após autenticação e confirmação nos CDU-11 ou CDU-12.
+- A contratação começa somente após autenticação e confirmação nos CDU-10 ou CDU-11.
 
 ## Situação atual no sistema
 

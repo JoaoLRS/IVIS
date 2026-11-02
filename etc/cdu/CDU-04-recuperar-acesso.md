@@ -1,4 +1,4 @@
-# CDU-05 - Recuperar acesso
+# CDU-04 - Recuperar acesso
 
 ## Atores
 
@@ -19,7 +19,7 @@
 4. Se houver conta ativa, o sistema invalida tokens anteriores, gera token de uso único com validade limitada e envia um link por SMTP.
 5. O usuário abre o link e informa uma nova senha válida.
 6. O sistema valida o token, grava o hash da nova senha, consome o token e revoga as sessões de renovação da conta.
-7. O usuário volta ao login e entra com a nova senha conforme CDU-02.
+7. O usuário volta ao login e entra com a nova senha conforme CDU-01.
 
 ## Fluxos alternativos e exceções
 

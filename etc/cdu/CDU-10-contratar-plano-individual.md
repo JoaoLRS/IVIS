@@ -1,4 +1,4 @@
-# CDU-11 - Contratar plano individual
+# CDU-10 - Contratar plano individual
 
 ## Atores
 
@@ -13,10 +13,10 @@
 
 ## Fluxo principal
 
-1. O aluno seleciona uma oferta individual conforme CDU-10.
+1. O aluno seleciona uma oferta individual conforme CDU-09.
 2. O sistema verifica o tipo da conta e a elegibilidade do aluno.
 3. O sistema apresenta preço ilustrativo, duração e benefícios.
-4. O aluno revisa as condições e segue ao checkout simulado conforme CDU-13.
+4. O aluno revisa as condições e segue ao checkout simulado conforme CDU-12.
 5. O backend valida a oferta, a modalidade e o resultado da simulação.
 6. Se aprovado, o backend registra o pagamento e ativa o contrato pelo período do catálogo.
 7. O sistema registra evento da contratação simulada e confirma que o plano está ativo.
