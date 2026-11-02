@@ -167,25 +167,26 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 
 ## 🧩 Casos de Uso
 
-O sistema está estruturado em casos de uso que representam as principais interações entre os atores e o IVIS.
+As especificações detalhadas, com fluxos principais, exceções, estado de implementação e diagrama de ações do ator, estão em [`etc/cdu/`](etc/cdu/IVIS_Casos_de_Uso.md).
 
-| ID   | Caso de Uso                       |
-| ---- | --------------------------------- |
-| UC01 | Criar Conta                       |
-| UC02 | Fazer Login                       |
-| UC03 | Gerenciar Perfil e Habilidades    |
-| UC04 | Gerenciar Vaga de Interesse       |
-| UC05 | Iniciar Treinamento               |
-| UC06 | Responder Perguntas da Entrevista |
-| UC07 | Receber Feedback da Entrevista    |
-| UC08 | Consultar Histórico de Treinos    |
-| UC09 | Visualizar Home com Planos        |
-| UC10 | Contratar Plano                   |
-| UC11 | Gerenciar Alunos Vinculados       |
-| UC12 | Efetuar Pagamento                 |
-| UC13 | Gerenciar Dados da Conta          |
-
----
+| ID | Caso de Uso |
+| --- | --- |
+| CDU-01 | Criar conta |
+| CDU-02 | Fazer login |
+| CDU-03 | Gerenciar dados da conta |
+| CDU-04 | Gerenciar habilidades |
+| CDU-05 | Recuperar acesso |
+| CDU-06 | Consultar plano vigente |
+| CDU-07 | Gerenciar vaga de interesse |
+| CDU-08 | Realizar treinamento e receber feedback |
+| CDU-09 | Consultar histórico de treinos |
+| CDU-10 | Visualizar planos disponíveis |
+| CDU-11 | Contratar plano individual |
+| CDU-12 | Contratar plano institucional |
+| CDU-13 | Efetuar pagamento |
+| CDU-14 | Gerenciar alunos vinculados |
+| CDU-15 | Aplicar acesso conforme modalidade |
+| CDU-16 | Registrar auditoria de operações sensíveis |
 
 ## 📖 Histórias de Usuário
 
