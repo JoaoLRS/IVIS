@@ -17,7 +17,7 @@ public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoIn
     boolean existsByContaAlunoIdAndSituacao(UUID contaAlunoId, String situacao);
 
     @Query("select new br.ivis.identidade.dto.VinculoInstitucionalResumo("
-            + "v.id, v.contratoId, v.contaAlunoId, p.nomeExibicao, c.email, v.vinculadoEm) "
+            + "v.id, v.contratoId, v.contaAlunoId, p.nome, c.email, v.vinculadoEm) "
             + "from VinculoInstitucional v join ContratoInstitucional ct on ct.id = v.contratoId "
             + "join Conta c on c.id = v.contaAlunoId join PerfilAluno p on p.contaId = c.id "
             + "where ct.contaTitularId = :instituicaoId and v.situacao = 'ATIVO' "
@@ -25,7 +25,7 @@ public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoIn
     List<VinculoInstitucionalResumo> listarAtivosDaInstituicao(@Param("instituicaoId") UUID instituicaoId);
 
     @Query("select new br.ivis.identidade.dto.VinculoInstitucionalResumo("
-            + "v.id, v.contratoId, v.contaAlunoId, p.nomeExibicao, c.email, v.vinculadoEm) "
+            + "v.id, v.contratoId, v.contaAlunoId, p.nome, c.email, v.vinculadoEm) "
             + "from VinculoInstitucional v join Conta c on c.id = v.contaAlunoId "
             + "join PerfilAluno p on p.contaId = c.id "
             + "where v.id = :vinculoId and v.situacao = 'ATIVO' and exists "

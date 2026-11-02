@@ -16,6 +16,6 @@ public interface PlanoRepositorio extends Repository<Plano, UUID> {
     @Query("select p from Plano p where p.id = :id and p.ativo = true")
     Optional<Plano> buscarOfertaAtiva(@Param("id") UUID id);
 
-    @Query(value = "select texto_beneficio from beneficios_plano where plano_id = :id order by ordem", nativeQuery = true)
+    @Query(value = "select texto_beneficio from beneficios_plano where codigo_objeto_planos = :id order by ordem", nativeQuery = true)
     List<String> listarBeneficios(@Param("id") UUID id);
 }

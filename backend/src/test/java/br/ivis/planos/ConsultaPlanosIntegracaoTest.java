@@ -47,7 +47,7 @@ class ConsultaPlanosIntegracaoTest {
     void catalogoPublicoFiltraInativosEOrdenaBeneficios() throws Exception {
         UUID ativo = plano("INDIVIDUAL", true);
         UUID inativo = plano("INDIVIDUAL", false);
-        bancoDados.update("insert into beneficios_plano (plano_id, texto_beneficio, ordem) values (?, 'Segundo', 2), (?, 'Primeiro', 1)", ativo, ativo);
+        bancoDados.update("insert into beneficios_plano (codigo_objeto_planos, texto_beneficio, ordem) values (?, 'Segundo', 2), (?, 'Primeiro', 1)", ativo, ativo);
         var resposta = obter("/planos/" + ativo, null);
         assertEquals(200, resposta.statusCode());
         var oferta = json.readTree(resposta.body());
@@ -77,7 +77,7 @@ class ConsultaPlanosIntegracaoTest {
         assertEquals(contrato.toString(), planos.get(0).get("contratoId").asString());
         assertEquals(1500, planos.get(0).get("condicoesTitular").get("precoCentavosContratado").asLong());
         assertEquals("SEM_PLANO_VIGENTE", json.readTree(obter("/conta/plano", outro).body()).get("situacao").asString());
-        bancoDados.update("update contas set situacao = 'INATIVA' where id = ?", aluno);
+        bancoDados.update("update contas set situacao = 'INATIVA' where objeto = ?", aluno);
         assertEquals(403, obter("/conta/plano", aluno).statusCode());
     }
 
@@ -88,7 +88,7 @@ class ConsultaPlanosIntegracaoTest {
         UUID aluno = conta("ALUNO");
         UUID contrato = contrato(instituicao, plano("INSTITUCIONAL", true), "ATIVO");
         bancoDados.update("""
-                insert into vinculos_institucionais (contrato_id, conta_aluno_id, criado_por_conta_id)
+                insert into vinculos_institucionais (codigo_objeto_contratos, codigo_objeto_perfis_aluno, codigo_objeto_contas)
                 values (?, ?, ?)
                 """, contrato, aluno, instituicao);
         var planoAluno = json.readTree(obter("/conta/plano", aluno).body()).get("planos").get(0);
@@ -96,16 +96,16 @@ class ConsultaPlanosIntegracaoTest {
         assertTrue(planoAluno.get("condicoesTitular").isNull());
         assertEquals(0, json.readTree(obter("/conta/plano", outraInstituicao).body()).get("planos").size());
         assertEquals(1, json.readTree(obter("/conta/plano", instituicao).body()).get("planos").size());
-        bancoDados.update("update contratos set situacao = 'SUSPENSO' where id = ?", contrato);
+        bancoDados.update("update contratos set situacao = 'SUSPENSO' where objeto = ?", contrato);
         assertEquals(0, json.readTree(obter("/conta/plano", aluno).body()).get("planos").size());
-        bancoDados.update("update contratos set situacao = 'ATIVO' where id = ?", contrato);
-        bancoDados.update("update vinculos_institucionais set situacao = 'ENCERRADO', desvinculado_em = now() where contrato_id = ?", contrato);
+        bancoDados.update("update contratos set situacao = 'ATIVO' where objeto = ?", contrato);
+        bancoDados.update("update vinculos_institucionais set situacao = 'ENCERRADO', desvinculado_em = now() where codigo_objeto_contratos = ?", contrato);
         assertEquals(0, json.readTree(obter("/conta/plano", aluno).body()).get("planos").size());
     }
 
     private UUID plano(String modalidade, boolean ativo) {
         UUID id = UUID.randomUUID();
-        bancoDados.update("insert into planos (id, codigo, modalidade, nome, preco_centavos, ativo) values (?, ?, ?, 'Oferta sintética', 1990, ?)",
+        bancoDados.update("insert into planos (objeto, codigo, modalidade, nome, preco_centavos, ativo) values (?, ?, ?, 'Oferta sintética', 1990, ?)",
                 id, id.toString(), modalidade, ativo);
         return id;
     }
@@ -113,11 +113,11 @@ class ConsultaPlanosIntegracaoTest {
     private UUID conta(String tipo) {
         UUID id = UUID.randomUUID();
         String email = id + "@example.test";
-        bancoDados.update("insert into contas (id, tipo_conta, email, email_normalizado, hash_senha) values (?, ?, ?, ?, 'nao-utilizado')", id, tipo, email, email);
+        bancoDados.update("insert into contas (objeto, tipo_conta, email, email_normalizado, hash_senha) values (?, ?, ?, ?, 'nao-utilizado')", id, tipo, email, email);
         if (tipo.equals("ALUNO")) {
-            bancoDados.update("insert into perfis_aluno (conta_id, nome_exibicao) values (?, 'Aluno sintético')", id);
+            bancoDados.update("insert into perfis_aluno (objeto, codigo_objeto_contas, nome) values (?, ?, 'Aluno sintético')", id, id);
         } else {
-            bancoDados.update("insert into perfis_instituicao (conta_id, razao_social) values (?, 'Instituição sintética')", id);
+            bancoDados.update("insert into perfis_instituicao (objeto, codigo_objeto_contas, nome_instituicao, nome_responsavel) values (?, ?, 'Instituição sintética', 'Responsável sintético')", id, id);
         }
         return id;
     }
@@ -125,7 +125,7 @@ class ConsultaPlanosIntegracaoTest {
     private UUID contrato(UUID conta, UUID plano, String situacao) {
         UUID id = UUID.randomUUID();
         bancoDados.update("""
-                insert into contratos (id, conta_titular_id, plano_id, situacao, quantidade_vagas,
+                insert into contratos (objeto, codigo_objeto_contas, codigo_objeto_planos, situacao, quantidade_vagas,
                     preco_centavos_contratado, iniciado_em) values (?, ?, ?, ?, 1, 1500, now())
                 """, id, conta, plano, situacao);
         return id;

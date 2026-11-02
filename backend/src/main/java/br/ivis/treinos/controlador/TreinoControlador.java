@@ -48,7 +48,7 @@ public class TreinoControlador {
         Timestamp agoraSql = Timestamp.from(agora);
         GerarAvaliacaoResposta avaliacao = avaliar(contaId, entrada);
         banco.update("""
-                insert into treinamentos (id, conta_aluno_id, vaga_interesse_id, tipo_contexto, situacao,
+                insert into treinamentos (objeto, codigo_objeto_perfis_aluno, codigo_objeto_vagas_interesse, tipo_contexto, situacao,
                   contexto_registrado, iniciado_em, finalizado_em, criado_em)
                 values (?, ?, ?, ?, 'CONCLUIDO', jsonb_build_object('descricao', ?), ?, ?, ?)
                 """, treinoId, contaId, entrada.vagaId(), entrada.tipoContexto(), entrada.contexto(), agoraSql, agoraSql, agoraSql);
@@ -56,16 +56,16 @@ public class TreinoControlador {
             Interacao item = entrada.interacoes().get(i);
             UUID perguntaId = UUID.randomUUID();
             banco.update("""
-                    insert into perguntas_entrevista (id, treinamento_id, numero_sequencial,
+                    insert into perguntas_entrevista (objeto, codigo_objeto_treinamentos, numero_sequencial,
                     texto_pergunta, versao_modelo, versao_prompt, criado_em) values (?, ?, ?, ?, 'ivis', 'v1', ?)
                     """,
                     perguntaId, treinoId, i + 1, item.pergunta(), agoraSql);
-            banco.update("insert into respostas_entrevista (id, pergunta_id, texto_resposta, criado_em) values (?, ?, ?, ?)",
+            banco.update("insert into respostas_entrevista (objeto, codigo_objeto_perguntas_entrevista, texto_resposta, criado_em) values (?, ?, ?, ?)",
                     UUID.randomUUID(), perguntaId, item.resposta(), agoraSql);
         }
         UUID avaliacaoId = UUID.randomUUID();
         banco.update("""
-                insert into avaliacoes_treinamento (id, treinamento_id, nota, versao_modelo, versao_prompt, gerado_em)
+                insert into avaliacoes_treinamento (objeto, codigo_objeto_treinamentos, nota, versao_modelo, versao_prompt, gerado_em)
                 values (?, ?, ?, ?, ?, ?)
                 """, avaliacaoId, treinoId, avaliacao.nota(),
                 avaliacao.versaoModelo(), avaliacao.versaoPrompt(), agoraSql);
@@ -80,11 +80,11 @@ public class TreinoControlador {
         UUID contaId = UUID.fromString(jwt.getSubject());
         validarAlunoComAcesso(contaId);
         return banco.query("""
-                select t.id, t.tipo_contexto, t.iniciado_em, a.nota, v.titulo, v.empresa,
+                select t.objeto as id, t.tipo_contexto, t.iniciado_em, a.nota, v.titulo, v.empresa,
                        t.contexto_registrado ->> 'descricao' as contexto
-                from treinamentos t join avaliacoes_treinamento a on a.treinamento_id=t.id
-                left join vagas_interesse v on v.id=t.vaga_interesse_id
-                where t.conta_aluno_id=? and t.situacao='CONCLUIDO' order by t.finalizado_em desc
+                from treinamentos t join avaliacoes_treinamento a on a.codigo_objeto_treinamentos=t.objeto
+                left join vagas_interesse v on v.objeto=t.codigo_objeto_vagas_interesse
+                where t.codigo_objeto_perfis_aluno=? and t.situacao='CONCLUIDO' order by t.finalizado_em desc
                 """, (rs, linha) -> {
                 UUID treinoId = rs.getObject("id", UUID.class);
                 return new Resumo(treinoId,
@@ -96,15 +96,15 @@ public class TreinoControlador {
 
     private void inserirItens(UUID avaliacaoId, String tipo, List<String> itens) {
         for (int i = 0; i < itens.size(); i++) {
-            banco.update("insert into itens_feedback_treinamento (id, avaliacao_id, tipo, ordem, texto) values (?, ?, ?, ?, ?)",
+            banco.update("insert into itens_feedback_treinamento (objeto, codigo_objeto_avaliacoes_treinamento, tipo, ordem, texto) values (?, ?, ?, ?, ?)",
                     UUID.randomUUID(), avaliacaoId, tipo, i + 1, itens.get(i));
         }
     }
     private List<String> listarItens(UUID treinoId, String tipo) {
         return banco.query("""
                 select i.texto from itens_feedback_treinamento i
-                join avaliacoes_treinamento a on a.id=i.avaliacao_id
-                where a.treinamento_id=? and i.tipo=? order by i.ordem
+                join avaliacoes_treinamento a on a.objeto=i.codigo_objeto_avaliacoes_treinamento
+                where a.codigo_objeto_treinamentos=? and i.tipo=? order by i.ordem
                 """, (rs, linha) -> rs.getString("texto"), treinoId, tipo);
     }
 
@@ -114,14 +114,14 @@ public class TreinoControlador {
                 .toList();
         if ("VAGA".equals(entrada.tipoContexto())) {
             Vaga vaga = banco.queryForObject("""
-                    select titulo, senioridade from vagas_interesse where id=? and conta_aluno_id=?
+                    select titulo, senioridade from vagas_interesse where objeto=? and codigo_objeto_perfis_aluno=?
                     """, (rs, linha) -> new Vaga(rs.getString("titulo"), rs.getString("senioridade"),
-                    banco.query("select texto_requisito from requisitos_vaga where vaga_interesse_id=? order by ordem",
+                    banco.query("select texto_requisito from requisitos_vaga where codigo_objeto_vagas_interesse=? order by ordem",
                             (requisitos, ordem) -> requisitos.getString("texto_requisito"), entrada.vagaId())), entrada.vagaId(), contaId);
             return clienteIa.gerarAvaliacao(new GerarAvaliacaoEntrada(TipoContexto.VAGA, null, vaga, interacoes));
         }
         List<Habilidade> habilidades = banco.query("""
-                select nome, nivel from habilidades where conta_aluno_id=? order by nome_normalizado
+                select nome, nivel from habilidades where codigo_objeto_perfis_aluno=? order by nome_normalizado
                 """, (rs, linha) -> new Habilidade(rs.getString("nome"), rs.getInt("nivel")), contaId).stream()
                 .filter(habilidade -> entrada.habilidades().contains(habilidade.nome()))
                 .toList();
@@ -130,7 +130,7 @@ public class TreinoControlador {
 
     private String titulo(Conclusao entrada, UUID contaId) {
         if (!"VAGA".equals(entrada.tipoContexto())) return "Entrevista por habilidades";
-        return banco.queryForObject("select titulo from vagas_interesse where id=? and conta_aluno_id=?",
+        return banco.queryForObject("select titulo from vagas_interesse where objeto=? and codigo_objeto_perfis_aluno=?",
                 String.class, entrada.vagaId(), contaId);
     }
 
@@ -138,13 +138,13 @@ public class TreinoControlador {
         Boolean permitido = banco.queryForObject("""
                 select exists (
                     select 1 from contas c
-                    where c.id=? and c.tipo_conta='ALUNO' and c.situacao='ATIVA'
-                      and (exists (select 1 from contratos ct join planos p on p.id=ct.plano_id
-                        where ct.conta_titular_id=c.id and ct.situacao='ATIVO' and ct.encerrado_em is null
+                    where c.objeto=? and c.tipo_conta='ALUNO' and c.situacao='ATIVA'
+                      and (exists (select 1 from contratos ct join planos p on p.objeto=ct.codigo_objeto_planos
+                        where ct.codigo_objeto_contas=c.objeto and ct.situacao='ATIVO' and ct.encerrado_em is null
                           and (ct.expira_em is null or ct.expira_em > current_timestamp)
                           and p.modalidade='INDIVIDUAL')
-                        or exists (select 1 from vinculos_institucionais v join contratos ct on ct.id=v.contrato_id
-                          where v.conta_aluno_id=c.id and v.situacao='ATIVO' and v.desvinculado_em is null
+                        or exists (select 1 from vinculos_institucionais v join contratos ct on ct.objeto=v.codigo_objeto_contratos
+                          where v.codigo_objeto_perfis_aluno=c.objeto and v.situacao='ATIVO' and v.desvinculado_em is null
                             and ct.situacao='ATIVO' and ct.encerrado_em is null
                             and (ct.expira_em is null or ct.expira_em > current_timestamp)))
                 )
@@ -159,7 +159,7 @@ public class TreinoControlador {
             throw dadosInvalidos();
         }
         if (vaga && !Boolean.TRUE.equals(banco.queryForObject(
-                "select exists (select 1 from vagas_interesse where id=? and conta_aluno_id=? and arquivado_em is null)",
+                "select exists (select 1 from vagas_interesse where objeto=? and codigo_objeto_perfis_aluno=? and arquivado_em is null)",
                 Boolean.class, entrada.vagaId(), contaId))) throw dadosInvalidos();
     }
 

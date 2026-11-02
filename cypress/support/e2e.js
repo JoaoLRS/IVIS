@@ -15,3 +15,17 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+import { limparBancoDeDados } from "../e2e/funcoes/banco.js";
+
+function specUsaBancoReal() {
+  const spec = Cypress.spec.relative.replaceAll("\\", "/");
+  return spec.includes("caminho_feliz") || /CDU-15-/i.test(spec);
+}
+
+before(() => {
+  if (specUsaBancoReal()) limparBancoDeDados();
+});
+
+after(() => {
+  if (specUsaBancoReal()) limparBancoDeDados();
+});

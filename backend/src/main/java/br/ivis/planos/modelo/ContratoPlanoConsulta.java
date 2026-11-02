@@ -19,10 +19,11 @@ import org.hibernate.type.SqlTypes;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ContratoPlanoConsulta {
     @Id
+    @Column(name = "objeto")
     private UUID id;
-    @Column(name = "conta_titular_id")
+    @Column(name = "codigo_objeto_contas")
     private UUID contaTitularId;
-    @Column(name = "plano_id")
+    @Column(name = "codigo_objeto_planos")
     private UUID planoId;
     private String situacao;
     @Column(name = "quantidade_vagas")

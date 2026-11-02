@@ -25,7 +25,7 @@ No PowerShell:
 .\release.ps1 up
 ```
 
-O comando prepara os arquivos locais `.env` e `api-ia/.env` a partir dos exemplos, compila e sobe PostgreSQL, Mailpit, API de IA, backend e frontend. A API de IA usa o stub por padrão, então não é necessária uma chave NVIDIA para testar a aplicação. O script espera os serviços de IA, backend/banco e frontend responderem antes de encerrar.
+O comando prepara os arquivos locais `.env` e `api-ia/.env` a partir dos exemplos, compila e sobe PostgreSQL, Mailpit, API de IA, backend e frontend. O Compose usa o stub da API de IA por padrão, tornando as jornadas locais repetíveis sem depender do tempo de resposta da NVIDIA. Para ativar a NVIDIA, defina `IVIS_IA_USAR_STUB=false` no `.env` da raiz e informe a chave em `api-ia/.env`. O script espera os serviços de IA, backend/banco e frontend responderem antes de encerrar.
 
 Endereços padrão:
 

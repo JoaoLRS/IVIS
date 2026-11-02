@@ -15,12 +15,13 @@ import java.util.UUID;
 public class VinculoInstitucional {
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "contrato_id", nullable = false)
+    @Column(name = "codigo_objeto_contratos", nullable = false)
     private UUID contratoId;
 
-    @Column(name = "conta_aluno_id", nullable = false)
+    @Column(name = "codigo_objeto_perfis_aluno", nullable = false)
     private UUID contaAlunoId;
 
     @Column(nullable = false, length = 20)
@@ -32,7 +33,7 @@ public class VinculoInstitucional {
     @Column(name = "desvinculado_em")
     private Instant desvinculadoEm;
 
-    @Column(name = "criado_por_conta_id", nullable = false)
+    @Column(name = "codigo_objeto_contas", nullable = false)
     private UUID criadoPorContaId;
 public VinculoInstitucional(
             UUID id, UUID contratoId, UUID contaAlunoId, UUID criadoPorContaId, Instant vinculadoEm) {

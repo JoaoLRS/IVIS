@@ -4,6 +4,8 @@ import static br.ivis.identidade.dto.ContratoInstitucionalResposta.Capacidade;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoRequisicao;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoPorEmailRequisicao;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoResposta;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CadastroAlunoRequisicao;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CadastroAlunoResposta;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -52,6 +54,14 @@ public class VinculoInstitucionalControlador {
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CriacaoVinculoPorEmailRequisicao requisicao) {
         return servico.criarVinculoPorEmail(contaId(jwt), requisicao);
+    }
+
+    @PostMapping("/alunos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CadastroAlunoResposta cadastrarAluno(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody CadastroAlunoRequisicao requisicao) {
+        return servico.cadastrarEVincularAluno(contaId(jwt), requisicao);
     }
 
     @DeleteMapping("/vinculos/{id}")

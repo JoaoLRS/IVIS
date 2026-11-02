@@ -39,7 +39,8 @@ import org.springframework.test.context.DynamicPropertySource;
                     + "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
                     + "org.springframework.boot.data.jpa.autoconfigure.DataJpaRepositoriesAutoConfiguration,"
                     + "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration",
-            "spring.datasource.password=teste-local"
+            "spring.datasource.password=teste-local",
+            "spring.aop.proxy-target-class=false"
         })
 @Import(IaControladorIntegracaoTest.ConfiguracaoTeste.class)
 class IaControladorIntegracaoTest {

@@ -1,4 +1,5 @@
 import { defineConfig } from "cypress";
+import { consultarAuditoriaPorContrato, limparBancoDeDados } from "../tasks/limpar-banco.js";
 
 export default defineConfig({
   video: true,
@@ -15,5 +16,8 @@ export default defineConfig({
     baseUrl: "http://localhost:8080",
     specPattern: "**/*.cy.{js,ts}",
     supportFile: "../support/e2e.js",
+    setupNodeEvents(on) {
+      on("task", { limparBancoDeDados, consultarAuditoriaPorContrato });
+    },
   },
 });

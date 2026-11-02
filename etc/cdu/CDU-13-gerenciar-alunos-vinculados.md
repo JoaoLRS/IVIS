@@ -9,18 +9,20 @@
 
 - A instituição está autenticada.
 - Para incluir aluno, possui contrato institucional ativo com vaga disponível. A consulta e a remoção se limitam aos vínculos da própria instituição.
-- O aluno a vincular já possui conta IVIS ativa do tipo Aluno.
+- Para vincular, a instituição pode selecionar uma conta IVIS ativa de aluno ou cadastrar uma nova conta com nome, e-mail, CPF, telefone, endereço e senha.
 
 ## Fluxo principal
 
 1. A instituição abre a área de gestão institucional.
 2. O sistema apresenta alunos vinculados e, por contrato, as vagas contratadas, utilizadas e disponíveis.
-3. Para adicionar, a instituição informa o e-mail de uma conta IVIS de aluno.
-4. O sistema identifica a conta e verifica titularidade do contrato, vaga disponível e ausência de outro vínculo institucional ativo para o aluno.
-5. O sistema cria o vínculo e atualiza lista e capacidade.
-6. Para remover, a instituição seleciona um vínculo e aciona Remover.
-7. O sistema encerra o vínculo, preserva seu registro histórico e libera a vaga.
-8. O acesso do aluno passa a depender de vínculo e contrato vigentes, conforme CDU-14.
+3. Para adicionar, a instituição escolhe entre informar o e-mail de uma conta de aluno existente ou preencher o cadastro de um novo aluno.
+4. O sistema verifica titularidade do contrato, vaga disponível e ausência de outro vínculo institucional ativo para o aluno.
+5. Se for um novo aluno, o sistema cria a conta e o perfil com a senha protegida por hash; se for existente, localiza a conta pelo e-mail.
+6. O sistema cria o vínculo e grava no perfil do aluno o código do objeto da instituição em `codigo_objeto_perfis_instituicao`, exposto como `objetoInstituicao` na conta. A conta e o vínculo são persistidos na mesma transação.
+7. O sistema atualiza lista e capacidade.
+8. Para remover, a instituição seleciona um vínculo e aciona Remover.
+9. O sistema encerra o vínculo, preserva seu registro histórico, limpa `objetoInstituicao` quando corresponde à instituição e libera a vaga.
+10. O acesso do aluno passa a depender de vínculo e contrato vigentes, conforme CDU-14.
 
 ## Fluxos alternativos e exceções
 
@@ -39,7 +41,7 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno já existentes e remove vínculos. O backend verifica capacidade, perfil e titularidade. Inclusão e remoção ainda não geram eventos de auditoria (CDU-15).
+Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno existentes, cadastra e vincula novos alunos e remove vínculos. O backend verifica capacidade e titularidade e mantém o objeto institucional atual no perfil do aluno. Inclusão e remoção ainda não geram eventos de auditoria (CDU-15).
 
 ## Diagrama de ações do ator
 
@@ -47,7 +49,11 @@ Implementado no frontend e backend. A instituição lista, vincula por e-mail co
 flowchart LR
     ator(["🧍 Instituição de Ensino"])
     ator --> a1["Consultar alunos e capacidade"]
-    ator --> a2["Informar e-mail para vincular aluno"]
-    ator --> a3["Solicitar inclusão ou remoção"]
-    ator --> a4["Consultar lista e vagas atualizadas"]
+    a1 --> a2{"Ação desejada"}
+    a2 -->|Conta existente| a3["Informar e-mail"]
+    a2 -->|Novo aluno| a4["Informar dados cadastrais"]
+    a2 -->|Remover| a5["Encerrar vínculo"]
+    a3 --> a6["Consultar lista e vagas atualizadas"]
+    a4 --> a6
+    a5 --> a6
 ```

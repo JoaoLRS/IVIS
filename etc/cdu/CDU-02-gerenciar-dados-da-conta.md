@@ -15,8 +15,8 @@
 
 1. O usuário abre Minha conta.
 2. O sistema apresenta os dados editáveis:
-   - Aluno: nome e e-mail.
-   - Instituição: razão social, nome do administrador e e-mail.
+   - Aluno: nome, e-mail, CPF, telefone e endereço. Se estiver vinculado a uma instituição, o sistema exibe a referência da instituição associada.
+   - Instituição: nome da instituição, nome do responsável, e-mail, CNPJ, telefone e endereço.
 3. O usuário altera os campos e solicita salvar.
 4. O sistema valida os dados e verifica a unicidade do novo e-mail.
 5. O sistema grava a alteração na conta da sessão e confirma a atualização.
@@ -37,7 +37,7 @@
 
 ## Situação atual no sistema
 
-Parcial. A tela edita os dados básicos descritos acima. O backend oferece troca segura de senha, mas falta a interface; foto/logo e outros dados pessoais não estão disponíveis.
+Parcial. A tela edita os campos de aluno e instituição descritos acima. O backend oferece troca segura de senha, mas falta a interface; foto/logo não estão disponíveis.
 
 ## Diagrama de ações do ator
 

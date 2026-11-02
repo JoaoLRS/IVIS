@@ -18,9 +18,9 @@
 1. O usuário abre a página pública do IVIS.
 2. O sistema apresenta as opções Entrar e Criar conta.
 3. O usuário escolhe como deseja acessar:
-   - **Conta nova:** seleciona Aluno ou Instituição de Ensino e informa os dados correspondentes. Para Aluno, informa nome, e-mail e senha; para Instituição, informa razão social, nome do administrador, e-mail e senha.
+   - **Conta nova:** seleciona Aluno ou Instituição de Ensino e informa os dados correspondentes. Aluno informa nome, e-mail, CPF, telefone, endereço e senha. Instituição informa nome do responsável, nome da instituição, e-mail, CNPJ, telefone, endereço e senha.
    - **Conta existente:** informa e-mail e senha.
-4. Para uma conta nova, o usuário confirma a senha e solicita o cadastro. O sistema valida os campos, a confirmação, a unicidade do e-mail e o mínimo de 12 caracteres da senha; então cria a conta e o perfil correspondente, armazenando a senha como hash.
+4. Para uma conta nova, o usuário confirma a senha e solicita o cadastro. O sistema valida os campos, CPF/CNPJ, unicidade dos documentos e do e-mail e o mínimo de 12 caracteres da senha; então cria a conta e o perfil correspondente, armazenando a senha como hash.
 5. Para uma conta existente, o sistema verifica as credenciais e a situação da conta.
 6. Se o cadastro ou a autenticação for concluído, o sistema inicia uma sessão associada à conta e ao tipo de usuário.
 7. O sistema consulta o acesso vigente e direciona a Instituição à área institucional; direciona o Aluno com acesso ativo à área de treinos; e apresenta os planos disponíveis ao Aluno sem acesso ativo.

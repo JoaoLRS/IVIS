@@ -9,4 +9,6 @@ import br.ivis.identidade.modelo.PerfilAluno;
 public interface PerfilAlunoRepositorio extends JpaRepository<PerfilAluno, UUID> {
 
     Optional<PerfilAluno> findByContaId(UUID contaId);
+
+    boolean existsByCpf(String cpf);
 }
