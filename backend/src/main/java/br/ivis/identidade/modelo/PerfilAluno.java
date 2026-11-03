@@ -19,6 +19,7 @@ public class PerfilAluno {
     private UUID contaId;
 
     @Column(name = "codigo_objeto_contas", nullable = false, updatable = false)
+    @SuppressWarnings("unused")
     private UUID codigoObjetoConta;
 
     @Column(name = "nome", nullable = false, length = 160)
@@ -97,10 +98,6 @@ public class PerfilAluno {
     public void atualizarInstituicao(UUID objetoInstituicao, Instant agora) {
         this.objetoInstituicao = objetoInstituicao;
         this.atualizadoEm = agora;
-    }
-
-    public UUID getContaId() {
-        return contaId;
     }
 
     public String getUrlFoto() {
