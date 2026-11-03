@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -12,6 +13,8 @@ import java.net.http.HttpResponse;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.YearMonth;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -94,6 +97,9 @@ class EsqueletoIntegracaoTest {
                 {
                   "nome": "Ana Aluna",
                   "email": "Ana@Exemplo.com",
+                  "cpf": "12345678901",
+                  "telefone": "81999990000",
+                  "endereco": "Rua de teste, 10",
                   "senha": "uma-senha-forte-123"
                 }
                 """;
@@ -105,13 +111,13 @@ class EsqueletoIntegracaoTest {
         try (Connection conexao = fonteDeDados.getConnection();
                 Statement comando = conexao.createStatement();
                 ResultSet resultado = comando.executeQuery(
-                        "SELECT c.email_normalizado, c.hash_senha, p.nome_exibicao "
-                                + "FROM contas c JOIN perfis_aluno p ON p.conta_id = c.id "
+                        "SELECT c.email_normalizado, c.hash_senha, p.nome "
+                                + "FROM contas c JOIN perfis_aluno p ON p.codigo_objeto_contas = c.objeto "
                                 + "WHERE c.email_normalizado = 'ana@exemplo.com'")) {
             assertTrue(resultado.next());
             assertEquals("ana@exemplo.com", resultado.getString("email_normalizado"));
             assertNotEquals("uma-senha-forte-123", resultado.getString("hash_senha"));
-            assertEquals("Ana Aluna", resultado.getString("nome_exibicao"));
+            assertEquals("Ana Aluna", resultado.getString("nome"));
         }
     }
 
@@ -122,9 +128,13 @@ class EsqueletoIntegracaoTest {
                 "/v1/contas/instituicoes",
                 """
                 {
-                  "razaoSocial": "Instituto de Teste",
+                  "nomeResponsavel": "Responsável de Teste",
+                  "nomeInstituicao": "Instituto de Teste",
                   "email": "contato@instituto-teste.example",
-                  "senha": "outra-senha-forte-456"
+                  "senha": "outra-senha-forte-456",
+                  "cnpj": "12345678000195",
+                  "telefone": "8133334444",
+                  "endereco": "Rua de teste, 20"
                 }
                 """,
                 csrf,
@@ -135,12 +145,12 @@ class EsqueletoIntegracaoTest {
         try (Connection conexao = fonteDeDados.getConnection();
                 Statement comando = conexao.createStatement();
                 ResultSet resultado = comando.executeQuery(
-                        "SELECT c.tipo_conta, p.razao_social FROM contas c "
-                                + "JOIN perfis_instituicao p ON p.conta_id = c.id "
+                        "SELECT c.tipo_conta, p.nome_instituicao FROM contas c "
+                                + "JOIN perfis_instituicao p ON p.codigo_objeto_contas = c.objeto "
                                 + "WHERE c.email_normalizado = 'contato@instituto-teste.example'")) {
             assertTrue(resultado.next());
             assertEquals("INSTITUICAO", resultado.getString("tipo_conta"));
-            assertEquals("Instituto de Teste", resultado.getString("razao_social"));
+            assertEquals("Instituto de Teste", resultado.getString("nome_instituicao"));
         }
     }
 
@@ -151,7 +161,7 @@ class EsqueletoIntegracaoTest {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Login Teste","email":"%s","senha":"senha-de-teste-segura-123"}
+                {"nome":"Login Teste","email":"%s","cpf":"12345678902","telefone":"81999990001","endereco":"Rua de teste, 21","senha":"senha-de-teste-segura-123"}
                 """.formatted(emailExistente),
                 csrf,
                 null).statusCode());
@@ -186,8 +196,8 @@ class EsqueletoIntegracaoTest {
         HttpResponse<String> cadastro = postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Sessao Teste","email":"%s","senha":"senha-de-teste-segura-123"}
-                """.formatted(email),
+                {"nome":"Sessao Teste","email":"%s","cpf":"%s","telefone":"81999990003","endereco":"Rua de teste, 24","senha":"senha-de-teste-segura-123"}
+                """.formatted(email, cpfTeste()),
                 csrf,
                 null);
         assertEquals(201, cadastro.statusCode());
@@ -223,6 +233,122 @@ class EsqueletoIntegracaoTest {
         assertEquals(204, respostaSair.statusCode());
         assertNotEquals(accessToken, accessTokenNovo);
         assertEquals(401, postarComCsrf("/v1/sessoes/renovacao", "{}", csrf, tokenNovo).statusCode());
+    }
+
+    @Test
+    void contratacaoRegistraAuditoriaUmaUnicaVezQuandoChaveEhReprocessada() throws Exception {
+        ProtecaoCsrf csrf = obterProtecaoCsrf();
+        String email = "auditoria-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        String accessToken = autenticar(email, csrf);
+        UUID contaId = idConta(email);
+        UUID planoId;
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement(
+                        "SELECT objeto FROM planos WHERE codigo = 'IVIS-DEMO-INDIVIDUAL' AND ativo = true");
+                ResultSet resultado = comando.executeQuery()) {
+            assertTrue(resultado.next());
+            planoId = resultado.getObject("objeto", UUID.class);
+        }
+
+        YearMonth validade = YearMonth.now(ZoneOffset.UTC).plusMonths(1);
+        String corpo = """
+                {"planoId":"%s","numeroCartao":"4242424242424242","validade":"%02d/%02d","cvv":"123"}
+                """.formatted(planoId, validade.getMonthValue(), validade.getYear() % 100);
+        String chaveIdempotencia = "cypress-" + UUID.randomUUID();
+
+        HttpResponse<String> primeira = postarAutenticado(
+                "/v1/contratacoes/simuladas", corpo, csrf, accessToken, chaveIdempotencia);
+        HttpResponse<String> reprocessada = postarAutenticado(
+                "/v1/contratacoes/simuladas", corpo, csrf, accessToken, chaveIdempotencia);
+
+        assertEquals(200, primeira.statusCode());
+        assertEquals(200, reprocessada.statusCode());
+        var resultadoInicial = json().readTree(primeira.body());
+        var resultadoReprocessado = json().readTree(reprocessada.body());
+        assertFalse(resultadoInicial.get("reprocessada").asBoolean());
+        assertTrue(resultadoReprocessado.get("reprocessada").asBoolean());
+        assertEquals(resultadoInicial.get("contratoId").asString(),
+                resultadoReprocessado.get("contratoId").asString());
+        assertEquals(resultadoInicial.get("pagamentoId").asString(),
+                resultadoReprocessado.get("pagamentoId").asString());
+
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement("""
+                        SELECT e.codigo_objeto_contas, e.acao, e.resultado, e.tipo_recurso,
+                               e.detalhes->>'modo' AS modo, e.detalhes->>'situacaoPagamento' AS situacao_pagamento,
+                               (SELECT count(*) FROM eventos_auditoria a
+                                WHERE a.codigo_objeto_contratos = e.codigo_objeto_contratos
+                                  AND a.acao = e.acao) AS eventos,
+                               (SELECT count(*) FROM pagamentos p
+                                WHERE p.codigo_objeto_contratos = e.codigo_objeto_contratos) AS pagamentos
+                        FROM eventos_auditoria e
+                        WHERE e.codigo_objeto_contratos = ?
+                        """)) {
+            comando.setObject(1, UUID.fromString(resultadoInicial.get("contratoId").asString()));
+            try (ResultSet resultado = comando.executeQuery()) {
+                assertTrue(resultado.next());
+                assertEquals(contaId, resultado.getObject("codigo_objeto_contas", UUID.class));
+                assertEquals("CONTRATACAO_PAGAMENTO_SIMULADO", resultado.getString("acao"));
+                assertEquals("SUCESSO", resultado.getString("resultado"));
+                assertEquals("CONTRATO", resultado.getString("tipo_recurso"));
+                assertEquals("SIMULADO", resultado.getString("modo"));
+                assertEquals("APROVADO", resultado.getString("situacao_pagamento"));
+                assertEquals(1, resultado.getInt("eventos"));
+                assertEquals(1, resultado.getInt("pagamentos"));
+                assertFalse(resultado.next());
+            }
+        }
+    }
+
+    @Test
+    void pagamentoRecusadoRegistraAuditoriaDeFalhaSemCriarEmailDeConfirmacao() throws Exception {
+        ProtecaoCsrf csrf = obterProtecaoCsrf();
+        String email = "pagamento-recusado-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        String accessToken = autenticar(email, csrf);
+        UUID planoId;
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement(
+                        "SELECT objeto FROM planos WHERE codigo = 'IVIS-DEMO-INDIVIDUAL' AND ativo = true");
+                ResultSet resultado = comando.executeQuery()) {
+            assertTrue(resultado.next());
+            planoId = resultado.getObject("objeto", UUID.class);
+        }
+
+        YearMonth validade = YearMonth.now(ZoneOffset.UTC).plusMonths(1);
+        String corpo = """
+                {"planoId":"%s","numeroCartao":"4000000000000002","validade":"%02d/%02d","cvv":"123"}
+                """.formatted(planoId, validade.getMonthValue(), validade.getYear() % 100);
+        HttpResponse<String> resposta = postarAutenticado(
+                "/v1/contratacoes/simuladas", corpo, csrf, accessToken, "recusado-" + UUID.randomUUID());
+
+        assertEquals(200, resposta.statusCode());
+        var resultadoCompra = json().readTree(resposta.body());
+        assertEquals("RECUSADO", resultadoCompra.get("situacaoPagamento").asString());
+        assertEquals("ENCERRADO", resultadoCompra.get("situacaoContrato").asString());
+
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement("""
+                        SELECT e.acao, e.resultado, e.tipo_recurso,
+                               e.detalhes->>'modo' AS modo, e.detalhes->>'situacaoPagamento' AS situacao_pagamento,
+                               (SELECT count(*) FROM emails_simulados m
+                                WHERE m.codigo_objeto_contratos = e.codigo_objeto_contratos) AS emails
+                        FROM eventos_auditoria e
+                        WHERE e.codigo_objeto_contratos = ?
+                        """)) {
+            comando.setObject(1, UUID.fromString(resultadoCompra.get("contratoId").asString()));
+            try (ResultSet resultado = comando.executeQuery()) {
+                assertTrue(resultado.next());
+                assertEquals("CONTRATACAO_PAGAMENTO_SIMULADO", resultado.getString("acao"));
+                assertEquals("FALHA", resultado.getString("resultado"));
+                assertEquals("CONTRATO", resultado.getString("tipo_recurso"));
+                assertEquals("SIMULADO", resultado.getString("modo"));
+                assertEquals("RECUSADO", resultado.getString("situacao_pagamento"));
+                assertEquals(0, resultado.getInt("emails"));
+                assertFalse(resultado.next());
+            }
+        }
     }
 
     @Test
@@ -279,8 +405,8 @@ class EsqueletoIntegracaoTest {
         try (Connection conexao = fonteDeDados.getConnection();
                 var comando = conexao.prepareStatement(
                         "INSERT INTO treinamentos "
-                                + "(id, conta_aluno_id, vaga_interesse_id, tipo_contexto, contexto_registrado) "
-                                + "VALUES (?, (SELECT id FROM contas WHERE email_normalizado = ?), ?, 'VAGA', ?::jsonb)")) {
+                                + "(objeto, codigo_objeto_perfis_aluno, codigo_objeto_vagas_interesse, tipo_contexto, contexto_registrado) "
+                                + "VALUES (?, (SELECT objeto FROM contas WHERE email_normalizado = ?), ?, 'VAGA', ?::jsonb)")) {
             comando.setObject(1, UUID.randomUUID());
             comando.setString(2, emailAluno.toLowerCase(java.util.Locale.ROOT));
             comando.setObject(3, UUID.fromString(vagaId));
@@ -311,14 +437,14 @@ class EsqueletoIntegracaoTest {
 
         try (Connection conexao = fonteDeDados.getConnection();
                 var comando = conexao.prepareStatement(
-                        "SELECT v.arquivado_em, t.vaga_interesse_id, t.contexto_registrado->>'titulo' AS titulo "
+                        "SELECT v.arquivado_em, t.codigo_objeto_vagas_interesse, t.contexto_registrado->>'titulo' AS titulo "
                                 + "FROM vagas_interesse v JOIN treinamentos t "
-                                + "ON t.vaga_interesse_id = v.id WHERE v.id = ?")) {
+                                + "ON t.codigo_objeto_vagas_interesse = v.objeto WHERE v.objeto = ?")) {
             comando.setObject(1, UUID.fromString(vagaId));
             try (ResultSet resultado = comando.executeQuery()) {
                 assertTrue(resultado.next());
                 assertTrue(resultado.getTimestamp("arquivado_em") != null);
-                assertEquals(UUID.fromString(vagaId), resultado.getObject("vaga_interesse_id", UUID.class));
+                assertEquals(UUID.fromString(vagaId), resultado.getObject("codigo_objeto_vagas_interesse", UUID.class));
                 assertEquals("Desenvolvedor Java", resultado.getString("titulo"));
             }
         }
@@ -389,6 +515,26 @@ class EsqueletoIntegracaoTest {
         assertEquals(204, deletarAutenticado(
                 "/v1/instituicao/vinculos/" + vinculoId, csrf, tokenInstituicaoA).statusCode());
 
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT acao,codigo_objeto_contas,ocorrido_em FROM eventos_auditoria WHERE codigo_objeto_contratos=? ORDER BY ocorrido_em")) {
+            comando.setObject(1, contratoA);
+            try (var eventos = comando.executeQuery()) {
+                assertTrue(eventos.next());
+                assertEquals("VINCULO_ALUNO_CRIADO", eventos.getString("acao"));
+                assertEquals(idConta(emailInstituicaoA), eventos.getObject("codigo_objeto_contas", UUID.class));
+                assertTrue(eventos.getTimestamp("ocorrido_em") != null);
+                assertTrue(eventos.next());
+                assertEquals("VINCULO_ALUNO_REMOVIDO", eventos.getString("acao"));
+                assertFalse(eventos.next());
+            }
+            try (var alterar = conexao.prepareStatement("UPDATE eventos_auditoria SET resultado='FALHA' WHERE codigo_objeto_contratos=?");
+                    var remover = conexao.prepareStatement("DELETE FROM eventos_auditoria WHERE codigo_objeto_contratos=?")) {
+                alterar.setObject(1, contratoA); remover.setObject(1, contratoA);
+                assertEquals("42501", assertThrows(java.sql.SQLException.class, alterar::executeUpdate).getSQLState());
+                assertEquals("42501", assertThrows(java.sql.SQLException.class, remover::executeUpdate).getSQLState());
+            }
+        }
+
         HttpResponse<String> capacidade = obterAutenticado("/v1/instituicao/resumo-vagas", tokenInstituicaoA);
         var resumo = json().readTree(capacidade.body()).get(0);
         assertEquals(1, resumo.get("quantidadeVagas").asInt());
@@ -396,7 +542,7 @@ class EsqueletoIntegracaoTest {
         assertEquals(1, resumo.get("vagasDisponiveis").asInt());
         try (Connection conexao = fonteDeDados.getConnection();
                 var comando = conexao.prepareStatement(
-                        "SELECT situacao, desvinculado_em FROM vinculos_institucionais WHERE id = ?")) {
+                        "SELECT situacao, desvinculado_em FROM vinculos_institucionais WHERE objeto = ?")) {
             comando.setObject(1, UUID.fromString(vinculoId));
             try (ResultSet resultado = comando.executeQuery()) {
                 assertTrue(resultado.next());
@@ -406,12 +552,118 @@ class EsqueletoIntegracaoTest {
         }
     }
 
+    @Test
+    void alunoVinculadoNaoContrataPlanoIndividual() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String aluno = "restrito-" + UUID.randomUUID() + "@exemplo.test";
+        String instituicao = "titular-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(aluno, csrf);
+        cadastrarInstituicao(instituicao, csrf);
+        UUID contrato = criarContratoInstitucional(instituicao, 1, "limite-" + UUID.randomUUID());
+        assertEquals(201, postarAutenticado("/v1/instituicao/vinculos",
+                """
+                {"contratoId":"%s","contaAlunoId":"%s"}
+                """.formatted(contrato, idConta(aluno)), csrf, autenticar(instituicao, csrf)).statusCode());
+        UUID plano;
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.createStatement();
+                var linhas = comando.executeQuery("SELECT objeto FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'")) {
+            assertTrue(linhas.next()); plano = linhas.getObject(1, UUID.class);
+        }
+        var validade = YearMonth.now(ZoneOffset.UTC).plusMonths(1);
+        var resposta = postarAutenticado("/v1/contratacoes/simuladas", """
+                {"planoId":"%s","numeroCartao":"4242424242424242","validade":"%02d/%02d","cvv":"123"}
+                """.formatted(plano, validade.getMonthValue(), validade.getYear() % 100),
+                csrf, autenticar(aluno, csrf), UUID.randomUUID().toString());
+        assertEquals(409, resposta.statusCode());
+        assertEquals("aluno_vinculado_a_instituicao", json().readTree(resposta.body()).get("codigo").asString());
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT count(*) FROM contratos WHERE codigo_objeto_contas=?")) {
+            comando.setObject(1, idConta(aluno));
+            try (var linhas = comando.executeQuery()) { linhas.next(); assertEquals(0, linhas.getInt(1)); }
+        }
+    }
+
+    @Test
+    void instituicaoNaoConsultaNemConcluiTreinoDeAluno() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "perfil-treino-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarInstituicao(email, csrf);
+        String token = autenticar(email, csrf);
+        assertEquals(403, obterAutenticado("/v1/treinos", token).statusCode());
+        assertEquals(403, postarAutenticado("/v1/treinos/concluidos", """
+                {"tipoContexto":"HABILIDADES","contexto":"Java","habilidades":["Java"],
+                 "interacoes":[{"numero":1,"pergunta":"Explique Java","resposta":"Resposta sintética"}]}
+                """, csrf, token).statusCode());
+    }
+
+    @Test
+    void historicoIgnoraContaInformadaNaUrlERetornaSomenteTreinosDoTitular() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String emailA = "historico-a-" + UUID.randomUUID() + "@exemplo.test";
+        String emailB = "historico-b-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(emailA, csrf); cadastrarAluno(emailB, csrf);
+        UUID alunoA = idConta(emailA), alunoB = idConta(emailB);
+        UUID treinoA = prepararHistorico(alunoA), treinoB = prepararHistorico(alunoB);
+        var listaA = json().readTree(obterAutenticado("/v1/treinos?contaId=" + alunoB, autenticar(emailA, csrf)).body());
+        var listaB = json().readTree(obterAutenticado("/v1/treinos", autenticar(emailB, csrf)).body());
+        assertEquals(1, listaA.size()); assertEquals(1, listaB.size());
+        assertEquals(treinoA.toString(), listaA.get(0).get("id").asString());
+        assertEquals(treinoB.toString(), listaB.get(0).get("id").asString());
+    }
+
+    private UUID prepararHistorico(UUID aluno) throws Exception {
+        UUID treino = UUID.randomUUID();
+        try (var conexao = fonteDeDados.getConnection();
+                var contrato = conexao.prepareStatement("""
+                    INSERT INTO contratos (codigo_objeto_contas,codigo_objeto_planos,situacao,preco_centavos_contratado,iniciado_em)
+                    SELECT ?,objeto,'ATIVO',preco_centavos,now() FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'
+                    """);
+                var treinamento = conexao.prepareStatement("""
+                    INSERT INTO treinamentos (objeto,codigo_objeto_perfis_aluno,tipo_contexto,situacao,contexto_registrado,finalizado_em)
+                    VALUES (?,?,'HABILIDADES','CONCLUIDO','{"descricao":"Java"}',now())
+                    """);
+                var avaliacao = conexao.prepareStatement("""
+                    INSERT INTO avaliacoes_treinamento (codigo_objeto_treinamentos,nota,versao_modelo,versao_prompt)
+                    VALUES (?,80,'sintetico','v1')
+                    """)) {
+            contrato.setObject(1, aluno); contrato.executeUpdate();
+            treinamento.setObject(1, treino); treinamento.setObject(2, aluno); treinamento.executeUpdate();
+            avaliacao.setObject(1, treino); avaliacao.executeUpdate();
+        }
+        return treino;
+    }
+
+    @Test
+    void trocaDeSenhaExigeSenhaAtualERevogaRenovacoesAnteriores() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "senha-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        String token = autenticar(email, csrf);
+        assertEquals(401, postarAutenticado("/v1/conta/senha", """
+                {"senhaAtual":"senha-incorreta","novaSenha":"nova-senha-segura-456"}
+                """, csrf, token).statusCode());
+        assertEquals(204, postarAutenticado("/v1/conta/senha", """
+                {"senhaAtual":"senha-de-teste-segura-123","novaSenha":"nova-senha-segura-456"}
+                """, csrf, token).statusCode());
+        assertEquals(401, postarComCsrf("/v1/sessoes", """
+                {"email":"%s","senha":"senha-de-teste-segura-123"}
+                """.formatted(email), csrf, null).statusCode());
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT count(*) FROM sessoes_autenticacao WHERE codigo_objeto_contas=? AND revogada_em IS NULL")) {
+            comando.setObject(1, idConta(email));
+            try (var linhas = comando.executeQuery()) { linhas.next(); assertEquals(0, linhas.getInt(1)); }
+        }
+        assertEquals(200, postarComCsrf("/v1/sessoes", """
+                {"email":"%s","senha":"nova-senha-segura-456"}
+                """.formatted(email), csrf, null).statusCode());
+    }
+
     private void cadastrarAluno(String email, ProtecaoCsrf csrf) throws Exception {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Perfil Teste","email":"%s","senha":"senha-de-teste-segura-123"}
-                """.formatted(email),
+                {"nome":"Perfil Teste","email":"%s","cpf":"%s","telefone":"81999990002","endereco":"Rua de teste, 22","senha":"senha-de-teste-segura-123"}
+                """.formatted(email, cpfTeste()),
                 csrf,
                 null).statusCode());
     }
@@ -420,8 +672,8 @@ class EsqueletoIntegracaoTest {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/instituicoes",
                 """
-                {"razaoSocial":"Instituicao de Teste","email":"%s","senha":"senha-de-teste-segura-123"}
-                """.formatted(email),
+                {"nomeResponsavel":"Responsável de Teste","nomeInstituicao":"Instituicao de Teste","email":"%s","senha":"senha-de-teste-segura-123","cnpj":"%s","telefone":"8133334445","endereco":"Rua de teste, 23"}
+                """.formatted(email, cnpjTeste()),
                 csrf,
                 null).statusCode());
     }
@@ -432,13 +684,13 @@ class EsqueletoIntegracaoTest {
         UUID idContrato = UUID.randomUUID();
         try (Connection conexao = fonteDeDados.getConnection();
                 var plano = conexao.prepareStatement(
-                        "INSERT INTO planos (id, codigo, modalidade, nome, preco_centavos) "
+                        "INSERT INTO planos (objeto, codigo, modalidade, nome, preco_centavos) "
                                 + "VALUES (?, ?, 'INSTITUCIONAL', 'Plano institucional teste', 0)");
                 var contrato = conexao.prepareStatement(
                         "INSERT INTO contratos "
-                                + "(id, conta_titular_id, plano_id, situacao, quantidade_vagas, "
+                                + "(objeto, codigo_objeto_contas, codigo_objeto_planos, situacao, quantidade_vagas, "
                                 + "preco_centavos_contratado, iniciado_em) "
-                                + "VALUES (?, (SELECT id FROM contas WHERE email_normalizado = ?), ?, "
+                                + "VALUES (?, (SELECT objeto FROM contas WHERE email_normalizado = ?), ?, "
                                 + "'ATIVO', ?, 0, now())")) {
             plano.setObject(1, idPlano);
             plano.setString(2, codigoPlano);
@@ -455,7 +707,7 @@ class EsqueletoIntegracaoTest {
     private UUID idConta(String email) {
         try (Connection conexao = fonteDeDados.getConnection();
                 var comando = conexao.prepareStatement(
-                        "SELECT id FROM contas WHERE email_normalizado = ?")) {
+                        "SELECT objeto FROM contas WHERE email_normalizado = ?")) {
             comando.setString(1, email.toLowerCase(java.util.Locale.ROOT));
             try (ResultSet resultado = comando.executeQuery()) {
                 if (!resultado.next()) {
@@ -466,6 +718,14 @@ class EsqueletoIntegracaoTest {
         } catch (java.sql.SQLException excecao) {
             throw new IllegalStateException("Falha ao carregar conta de teste.", excecao);
         }
+    }
+
+    private static String cpfTeste() {
+        return String.format("%011d", Long.remainderUnsigned(UUID.randomUUID().getLeastSignificantBits(), 100_000_000_000L));
+    }
+
+    private static String cnpjTeste() {
+        return String.format("%014d", Long.remainderUnsigned(UUID.randomUUID().getLeastSignificantBits(), 100_000_000_000_000L));
     }
 
     private static void aguardar(CountDownLatch inicio) {
@@ -491,15 +751,24 @@ class EsqueletoIntegracaoTest {
 
     private HttpResponse<String> postarAutenticado(
             String caminho, String corpo, ProtecaoCsrf csrf, String accessToken) throws Exception {
-        HttpRequest requisicao = HttpRequest.newBuilder(
+        return postarAutenticado(caminho, corpo, csrf, accessToken, null);
+    }
+
+    private HttpResponse<String> postarAutenticado(
+            String caminho, String corpo, ProtecaoCsrf csrf, String accessToken, String chaveIdempotencia)
+            throws Exception {
+        HttpRequest.Builder requisicao = HttpRequest.newBuilder(
                         URI.create("http://localhost:" + porta + "/api" + caminho))
                 .header("Content-Type", "application/json")
                 .header("Cookie", csrf.cookie())
                 .header("X-XSRF-TOKEN", csrf.token())
-                .header("Authorization", "Bearer " + accessToken)
-                .POST(HttpRequest.BodyPublishers.ofString(corpo))
-                .build();
-        return cliente.send(requisicao, HttpResponse.BodyHandlers.ofString());
+                .header("Authorization", "Bearer " + accessToken);
+        if (chaveIdempotencia != null) {
+            requisicao.header("Idempotency-Key", chaveIdempotencia);
+        }
+        return cliente.send(
+                requisicao.POST(HttpRequest.BodyPublishers.ofString(corpo)).build(),
+                HttpResponse.BodyHandlers.ofString());
     }
 
     private HttpResponse<String> postarAutenticadoSemChecked(

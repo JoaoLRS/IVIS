@@ -18,6 +18,7 @@ public class Plano {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
     private String codigo;
     private String modalidade;

@@ -43,6 +43,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+// The integration tests obtain datasource properties from Testcontainers at runtime.
+// Running Spring's test AOT processor before the container starts makes those properties unavailable.
+tasks.named("processTestAot") {
+    enabled = false
+}
+
 tasks.bootJar {
     archiveFileName.set("ivis-backend.jar")
 }

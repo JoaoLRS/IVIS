@@ -15,17 +15,26 @@ public class PerfilInstituicao {
     }
 
     @Id
-    @Column(name = "conta_id")
+    @Column(name = "objeto")
     private UUID contaId;
 
-    @Column(name = "razao_social", nullable = false, length = 200)
-    private String razaoSocial;
+    @Column(name = "codigo_objeto_contas", nullable = false, updatable = false)
+    private UUID codigoObjetoConta;
 
-    @Column(name = "nome_administrador", nullable = false, length = 160)
-    private String nomeAdministrador;
+    @Column(name = "nome_instituicao", nullable = false, length = 200)
+    private String nomeInstituicao;
 
-    @Column(name = "documento_fiscal", length = 32)
-    private String documentoFiscal;
+    @Column(name = "nome_responsavel", nullable = false, length = 160)
+    private String nomeResponsavel;
+
+    @Column(name = "cnpj", length = 14)
+    private String cnpj;
+
+    @Column(name = "telefone", length = 30)
+    private String telefone;
+
+    @Column(name = "endereco", length = 500)
+    private String endereco;
 
     @Column(name = "url_logo", length = 2048)
     private String urlLogo;
@@ -35,28 +44,46 @@ public class PerfilInstituicao {
 
     @Column(name = "atualizado_em", nullable = false)
     private Instant atualizadoEm;
-public PerfilInstituicao(UUID contaId, String razaoSocial, String nomeAdministrador, Instant agora) {
+
+    public PerfilInstituicao(UUID contaId, String nomeInstituicao, String nomeResponsavel, Instant agora) {
+        this(contaId, nomeInstituicao, nomeResponsavel, null, null, null, agora);
+    }
+
+    public PerfilInstituicao(UUID contaId, String nomeInstituicao, String nomeResponsavel,
+            String cnpj, String telefone, String endereco, Instant agora) {
         this.contaId = contaId;
-        this.razaoSocial = razaoSocial;
-        this.nomeAdministrador = nomeAdministrador;
+        this.codigoObjetoConta = contaId;
+        this.nomeInstituicao = nomeInstituicao;
+        this.nomeResponsavel = nomeResponsavel;
+        this.cnpj = cnpj;
+        this.telefone = telefone;
+        this.endereco = endereco;
         this.criadoEm = agora;
         this.atualizadoEm = agora;
-    }
-
-    public String getRazaoSocial() {
-        return razaoSocial;
-    }
-
-    public String getNomeAdministrador() {
-        return nomeAdministrador;
     }
 
     public UUID getContaId() {
         return contaId;
     }
 
-    public String getDocumentoFiscal() {
-        return documentoFiscal;
+    public String getNomeInstituicao() {
+        return nomeInstituicao;
+    }
+
+    public String getNomeResponsavel() {
+        return nomeResponsavel;
+    }
+
+    public String getCnpj() {
+        return cnpj;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public String getEndereco() {
+        return endereco;
     }
 
     public String getUrlLogo() {
@@ -71,13 +98,13 @@ public PerfilInstituicao(UUID contaId, String razaoSocial, String nomeAdministra
         return atualizadoEm;
     }
 
-    public void atualizarNomeAdministrador(String nomeAdministrador, Instant agora) {
-        this.nomeAdministrador = nomeAdministrador;
-        this.atualizadoEm = agora;
-    }
-
-    public void atualizarRazaoSocial(String razaoSocial, Instant agora) {
-        this.razaoSocial = razaoSocial;
+    public void atualizarDados(String nomeInstituicao, String nomeResponsavel, String cnpj,
+            String telefone, String endereco, Instant agora) {
+        this.nomeInstituicao = nomeInstituicao;
+        this.nomeResponsavel = nomeResponsavel;
+        this.cnpj = cnpj;
+        this.telefone = telefone;
+        this.endereco = endereco;
         this.atualizadoEm = agora;
     }
 }

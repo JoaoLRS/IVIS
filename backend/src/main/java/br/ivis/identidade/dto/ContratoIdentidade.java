@@ -13,14 +13,20 @@ public final class ContratoIdentidade {
     public record CadastroAlunoRequisicao(
             @NotBlank @Size(max = 160) String nome,
             @NotBlank @Email @Size(max = 254) String email,
+            @NotBlank @Size(min = 11, max = 18) String cpf,
+            @NotBlank @Size(max = 30) String telefone,
+            @NotBlank @Size(max = 500) String endereco,
             @NotBlank @Size(min = 12, max = 128) String senha) {
     }
 
     public record CadastroInstituicaoRequisicao(
-            @Size(max = 160) String nomeAdministrador,
-            @NotBlank @Size(max = 200) String razaoSocial,
+            @NotBlank @Size(max = 160) String nomeResponsavel,
+            @NotBlank @Size(max = 200) String nomeInstituicao,
             @NotBlank @Email @Size(max = 254) String email,
-            @NotBlank @Size(min = 12, max = 128) String senha) {
+            @NotBlank @Size(min = 12, max = 128) String senha,
+            @NotBlank @Size(min = 14, max = 18) String cnpj,
+            @NotBlank @Size(max = 30) String telefone,
+            @NotBlank @Size(max = 500) String endereco) {
     }
 
     public record LoginRequisicao(
@@ -30,9 +36,13 @@ public final class ContratoIdentidade {
 
     public record AtualizacaoContaRequisicao(
             @Size(max = 160) String nome,
-            @Size(max = 160) String nomeAdministrador,
-            @Size(max = 200) String razaoSocial,
-            @Email @Size(max = 254) String email) {
+            @Size(max = 160) String nomeResponsavel,
+            @Size(max = 200) String nomeInstituicao,
+            @Email @Size(max = 254) String email,
+            @Size(min = 11, max = 18) String cpf,
+            @Size(max = 30) String telefone,
+            @Size(max = 500) String endereco,
+            @Size(min = 14, max = 18) String cnpj) {
     }
 
     public record TrocaSenhaRequisicao(
@@ -40,10 +50,17 @@ public final class ContratoIdentidade {
             @NotBlank @Size(min = 12, max = 128) String novaSenha) {
     }
 
-    public record ContaResposta(UUID id, String tipoConta, String email, String nome, String nomeAdministrador) {
-        public ContaResposta(UUID id, String tipoConta, String email, String nome) {
-            this(id, tipoConta, email, nome, null);
-        }
+    public record ContaResposta(
+            UUID id,
+            String tipoConta,
+            String email,
+            String nome,
+            String nomeResponsavel,
+            String cpf,
+            String telefone,
+            String endereco,
+            UUID objetoInstituicao,
+            String cnpj) {
     }
 
     public record SessaoResposta(String accessToken, String tipoToken, long expiraEmSegundos, ContaResposta conta) {

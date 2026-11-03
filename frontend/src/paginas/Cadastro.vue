@@ -11,8 +11,12 @@ const perfil = ref<PerfilCadastro>(
   rota.query.tipo === "instituicao" ? "instituicao" : "aluno",
 );
 const nome = ref("");
-const nomeAdministrador = ref("");
+const nomeResponsavel = ref("");
 const email = ref("");
+const cpf = ref("");
+const cnpj = ref("");
+const telefone = ref("");
+const endereco = ref("");
 const senha = ref("");
 const confirmarSenha = ref("");
 const mensagem = ref("");
@@ -54,14 +58,20 @@ async function enviarCadastro() {
       await sessao.cadastrarAluno({
         nome: nome.value,
         email: email.value,
+        cpf: cpf.value,
+        telefone: telefone.value,
+        endereco: endereco.value,
         senha: senha.value,
       });
     } else {
       await sessao.cadastrarInstituicao({
-        nomeAdministrador: nomeAdministrador.value,
-        razaoSocial: nome.value,
+        nomeResponsavel: nomeResponsavel.value,
+        nomeInstituicao: nome.value,
         email: email.value,
         senha: senha.value,
+        cnpj: cnpj.value,
+        telefone: telefone.value,
+        endereco: endereco.value,
       });
     }
     cadastroConcluido.value = true;
@@ -181,13 +191,67 @@ async function continuarAposCadastro() {
 
         <form class="cadastro-fields" @submit.prevent="enviarCadastro">
           <div v-if="perfil === 'instituicao'">
-            <label class="form-label" for="nome-administrador">Nome do administrador</label>
+            <label class="form-label" for="nome-responsavel">Nome do responsável</label>
             <input
-              id="nome-administrador"
-              v-model="nomeAdministrador"
+              id="nome-responsavel"
+              v-model="nomeResponsavel"
               class="form-control"
               placeholder="Nome completo da pessoa responsável"
               autocomplete="name"
+              required
+            />
+          </div>
+
+          <div v-if="perfil === 'aluno'">
+            <label class="form-label" for="cpf-cadastro">CPF</label>
+            <input
+              id="cpf-cadastro"
+              v-model="cpf"
+              class="form-control"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="000.000.000-00"
+              maxlength="14"
+              required
+            />
+          </div>
+          <div v-else>
+            <label class="form-label" for="cnpj-cadastro">CNPJ</label>
+            <input
+              id="cnpj-cadastro"
+              v-model="cnpj"
+              class="form-control"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="00.000.000/0000-00"
+              maxlength="18"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="form-label" for="telefone-cadastro">Telefone</label>
+            <input
+              id="telefone-cadastro"
+              v-model="telefone"
+              class="form-control"
+              type="tel"
+              autocomplete="tel"
+              placeholder="(00) 00000-0000"
+              maxlength="30"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="form-label" for="endereco-cadastro">Endereço</label>
+            <input
+              id="endereco-cadastro"
+              v-model="endereco"
+              class="form-control"
+              autocomplete="street-address"
+              placeholder="Rua, número, bairro, cidade e CEP"
+              maxlength="500"
               required
             />
           </div>

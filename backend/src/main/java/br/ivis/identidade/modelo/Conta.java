@@ -15,6 +15,7 @@ public class Conta {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
     @Column(name = "tipo_conta", nullable = false, length = 20)

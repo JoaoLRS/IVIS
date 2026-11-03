@@ -11,13 +11,21 @@ import br.ivis.identidade.dto.VinculoInstitucionalResumo;
 import br.ivis.identidade.modelo.VinculoInstitucional;
 
 public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoInstitucional, UUID> {
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            INSERT INTO eventos_auditoria (codigo_objeto_contas,acao,resultado,tipo_recurso,codigo_objeto_contratos,detalhes)
+            VALUES (:ator,:acao,'SUCESSO','CONTRATO',:contrato,
+                jsonb_build_object('vinculoId',cast(:vinculo as text),'alunoId',cast(:aluno as text)))
+            """, nativeQuery = true)
+    void registrarAuditoria(@Param("ator") UUID ator, @Param("acao") String acao,
+            @Param("contrato") UUID contrato, @Param("vinculo") UUID vinculo, @Param("aluno") UUID aluno);
 
     long countByContratoIdAndSituacao(UUID contratoId, String situacao);
 
     boolean existsByContaAlunoIdAndSituacao(UUID contaAlunoId, String situacao);
 
     @Query("select new br.ivis.identidade.dto.VinculoInstitucionalResumo("
-            + "v.id, v.contratoId, v.contaAlunoId, p.nomeExibicao, c.email, v.vinculadoEm) "
+            + "v.id, v.contratoId, v.contaAlunoId, p.nome, c.email, v.vinculadoEm) "
             + "from VinculoInstitucional v join ContratoInstitucional ct on ct.id = v.contratoId "
             + "join Conta c on c.id = v.contaAlunoId join PerfilAluno p on p.contaId = c.id "
             + "where ct.contaTitularId = :instituicaoId and v.situacao = 'ATIVO' "
@@ -25,7 +33,7 @@ public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoIn
     List<VinculoInstitucionalResumo> listarAtivosDaInstituicao(@Param("instituicaoId") UUID instituicaoId);
 
     @Query("select new br.ivis.identidade.dto.VinculoInstitucionalResumo("
-            + "v.id, v.contratoId, v.contaAlunoId, p.nomeExibicao, c.email, v.vinculadoEm) "
+            + "v.id, v.contratoId, v.contaAlunoId, p.nome, c.email, v.vinculadoEm) "
             + "from VinculoInstitucional v join Conta c on c.id = v.contaAlunoId "
             + "join PerfilAluno p on p.contaId = c.id "
             + "where v.id = :vinculoId and v.situacao = 'ATIVO' and exists "

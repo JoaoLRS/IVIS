@@ -1,11 +1,5 @@
 :root {
-  font-family:
-    system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    Arial,
-    sans-serif;
+  font-family: "Roboto Mono", monospace;
   font-size: 16px;
   color: #292a35;
   background: #f1f2f5;
@@ -18,8 +12,7 @@
   --ivis-text-subtle: #626477;
   --bs-primary: #6757df;
   --bs-primary-rgb: 103, 87, 223;
-  --bs-body-font-family:
-    system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --bs-body-font-family: "Roboto Mono", monospace;
   --bs-body-color: #292a35;
   --bs-secondary-color: #626477;
   --bs-tertiary-color: #626477;
@@ -74,7 +67,7 @@
   opacity: 1;
 }
 
-\* {
+* {
   box-sizing: border-box;
 }
 
@@ -306,7 +299,7 @@ body {
 .search-field .input-group-text,
 .search-field .form-control {
   background: #fff;
-  border-color: #ececf1;
+  border-color: #9298a7;
   color: #9899a5;
   font-size: 11px;
 }
@@ -921,7 +914,7 @@ body {
 .list-search .input-group-text,
 .student-search .input-group-text {
   background: white;
-  border-color: #ececf2;
+  border-color: #9298a7;
   color: #999;
 }
 
@@ -929,7 +922,7 @@ body {
 .student-search .form-control {
   font-size: 10px;
   box-shadow: none;
-  border-color: #ececf2;
+  border-color: #9298a7;
 }
 
 .job-card {
@@ -1546,7 +1539,7 @@ body {
 
 .answer-input {
   min-height: 48px;
-  border-color: #dce0e5;
+  border-color: #9298a7;
   border-radius: 10px;
   background: #fff;
   font-size: 12px;
@@ -2056,6 +2049,30 @@ body {
 .form-control,
 .form-select {
   font-size: 10px;
+  background-color: #fff;
+  border: 1px solid #9298a7;
+  color: #292a35;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+  border-color: #687084;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #8d80ea;
+  box-shadow: 0 0 0 0.2rem #6757df1b;
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+  background-color: #f6f7fa;
+  border-color: #c5c9d2;
 }
 
 .table-heading {
@@ -3635,7 +3652,7 @@ input[type="radio"],
 
 .cadastro-fields .form-control {
   min-height: 43px;
-  border-color: #e4e4ec;
+  border-color: #9298a7;
   font-size: 13px;
 }
 
@@ -3954,7 +3971,7 @@ input[type="radio"],
 
 .login-fields .form-control {
   min-height: 44px;
-  border-color: #e4e4ec;
+  border-color: #9298a7;
   font-size: 13px;
 }
 
@@ -4040,4 +4057,11 @@ input[type="radio"],
   .login-card {
     padding: 24px 20px;
   }
+}
+
+/* A identidade tipográfica é consistente em todas as páginas e componentes. */
+:root,
+:root body,
+:root body * {
+  font-family: "Roboto Mono", monospace !important;
 }

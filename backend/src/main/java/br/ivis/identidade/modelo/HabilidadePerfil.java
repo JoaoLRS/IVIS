@@ -15,9 +15,10 @@ public class HabilidadePerfil {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "conta_aluno_id", nullable = false)
+    @Column(name = "codigo_objeto_perfis_aluno", nullable = false)
     private UUID contaAlunoId;
 
     @Column(nullable = false, length = 120)

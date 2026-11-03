@@ -81,14 +81,17 @@ public class ServicoIdentidade {
     public ContaResposta cadastrarAluno(CadastroAlunoRequisicao requisicao) {
         String email = normalizarEmail(requisicao.email());
         validarEmailDisponivel(email);
+        String cpf = normalizarDocumento(requisicao.cpf(), "cpf", 11);
+        validarCpfDisponivel(cpf, null);
         Instant agora = Instant.now();
         UUID id = UUID.randomUUID();
         Conta conta = new Conta(id, "ALUNO", requisicao.email().trim(), email,
                 codificadorSenha.encode(requisicao.senha()), agora);
         try {
             contas.saveAndFlush(conta);
-            PerfilAluno perfil = perfisAlunos.save(new PerfilAluno(id, requisicao.nome().trim(), agora));
-            return new ContaResposta(id, conta.getTipoConta(), conta.getEmail(), perfil.getNomeExibicao());
+            perfisAlunos.saveAndFlush(new PerfilAluno(id, requisicao.nome().trim(), cpf,
+                    requisicao.telefone().trim(), requisicao.endereco().trim(), null, agora));
+            return resumoConta(conta);
         } catch (DataIntegrityViolationException excecao) {
             throw traduzirIntegridade(excecao);
         }
@@ -98,18 +101,18 @@ public class ServicoIdentidade {
     public ContaResposta cadastrarInstituicao(CadastroInstituicaoRequisicao requisicao) {
         String email = normalizarEmail(requisicao.email());
         validarEmailDisponivel(email);
+        String cnpj = normalizarDocumento(requisicao.cnpj(), "cnpj", 14);
+        validarCnpjDisponivel(cnpj, null);
         Instant agora = Instant.now();
         UUID id = UUID.randomUUID();
         Conta conta = new Conta(id, "INSTITUICAO", requisicao.email().trim(), email,
                 codificadorSenha.encode(requisicao.senha()), agora);
         try {
             contas.saveAndFlush(conta);
-            PerfilInstituicao perfil =
-                    perfisInstituicoes.save(new PerfilInstituicao(id, requisicao.razaoSocial().trim(),
-                            requisicao.nomeAdministrador() == null || requisicao.nomeAdministrador().isBlank()
-                                    ? requisicao.razaoSocial().trim() : requisicao.nomeAdministrador().trim(), agora));
-            return new ContaResposta(id, conta.getTipoConta(), conta.getEmail(), perfil.getRazaoSocial(),
-                    perfil.getNomeAdministrador());
+            perfisInstituicoes.saveAndFlush(new PerfilInstituicao(id, requisicao.nomeInstituicao().trim(),
+                    requisicao.nomeResponsavel().trim(), cnpj, requisicao.telefone().trim(),
+                    requisicao.endereco().trim(), agora));
+            return resumoConta(conta);
         } catch (DataIntegrityViolationException excecao) {
             throw traduzirIntegridade(excecao);
         }
@@ -154,54 +157,66 @@ public class ServicoIdentidade {
             }
             conta.atualizarEmail(email, normalizado, agora);
         }
-
-        String nome;
         if ("ALUNO".equals(conta.getTipoConta())) {
-            if (requisicao.razaoSocial() != null) {
-                throw dadosContaInvalidos("razaoSocial", "Este campo não se aplica a contas de aluno.");
+            if (requisicao.nomeInstituicao() != null || requisicao.nomeResponsavel() != null
+                    || requisicao.cnpj() != null) {
+                throw dadosContaInvalidos("nomeInstituicao", "Os campos de instituição não se aplicam a contas de aluno.");
             }
             PerfilAluno perfil = perfisAlunos.findByContaId(contaId)
                     .orElseThrow(ServicoIdentidade::sessaoInvalida);
+            String nome = perfil.getNome();
             if (requisicao.nome() != null) {
-                String valor = requisicao.nome().trim();
-                if (valor.isBlank()) {
-                    throw dadosContaInvalidos("nome", "O nome não pode ficar vazio.");
-                }
-                perfil.atualizarNome(valor, agora);
+                nome = validarTextoObrigatorio(requisicao.nome(), "nome", "O nome não pode ficar vazio.");
             }
-            nome = perfil.getNomeExibicao();
+            String cpf = perfil.getCpf();
+            if (requisicao.cpf() != null) {
+                cpf = normalizarDocumento(requisicao.cpf(), "cpf", 11);
+                validarCpfDisponivel(cpf, perfil.getCpf());
+            }
+            String telefone = requisicao.telefone() == null ? perfil.getTelefone()
+                    : validarTextoObrigatorio(requisicao.telefone(), "telefone", "O telefone não pode ficar vazio.");
+            String endereco = requisicao.endereco() == null ? perfil.getEndereco()
+                    : validarTextoObrigatorio(requisicao.endereco(), "endereco", "O endereço não pode ficar vazio.");
+            perfil.atualizarDados(nome, cpf, telefone, endereco, agora);
+            try {
+                perfisAlunos.saveAndFlush(perfil);
+            } catch (DataIntegrityViolationException excecao) {
+                throw traduzirIntegridade(excecao);
+            }
         } else {
-            if (requisicao.nome() != null) {
-                throw dadosContaInvalidos("nome", "Este campo não se aplica a contas de instituição.");
+            if (requisicao.nome() != null || requisicao.cpf() != null) {
+                throw dadosContaInvalidos("nome", "Os campos de aluno não se aplicam a contas de instituição.");
             }
             PerfilInstituicao perfil = perfisInstituicoes.findByContaId(contaId)
                     .orElseThrow(ServicoIdentidade::sessaoInvalida);
-            if (requisicao.razaoSocial() != null) {
-                String valor = requisicao.razaoSocial().trim();
-                if (valor.isBlank()) {
-                    throw dadosContaInvalidos("razaoSocial", "A razão social não pode ficar vazia.");
-                }
-                perfil.atualizarRazaoSocial(valor, agora);
+            String nomeInstituicao = requisicao.nomeInstituicao() == null ? perfil.getNomeInstituicao()
+                    : validarTextoObrigatorio(requisicao.nomeInstituicao(), "nomeInstituicao",
+                            "O nome da instituição não pode ficar vazio.");
+            String nomeResponsavel = requisicao.nomeResponsavel() == null ? perfil.getNomeResponsavel()
+                    : validarTextoObrigatorio(requisicao.nomeResponsavel(), "nomeResponsavel",
+                            "O nome do responsável não pode ficar vazio.");
+            String cnpj = perfil.getCnpj();
+            if (requisicao.cnpj() != null) {
+                cnpj = normalizarDocumento(requisicao.cnpj(), "cnpj", 14);
+                validarCnpjDisponivel(cnpj, perfil.getCnpj());
             }
-            if (requisicao.nomeAdministrador() != null) {
-                String valor = requisicao.nomeAdministrador().trim();
-                if (valor.isBlank()) {
-                    throw dadosContaInvalidos("nomeAdministrador", "O nome do administrador não pode ficar vazio.");
-                }
-                perfil.atualizarNomeAdministrador(valor, agora);
+            String telefone = requisicao.telefone() == null ? perfil.getTelefone()
+                    : validarTextoObrigatorio(requisicao.telefone(), "telefone", "O telefone não pode ficar vazio.");
+            String endereco = requisicao.endereco() == null ? perfil.getEndereco()
+                    : validarTextoObrigatorio(requisicao.endereco(), "endereco", "O endereço não pode ficar vazio.");
+            perfil.atualizarDados(nomeInstituicao, nomeResponsavel, cnpj, telefone, endereco, agora);
+            try {
+                perfisInstituicoes.saveAndFlush(perfil);
+            } catch (DataIntegrityViolationException excecao) {
+                throw traduzirIntegridade(excecao);
             }
-            nome = perfil.getRazaoSocial();
         }
         try {
             contas.saveAndFlush(conta);
         } catch (DataIntegrityViolationException excecao) {
             throw traduzirIntegridade(excecao);
         }
-        String nomeAdministrador = "INSTITUICAO".equals(conta.getTipoConta())
-                ? perfisInstituicoes.findByContaId(contaId).orElseThrow(ServicoIdentidade::sessaoInvalida)
-                        .getNomeAdministrador()
-                : null;
-        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome, nomeAdministrador);
+        return resumoConta(conta);
     }
 
     @Transactional
@@ -280,23 +295,52 @@ public class ServicoIdentidade {
 
     private ContaResposta resumoConta(Conta conta) {
         if ("ALUNO".equals(conta.getTipoConta())) {
-            String nome = perfisAlunos.findByContaId(conta.getId())
-                    .orElseThrow(ServicoIdentidade::sessaoInvalida)
-                    .getNomeExibicao();
-            return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome);
+            PerfilAluno perfil = perfisAlunos.findByContaId(conta.getId())
+                    .orElseThrow(ServicoIdentidade::sessaoInvalida);
+            return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(),
+                    perfil.getNome(), null, perfil.getCpf(), perfil.getTelefone(), perfil.getEndereco(),
+                    perfil.getObjetoInstituicao(), null);
         }
-        String nome = perfisInstituicoes.findByContaId(conta.getId())
-                .orElseThrow(ServicoIdentidade::sessaoInvalida)
-                .getRazaoSocial();
-        String nomeAdministrador = perfisInstituicoes.findByContaId(conta.getId())
-                .orElseThrow(ServicoIdentidade::sessaoInvalida).getNomeAdministrador();
-        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(), nome, nomeAdministrador);
+        PerfilInstituicao perfil = perfisInstituicoes.findByContaId(conta.getId())
+                .orElseThrow(ServicoIdentidade::sessaoInvalida);
+        return new ContaResposta(conta.getId(), conta.getTipoConta(), conta.getEmail(),
+                perfil.getNomeInstituicao(), perfil.getNomeResponsavel(), null, perfil.getTelefone(),
+                perfil.getEndereco(), null, perfil.getCnpj());
     }
 
     private void validarEmailDisponivel(String email) {
         if (contas.existsByEmailNormalizado(email)) {
             throw emailJaCadastrado();
         }
+    }
+
+    private void validarCpfDisponivel(String cpf, String cpfAtual) {
+        if (!cpf.equals(cpfAtual) && perfisAlunos.existsByCpf(cpf)) {
+            throw documentoJaCadastrado("cpf", "Já existe um aluno cadastrado com este CPF.");
+        }
+    }
+
+    private void validarCnpjDisponivel(String cnpj, String cnpjAtual) {
+        if (!cnpj.equals(cnpjAtual) && perfisInstituicoes.existsByCnpj(cnpj)) {
+            throw documentoJaCadastrado("cnpj", "Já existe uma instituição cadastrada com este CNPJ.");
+        }
+    }
+
+    private static String normalizarDocumento(String valor, String campo, int tamanhoEsperado) {
+        String documento = valor == null ? "" : valor.replaceAll("[^0-9]", "");
+        if (documento.length() != tamanhoEsperado) {
+            throw dadosContaInvalidos(campo,
+                    "Informe um documento válido com " + tamanhoEsperado + " dígitos.");
+        }
+        return documento;
+    }
+
+    private static String validarTextoObrigatorio(String valor, String campo, String mensagem) {
+        String texto = valor == null ? "" : valor.trim();
+        if (texto.isBlank()) {
+            throw dadosContaInvalidos(campo, mensagem);
+        }
+        return texto;
     }
 
     private static String normalizarEmail(String email) {
@@ -334,6 +378,14 @@ public class ServicoIdentidade {
                     && "uq_contas_email_normalizado".equals(violacao.getConstraintName())) {
                 return emailJaCadastrado();
             }
+            if (causa instanceof ConstraintViolationException violacao
+                    && "uq_perfis_aluno_cpf".equals(violacao.getConstraintName())) {
+                return documentoJaCadastrado("cpf", "Já existe um aluno cadastrado com este CPF.");
+            }
+            if (causa instanceof ConstraintViolationException violacao
+                    && "uq_perfis_instituicao_cnpj".equals(violacao.getConstraintName())) {
+                return documentoJaCadastrado("cnpj", "Já existe uma instituição cadastrada com este CNPJ.");
+            }
         }
         return excecao;
     }
@@ -355,6 +407,11 @@ public class ServicoIdentidade {
 
     private static ExcecaoNegocio dadosContaInvalidos(String campo, String mensagem) {
         return new ExcecaoNegocio(HttpStatus.BAD_REQUEST, "dados_invalidos", mensagem,
+                List.of(new ErroCampo(campo, mensagem)));
+    }
+
+    private static ExcecaoNegocio documentoJaCadastrado(String campo, String mensagem) {
+        return new ExcecaoNegocio(HttpStatus.CONFLICT, "documento_ja_cadastrado", mensagem,
                 List.of(new ErroCampo(campo, mensagem)));
     }
 }

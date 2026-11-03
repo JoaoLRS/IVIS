@@ -1,43 +1,49 @@
 # Casos de uso do IVIS
 
-Este diretório contém a especificação detalhada dos casos de uso e seu vínculo com os RF. Os códigos RF são os da versão consolidada em [`IVIS_Requisitos.md`](../plano/IVIS_Requisitos.md); o PDF `rf.pdf` foi usado como fonte complementar para RF01, RF02, RF04, RF05 e RF11–RF20. RF03 e RF06–RF10 não constam no PDF, mas permanecem no escopo por estarem documentados nos requisitos do projeto e, em parte, já iniciados no frontend.
+Este diretório reúne 15 casos de uso ligados aos requisitos funcionais do IVIS. Os fluxos foram revisados contra o frontend Vue, o backend Spring Boot, a API de IA e as migrations presentes no repositório. Cada CDU termina com um diagrama Mermaid das ações do ator.
 
-## Situação observada no sistema
+## Parecer sobre a pertinência
 
-O repositório contém um frontend demonstrativo Vue, sem backend. Habilidades (RF03), vagas (RF06), simulação local (RF07), feedback demonstrativo (RF08) e histórico mantido em memória (RF09/RF10) têm telas ou lógica iniciada. Isso não comprova persistência em servidor nem integração com IA. Cadastro/login, recuperação de senha, plano vigente, planos públicos, contratação, pagamento, gestão institucional, autorização por modalidade e auditoria ainda não estão implementados no código inspecionado. Veja [`LEIA-ME.md`](../../frontend/LEIA-ME.md) para o escopo declarado do frontend.
+Os 15 temas continuam fazendo sentido para o escopo: cobrem identidade e acesso, preparação para entrevistas, planos individuais e institucionais, controle de acesso e rastreabilidade. Cadastro e login foram consolidados em um único CDU, Acesso IVIS, pois ambos conduzem à entrada autenticada na plataforma. As especificações indicam os estados parciais para distinguir comportamento descrito do que está disponível no código.
 
-Os fluxos abaixo especificam o comportamento esperado. Regras marcadas como pendentes precisam de decisão do produto, em particular confirmação de e-mail, expiração de recuperação, ciclo de vida/validade de planos e reatribuição de vagas após remoção de aluno.
+Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVIS_Requisitos.md). O estado de implementação não representa validação de produção nem aceite do requisito.
 
 ## Índice e rastreabilidade
 
-| Caso de uso | RF cobertos | Documento |
-|---|---|---|
-| UC01 — Criar conta | RF01 | [UC01_criar-conta.md](UC01_criar-conta.md) |
-| UC02 — Fazer login | RF01 | [UC02_fazer-login.md](UC02_fazer-login.md) |
-| UC03 — Gerenciar dados da conta | RF02 | [UC03_gerenciar-dados-da-conta.md](UC03_gerenciar-dados-da-conta.md) |
-| UC04 — Gerenciar habilidades | RF03 (fora do PDF) | [UC04_gerenciar-habilidades.md](UC04_gerenciar-habilidades.md) |
-| UC05 — Recuperar acesso | RF04 | [UC05_recuperar-acesso.md](UC05_recuperar-acesso.md) |
-| UC06 — Consultar plano vigente | RF05 | [UC06_consultar-plano-vigente.md](UC06_consultar-plano-vigente.md) |
-| UC07 — Gerenciar vaga de interesse | RF06 (fora do PDF) | [UC07_gerenciar-vaga.md](UC07_gerenciar-vaga.md) |
-| UC08 — Realizar treinamento e receber feedback | RF07, RF08, RF09 (fora do PDF) | [UC08_realizar-treinamento.md](UC08_realizar-treinamento.md) |
-| UC09 — Consultar histórico de treinos | RF10 (fora do PDF) | [UC09_consultar-historico.md](UC09_consultar-historico.md) |
-| UC10 — Visualizar planos | RF11, RF12 | [UC10_visualizar-planos.md](UC10_visualizar-planos.md) |
-| UC11 — Contratar plano individual | RF13, RF19 | [UC11_contratar-plano-individual.md](UC11_contratar-plano-individual.md) |
-| UC12 — Contratar plano institucional | RF14 | [UC12_contratar-plano-institucional.md](UC12_contratar-plano-institucional.md) |
-| UC13 — Efetuar pagamento | RF15 | [UC13_efetuar-pagamento.md](UC13_efetuar-pagamento.md) |
-| UC14 — Gerenciar alunos e vagas vinculadas | RF16, RF18 | [UC14_gerenciar-alunos-vinculados.md](UC14_gerenciar-alunos-vinculados.md) |
-| UC15 — Aplicar acesso conforme modalidade | RF17 | [UC15_aplicar-modalidade-de-acesso.md](UC15_aplicar-modalidade-de-acesso.md) |
-| UC16 — Registrar ações de auditoria | RF20 | [UC16_registrar-auditoria.md](UC16_registrar-auditoria.md) |
+| CDU | Caso de uso | RF | Situação observada | Documento | Spec Cypress |
+|---|---|---|---|---|---|
+| CDU-01 | Acesso IVIS | RF01 | Implementado | [CDU-01-acesso-ivis.md](CDU-01-acesso-ivis.md) | [CDU-01-acesso-ivis.cy.js](../../cypress/e2e/cdu/CDU-01-acesso-ivis.cy.js) |
+| CDU-02 | Gerenciar dados da conta | RF02 | Dados básicos e troca de senha implementados; troca em página própria | [CDU-02-gerenciar-dados-da-conta.md](CDU-02-gerenciar-dados-da-conta.md) | [CDU-02-gerenciar-dados-da-conta.cy.js](../../cypress/e2e/cdu/CDU-02-gerenciar-dados-da-conta.cy.js) |
+| CDU-03 | Gerenciar habilidades | RF03 | Implementado | [CDU-03-gerenciar-habilidades.md](CDU-03-gerenciar-habilidades.md) | [CDU-03-gerenciar-habilidades.cy.js](../../cypress/e2e/cdu/CDU-03-gerenciar-habilidades.cy.js) |
+| CDU-04 | Recuperar acesso | RF04 | Solicitação e tela de redefinição implementadas | [CDU-04-recuperar-acesso.md](CDU-04-recuperar-acesso.md) | [CDU-04-recuperar-acesso.cy.js](../../cypress/e2e/cdu/CDU-04-recuperar-acesso.cy.js) |
+| CDU-05 | Consultar plano vigente | RF05 | API e página Meu plano implementadas | [CDU-05-consultar-plano-vigente.md](CDU-05-consultar-plano-vigente.md) | [CDU-05-consultar-plano-vigente.cy.js](../../cypress/e2e/cdu/CDU-05-consultar-plano-vigente.cy.js) |
+| CDU-06 | Gerenciar vaga de interesse | RF06 | Implementado | [CDU-06-gerenciar-vaga.md](CDU-06-gerenciar-vaga.md) | [CDU-06-gerenciar-vaga.cy.js](../../cypress/e2e/cdu/CDU-06-gerenciar-vaga.cy.js) |
+| CDU-07 | Realizar treinamento e receber feedback | RF07, RF08, RF09 | Implementado com provedor de IA configurável | [CDU-07-realizar-treinamento.md](CDU-07-realizar-treinamento.md) | [CDU-07-realizar-treinamento.cy.js](../../cypress/e2e/cdu/CDU-07-realizar-treinamento.cy.js) |
+| CDU-08 | Consultar histórico de treinos | RF10 | Implementado para treinos concluídos | [CDU-08-consultar-historico.md](CDU-08-consultar-historico.md) | [CDU-08-consultar-historico.cy.js](../../cypress/e2e/cdu/CDU-08-consultar-historico.cy.js) |
+| CDU-09 | Visualizar planos disponíveis | RF11, RF12 | Implementado e público | [CDU-09-visualizar-planos.md](CDU-09-visualizar-planos.md) | [CDU-09-visualizar-planos.cy.js](../../cypress/e2e/cdu/CDU-09-visualizar-planos.cy.js) |
+| CDU-10 | Contratar plano individual | RF13, RF19 | Implementado no fluxo simulado | [CDU-10-contratar-plano-individual.md](CDU-10-contratar-plano-individual.md) | [CDU-10-contratar-plano-individual.cy.js](../../cypress/e2e/cdu/CDU-10-contratar-plano-individual.cy.js) |
+| CDU-11 | Contratar plano institucional | RF14 | Parcial: oferta atual define capacidade fixa | [CDU-11-contratar-plano-institucional.md](CDU-11-contratar-plano-institucional.md) | [CDU-11-contratar-plano-institucional.cy.js](../../cypress/e2e/cdu/CDU-11-contratar-plano-institucional.cy.js) |
+| CDU-12 | Efetuar pagamento | RF15 | Implementado no modo acadêmico simulado; sem gateway real | [CDU-12-efetuar-pagamento.md](CDU-12-efetuar-pagamento.md) | [CDU-12-efetuar-pagamento.cy.js](../../cypress/e2e/cdu/CDU-12-efetuar-pagamento.cy.js) |
+| CDU-13 | Gerenciar alunos vinculados | RF16, RF18 | Implementado | [CDU-13-gerenciar-alunos-vinculados.md](CDU-13-gerenciar-alunos-vinculados.md) | [CDU-13-gerenciar-alunos-vinculados.cy.js](../../cypress/e2e/cdu/CDU-13-gerenciar-alunos-vinculados.cy.js) |
+| CDU-14 | Aplicar acesso conforme modalidade | RF17 | Implementado nas rotas; APIs validam plano, perfil ou titularidade conforme operação | [CDU-14-aplicar-modalidade-de-acesso.md](CDU-14-aplicar-modalidade-de-acesso.md) | [CDU-14-aplicar-modalidade-de-acesso.cy.js](../../cypress/e2e/cdu/CDU-14-aplicar-modalidade-de-acesso.cy.js) |
+| CDU-15 | Registrar auditoria de operações sensíveis | RF20 | Contratação, pagamento e vínculos auditados; retenção pendente | [CDU-15-registrar-auditoria.md](CDU-15-registrar-auditoria.md) | [CDU-15-registrar-auditoria.cy.js](../../cypress/e2e/cdu/CDU-15-registrar-auditoria.cy.js) |
 
 ## Relações entre casos de uso
 
-- UC02 e UC03 exigem conta; UC05 pode ser iniciado pelo fluxo de login.
-- UC08 inclui a persistência do resultado (RF09); UC09 consulta esses registros. A geração de feedback (RF08) acontece ao concluir a entrevista.
-- UC10 é público (RF12); para contratar, o visitante precisa autenticar-se e seguir UC11 ou UC12.
-- UC11 e UC12 incluem UC13. A ativação só acontece após confirmação de pagamento aprovado pelo gateway.
-- UC14 permite vincular aluno somente dentro da capacidade contratada; os totais de RF18 refletem vínculos ativos.
-- UC15 é uma regra transversal de autorização para recursos restritos. UC16 é incluído nas operações sensíveis indicadas no RF20.
+- CDU-01 cobre a criação de conta e a autenticação; a recuperação de senha iniciada no acesso segue CDU-04.
+- CDU-07 usa habilidades do CDU-03 ou vaga do CDU-06, exige acesso conforme CDU-14 e registra resultado para consulta no CDU-08.
+- CDU-09 é público. Para comprar, o visitante autentica ou cria conta pelo CDU-01 e continua pelos CDU-10 ou CDU-11.
+- CDU-10 e CDU-11 incluem o pagamento simulado do CDU-12. A ativação ocorre somente quando o backend aprova a simulação.
+- CDU-13 depende de contrato institucional com capacidade; os vínculos ativos dão acesso ao aluno segundo CDU-14.
+- CDU-15 é transversal. A auditoria cobre contratação e pagamento simulados e criação/remoção de vínculos institucionais.
 
-## Convenções
+## Critérios usados na revisão
 
-**Ator principal** inicia o objetivo. **Atores secundários** são serviços externos ou outros participantes. **Pré-condições** devem ser verdadeiras antes do fluxo. Fluxos alternativos indicam erros, desvios ou decisões. O estado da implementação é informativo e se refere ao código encontrado, não representa aceite do requisito.
+- Atores e etapas refletem telas, rotas, endpoints e regras encontrados no repositório.
+- Alternativas representam erros e limites verificáveis, sem prometer telas ou integrações ausentes.
+- A contratação acadêmica é descrita como simulação controlada pelo backend, sem cobrança real.
+- Lacunas de interface e de regra são indicadas como situação atual, sem retirar do escopo requisitos ainda válidos.
+
+## Limites da automação de interface
+
+Os specs CDU-01 a CDU-14 simulam as respostas da API para exercitar as telas, validar mensagens, rotas e payloads enviados. Eles não comprovam persistência, autorização no backend, auditoria nem consistência transacional. Essas regras são verificadas nos testes Java/Python e, quando dependem da integração completa, nas jornadas `caminho_feliz` e no CDU-15, que precisam do ambiente local com banco. A troca de senha é verificada no CDU-02 como fluxo separado de navegação, incluindo os campos visíveis e o payload; persistência e revogação de sessões pertencem aos testes do backend.

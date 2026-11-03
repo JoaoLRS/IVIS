@@ -15,12 +15,13 @@ public class ContratoInstitucional {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "conta_titular_id", nullable = false)
+    @Column(name = "codigo_objeto_contas", nullable = false)
     private UUID contaTitularId;
 
-    @Column(name = "plano_id", nullable = false)
+    @Column(name = "codigo_objeto_planos", nullable = false)
     private UUID planoId;
 
     @Column(nullable = false, length = 20)

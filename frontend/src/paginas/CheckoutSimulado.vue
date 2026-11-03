@@ -334,20 +334,21 @@ onMounted(carregarOferta);
                 tente novamente com a mesma sessão.
               </p>
               <RouterLink
-                v-if="resultado.situacaoPagamento === 'APROVADO'"
+                v-if="resultado.situacaoPagamento === 'APROVADO' && !enviando"
                 class="checkout-submit"
                 :to="oferta.modalidade === 'INSTITUCIONAL' ? '/instituicao' : '/inicio'"
               >
                 Ir para minha área
               </RouterLink>
               <button
-                v-else
+                v-else-if="resultado.situacaoPagamento === 'RECUSADO'"
                 class="checkout-retry"
                 type="button"
                 @click="resultado = null"
               >
                 Tentar novamente
               </button>
+              <p v-else role="status">Confirmando seu acesso...</p>
             </div>
           </section>
 
@@ -547,7 +548,7 @@ onMounted(carregarOferta);
 }
 .checkout-card-form .form-control {
   min-height: 43px;
-  border-color: #dfe0e9;
+  border-color: #9298a7;
   border-radius: 9px;
   font-size: 13px;
   box-shadow: none;

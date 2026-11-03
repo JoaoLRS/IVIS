@@ -15,9 +15,10 @@ public class TokenRecuperacaoSenha {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "conta_id", nullable = false)
+    @Column(name = "codigo_objeto_contas", nullable = false)
     private UUID contaId;
 
     @Column(name = "hash_token", nullable = false, unique = true, length = 255)

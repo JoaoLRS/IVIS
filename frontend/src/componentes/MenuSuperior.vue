@@ -116,6 +116,7 @@ onBeforeUnmount(() =>
       </details>
     </nav>
     <div class="top-menu-profile">
+      <RouterLink to="/meu-plano" @click="emit('fechar')">Meu plano</RouterLink>
       <RouterLink
         to="/conta"
         aria-label="Editar dados da conta"

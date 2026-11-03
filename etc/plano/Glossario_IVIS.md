@@ -9,7 +9,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Aluno** | Pessoa que utiliza o IVIS para cadastrar habilidades e vagas de interesse, realizar treinamentos e consultar o próprio histórico. |
 | **Aluno Pagante** | Modalidade de acesso do aluno que possui um plano individual contratado diretamente. A modalidade e as permissões são determinadas pelo backend. |
 | **Aluno de Consórcio** | Modalidade de acesso do aluno que possui vínculo ativo a um contrato institucional. A instituição que administra o vínculo deriva do contrato; o aluno não define essa condição no cliente. Nos requisitos atuais também aparece o nome `AlunoConsórcio`. |
-| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às vagas contratadas. |
+| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às Vadas de alunos . |
 | **Plano individual** | Oferta contratada diretamente por um aluno para obter os benefícios e o acesso correspondentes. |
 | **Plano institucional / plano de consórcio** | Oferta contratada por uma instituição, com capacidade de vagas para vincular alunos. “Consórcio” é o nome de negócio usado nos requisitos para essa modalidade. |
 | **Contrato** | Registro da contratação de um plano por uma conta. Mantém estado, vigência e o preço acordado, preservando o histórico mesmo que o catálogo de planos mude. |
@@ -64,8 +64,8 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Migração** | Arquivo versionado que cria ou altera tabelas, colunas, restrições ou índices de forma reproduzível. |
 | **Chave primária (PK)** | Identificador único de uma linha de tabela. O modelo propõe UUIDs como chaves primárias. |
 | **Chave estrangeira (FK)** | Coluna ou conjunto de colunas que referencia uma linha relacionada em outra tabela, mantendo integridade referencial. |
-| **UUID** | Identificador universalmente único usado no modelo proposto como chave primária. |
-| **`snake_case`** | Convenção de identificadores com palavras minúsculas separadas por sublinhado, como `conta_aluno_id`. No banco IVIS, nomes em português brasileiro e sem acentos. |
+| **UUID** | Identificador universalmente único usado como chave primária `objeto` em todas as tabelas do banco. |
+| **`snake_case`** | Convenção de identificadores com palavras minúsculas separadas por sublinhado, como `codigo_objeto_perfis_aluno`. No banco IVIS, nomes em português brasileiro e sem acentos. |
 | **Centavos / unidade monetária mínima** | Forma inteira de representar dinheiro no banco. Por exemplo, R$ 19,90 é armazenado como `1990` centavos; a formatação monetária é aplicada para exibição. |
 | **Snapshot** | Cópia imutável dos dados relevantes em um momento específico, usada para preservar o preço contratado ou o contexto de uma entrevista sem depender de alterações posteriores na origem. |
 | **JSONB** | Tipo do PostgreSQL para dados JSON consultáveis. No modelo IVIS é restrito a snapshots ou metadados controlados, não substitui tabelas relacionais centrais. |

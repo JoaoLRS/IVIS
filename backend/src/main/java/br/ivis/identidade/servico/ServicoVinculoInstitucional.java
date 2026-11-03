@@ -4,20 +4,25 @@ import static br.ivis.identidade.dto.ContratoInstitucionalResposta.Capacidade;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoRequisicao;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoResposta;
 import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CriacaoVinculoPorEmailRequisicao;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CadastroAlunoRequisicao;
+import static br.ivis.identidade.dto.ContratoInstitucionalResposta.CadastroAlunoResposta;
 
 import br.ivis.comum.erro.ExcecaoNegocio;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.ivis.identidade.dto.VinculoInstitucionalResumo;
+import br.ivis.identidade.dto.ContratoIdentidade;
 import br.ivis.identidade.modelo.Conta;
 import br.ivis.identidade.modelo.ContratoInstitucional;
+import br.ivis.identidade.modelo.PerfilAluno;
 import br.ivis.identidade.modelo.VinculoInstitucional;
 import br.ivis.identidade.repositorio.ContaRepositorio;
 import br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio;
@@ -34,16 +39,28 @@ public class ServicoVinculoInstitucional {
     private final PerfilAlunoRepositorio perfisAlunos;
     private final ContratoInstitucionalRepositorio contratos;
     private final VinculoInstitucionalRepositorio vinculos;
+    private final ServicoIdentidade identidade;
+
+    @Autowired
+    public ServicoVinculoInstitucional(
+            ContaRepositorio contas,
+            PerfilAlunoRepositorio perfisAlunos,
+            ContratoInstitucionalRepositorio contratos,
+            VinculoInstitucionalRepositorio vinculos,
+            ServicoIdentidade identidade) {
+        this.contas = contas;
+        this.perfisAlunos = perfisAlunos;
+        this.contratos = contratos;
+        this.vinculos = vinculos;
+        this.identidade = identidade;
+    }
 
     public ServicoVinculoInstitucional(
             ContaRepositorio contas,
             PerfilAlunoRepositorio perfisAlunos,
             ContratoInstitucionalRepositorio contratos,
             VinculoInstitucionalRepositorio vinculos) {
-        this.contas = contas;
-        this.perfisAlunos = perfisAlunos;
-        this.contratos = contratos;
-        this.vinculos = vinculos;
+        this(contas, perfisAlunos, contratos, vinculos, null);
     }
 
     @Transactional(readOnly = true)
@@ -74,6 +91,28 @@ public class ServicoVinculoInstitucional {
                 .filter(conta -> perfisAlunos.existsById(conta.getId()))
                 .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
         return criarVinculo(instituicaoId, requisicao.contratoId(), aluno.getId());
+    }
+
+    @Transactional
+    public CadastroAlunoResposta cadastrarEVincularAluno(UUID instituicaoId, CadastroAlunoRequisicao requisicao) {
+        Conta instituicao = carregarInstituicaoParaAtualizacao(instituicaoId);
+        ContratoInstitucional contrato = contratos.buscarAtivoParaVinculacao(
+                        requisicao.contratoId(), instituicao.getId())
+                .orElseThrow(ServicoVinculoInstitucional::contratoNaoEncontrado);
+        if (vinculos.countByContratoIdAndSituacao(contrato.getId(), VINCULO_ATIVO)
+                >= contrato.getQuantidadeVagas()) {
+            throw capacidadeEsgotada();
+        }
+
+        ContratoIdentidade.ContaResposta aluno = identidade.cadastrarAluno(
+                new ContratoIdentidade.CadastroAlunoRequisicao(
+                        requisicao.nome(), requisicao.email(), requisicao.cpf(), requisicao.telefone(),
+                        requisicao.endereco(), requisicao.senha()));
+        CriacaoVinculoResposta vinculacao = criarVinculo(instituicao.getId(), contrato.getId(), aluno.id());
+        return new CadastroAlunoResposta(
+                new ContratoIdentidade.ContaResposta(aluno.id(), aluno.tipoConta(), aluno.email(), aluno.nome(),
+                        null, aluno.cpf(), aluno.telefone(), aluno.endereco(), instituicao.getId(), null),
+                vinculacao);
     }
 
     private CriacaoVinculoResposta criarVinculo(UUID instituicaoId, UUID contratoId, UUID contaAlunoId) {
@@ -107,6 +146,11 @@ public class ServicoVinculoInstitucional {
             }
             throw excecao;
         }
+        PerfilAluno perfil = perfisAlunos.findByContaId(aluno.getId())
+                .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
+        perfil.atualizarInstituicao(instituicao.getId(), agora);
+        perfisAlunos.save(perfil);
+        vinculos.registrarAuditoria(instituicaoId, "VINCULO_ALUNO_CRIADO", contratoId, vinculo.getId(), aluno.getId());
         VinculoInstitucionalResumo resumo = vinculos
                 .buscarResumoAtivoDaInstituicao(vinculo.getId(), instituicao.getId())
                 .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
@@ -131,6 +175,13 @@ public class ServicoVinculoInstitucional {
                 .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
         vinculo.encerrar(Instant.now());
         vinculos.save(vinculo);
+        vinculos.registrarAuditoria(instituicaoId, "VINCULO_ALUNO_REMOVIDO", contrato.getId(), vinculoId, vinculo.getContaAlunoId());
+        PerfilAluno perfilAluno = perfisAlunos.findByContaId(vinculo.getContaAlunoId())
+                .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
+        if (instituicao.getId().equals(perfilAluno.getObjetoInstituicao())) {
+            perfilAluno.atualizarInstituicao(null, Instant.now());
+            perfisAlunos.save(perfilAluno);
+        }
     }
 
     private Conta carregarInstituicaoParaAtualizacao(UUID instituicaoId) {

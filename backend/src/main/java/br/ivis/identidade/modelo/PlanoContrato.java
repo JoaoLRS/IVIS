@@ -14,6 +14,7 @@ public class PlanoContrato {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
     @Column(nullable = false, length = 20)

@@ -21,6 +21,7 @@ import br.ivis.identidade.dto.ContratoInstitucionalResposta;
 import br.ivis.identidade.dto.VinculoInstitucionalResumo;
 import br.ivis.identidade.modelo.Conta;
 import br.ivis.identidade.modelo.ContratoInstitucional;
+import br.ivis.identidade.modelo.PerfilAluno;
 import br.ivis.identidade.modelo.VinculoInstitucional;
 import br.ivis.identidade.repositorio.ContaRepositorio;
 import br.ivis.identidade.repositorio.ContratoInstitucionalRepositorio;
@@ -40,6 +41,7 @@ class ServicoVinculoInstitucionalTest {
     private UUID contratoId;
     private Conta instituicao;
     private Conta aluno;
+    private PerfilAluno perfilAluno;
     private ContratoInstitucional contrato;
 
     @BeforeEach
@@ -57,6 +59,7 @@ class ServicoVinculoInstitucionalTest {
         instituicao = new Conta(instituicaoId, "INSTITUICAO", "org@example.com",
                 "org@example.com", "hash", agora);
         aluno = new Conta(alunoId, "ALUNO", "aluno@example.com", "aluno@example.com", "hash", agora);
+        perfilAluno = new PerfilAluno(alunoId, "Aluno", agora);
         contrato = contratoAtivo(2);
     }
 
@@ -66,6 +69,7 @@ class ServicoVinculoInstitucionalTest {
         when(contratos.buscarAtivoParaVinculacao(contratoId, instituicaoId)).thenReturn(Optional.of(contrato));
         when(contas.buscarPorIdParaAtualizacao(alunoId)).thenReturn(Optional.of(aluno));
         when(perfis.existsById(alunoId)).thenReturn(true);
+        when(perfis.findByContaId(alunoId)).thenReturn(Optional.of(perfilAluno));
         when(vinculos.existsByContaAlunoIdAndSituacao(alunoId, "ATIVO")).thenReturn(false);
         when(vinculos.countByContratoIdAndSituacao(contratoId, "ATIVO")).thenReturn(1L, 2L);
         when(vinculos.saveAndFlush(any(VinculoInstitucional.class)))

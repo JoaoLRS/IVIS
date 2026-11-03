@@ -1,0 +1,33 @@
+{
+  "name": "ivis",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup:inicial": "npm install && npm --prefix frontend install && npm --prefix cypress/e2e install",
+    "deps:check": "node ./verificar-dependencias.mjs",
+    "deps:audit": "knip",
+    "testar:e2e": "npm --prefix cypress/e2e run testar:e2e"
+  },
+  "devDependencies": {
+    "knip": "^6.39.0"
+  },
+  "knip": {
+    "workspaces": {
+      ".": {
+        "entry": ["verificar-dependencias.mjs"],
+        "project": ["*.mjs"],
+        "ignoreBinaries": ["docker", "gradle", "java", "node", "npm", "npx", "py", "python", "python3"]
+      },
+      "cypress/e2e": {
+        "entry": ["**/*.cy.{js,ts}", "cypress.config.ts"],
+        "project": ["**/*.{js,ts}"],
+        "ignoreBinaries": ["taskkill"]
+      },
+      "frontend": {
+        "entry": ["src/**/*.{ts,vue}"],
+        "project": ["src/**/*.{ts,vue}"]
+      }
+    }
+  }
+}

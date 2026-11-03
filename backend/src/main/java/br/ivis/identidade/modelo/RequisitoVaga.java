@@ -14,9 +14,10 @@ public class RequisitoVaga {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "vaga_interesse_id", nullable = false)
+    @Column(name = "codigo_objeto_vagas_interesse", nullable = false)
     private UUID vagaInteresseId;
 
     @Column(name = "texto_requisito", nullable = false, length = 500)

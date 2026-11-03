@@ -33,8 +33,11 @@ def test_readiness_do_stub_nao_expoe_configuracoes() -> None:
     assert CHAVE_TESTE not in resposta.text
 
 
-def test_readiness_indisponivel_quando_stub_desativado() -> None:
+def test_readiness_indisponivel_quando_stub_e_provedor_real_estao_desativados(
+    monkeypatch,
+) -> None:
     config.configuracoes.usar_stub = False
+    monkeypatch.setattr(config.configuracoes, "chave_nvidia", None)
 
     resposta = cliente.get("/pronto")
 
@@ -43,6 +46,21 @@ def test_readiness_indisponivel_quando_stub_desativado() -> None:
         "codigo": "provedor_indisponivel",
         "mensagem": "O provedor ativo não está disponível.",
     }
+
+
+def test_readiness_disponivel_com_provedor_real_configurado(monkeypatch) -> None:
+    config.configuracoes.usar_stub = False
+    monkeypatch.setattr(
+        config.configuracoes,
+        "chave_nvidia",
+        SecretStr("chave-nvidia-de-teste"),
+    )
+
+    resposta = cliente.get("/pronto")
+
+    assert resposta.status_code == 200
+    assert resposta.json() == {"situacao": "PRONTO"}
+    assert "chave-nvidia-de-teste" not in resposta.text
 
 
 def test_readiness_indisponivel_quando_falha_stub_configurada() -> None:

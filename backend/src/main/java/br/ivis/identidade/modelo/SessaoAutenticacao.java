@@ -15,9 +15,10 @@ public class SessaoAutenticacao {
     }
 
     @Id
+    @Column(name = "objeto")
     private UUID id;
 
-    @Column(name = "conta_id", nullable = false)
+    @Column(name = "codigo_objeto_contas", nullable = false)
     private UUID contaId;
 
     @Column(name = "hash_token_renovacao", nullable = false, unique = true, length = 255)
@@ -29,7 +30,7 @@ public class SessaoAutenticacao {
     @Column(name = "revogada_em")
     private Instant revogadaEm;
 
-    @Column(name = "substituida_por_id")
+    @Column(name = "codigo_objeto_sessoes_autenticacao")
     private UUID substituidaPorId;
 
     @Column(name = "criado_em", nullable = false)

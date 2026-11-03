@@ -9,4 +9,6 @@ import br.ivis.identidade.modelo.PerfilInstituicao;
 public interface PerfilInstituicaoRepositorio extends JpaRepository<PerfilInstituicao, UUID> {
 
     Optional<PerfilInstituicao> findByContaId(UUID contaId);
+
+    boolean existsByCnpj(String cnpj);
 }

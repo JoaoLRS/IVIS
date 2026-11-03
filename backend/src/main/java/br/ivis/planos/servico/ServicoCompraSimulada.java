@@ -62,30 +62,30 @@ public class ServicoCompraSimulada {
         Instant expiraEm = aprovada ? agora.plusSeconds(oferta.duracaoDias() * 86_400L) : agora;
         UUID contratoId = banco.queryForObject("""
                 insert into contratos (
-                    conta_titular_id, plano_id, situacao, quantidade_vagas,
+                    codigo_objeto_contas, codigo_objeto_planos, situacao, quantidade_vagas,
                     preco_centavos_contratado, moeda, iniciado_em, expira_em, encerrado_em
                 ) values (?, ?, 'PENDENTE', ?, ?, ?, ?, ?, ?)
-                returning id
+                returning objeto
                 """, UUID.class, contaId, oferta.id(), oferta.vagasIncluidas(), oferta.precoCentavos(), oferta.moeda(),
                 dataJdbc(agora), dataJdbc(expiraEm), aprovada ? null : dataJdbc(agora));
         UUID pagamentoId = banco.queryForObject("""
                 insert into pagamentos (
-                    contrato_id, modo, situacao, valor_centavos, moeda, metodo,
+                    codigo_objeto_contratos, modo, situacao, valor_centavos, moeda, metodo,
                     referencia_provedor, chave_idempotencia, criado_em, atualizado_em, confirmado_em
                 ) values (?, 'SIMULADO', ?, ?, ?, 'CARTAO_TESTE', ?, ?, ?, ?, ?)
-                returning id
+                returning objeto
                 """, UUID.class, contratoId, aprovada ? "APROVADO" : "RECUSADO",
                 oferta.precoCentavos(), oferta.moeda(), "IVIS-DEMO-" + UUID.randomUUID(), chave,
                 dataJdbc(agora), dataJdbc(agora), dataJdbc(agora));
 
         banco.update("""
                 update contratos set situacao = ?, atualizado_em = ?, encerrado_em = ?
-                where id = ?
+                where objeto = ?
                 """, aprovada ? "ATIVO" : "ENCERRADO", dataJdbc(agora),
                 aprovada ? null : dataJdbc(agora), contratoId);
         banco.update("""
                 insert into eventos_auditoria (
-                    ator_conta_id, acao, resultado, tipo_recurso, recurso_id, detalhes
+                    codigo_objeto_contas, acao, resultado, tipo_recurso, codigo_objeto_contratos, detalhes
                 ) values (?, 'CONTRATACAO_PAGAMENTO_SIMULADO', ?, 'CONTRATO', ?, ?::jsonb)
                 """, contaId, aprovada ? "SUCESSO" : "FALHA", contratoId,
                 "{\"modo\":\"SIMULADO\",\"situacaoPagamento\":\""
@@ -115,7 +115,7 @@ public class ServicoCompraSimulada {
                 + "Nenhum valor foi cobrado. Este comprovante é uma mensagem fictícia armazenada no IVIS.";
         banco.update("""
                 insert into emails_simulados (
-                    id, conta_id, contrato_id, pagamento_id, destinatario, assunto, corpo, criado_em
+                    objeto, codigo_objeto_contas, codigo_objeto_contratos, codigo_objeto_pagamentos, destinatario, assunto, corpo, criado_em
                 ) values (?, ?, ?, ?, ?, ?, ?, ?)
                 """, emailId, conta.getId(), contratoId, pagamentoId,
                 conta.getEmail(), assunto, corpo, dataJdbc(agora));
@@ -124,19 +124,19 @@ public class ServicoCompraSimulada {
 
     private Resposta buscarCompraAnterior(String chave) {
         List<Resposta> resultados = banco.query("""
-                select c.id as contrato_id, pg.id as pagamento_id, p.id as plano_id,
+                select c.objeto as codigo_objeto_contratos, pg.objeto as codigo_objeto_pagamentos, p.objeto as codigo_objeto_planos,
                        p.nome as nome_plano, c.situacao as situacao_contrato,
                        pg.situacao as situacao_pagamento, pg.modo as modo_pagamento,
                        pg.valor_centavos, pg.moeda, c.expira_em,
                        e.destinatario, e.assunto, e.corpo, e.criado_em as email_criado_em
                 from pagamentos pg
-                join contratos c on c.id = pg.contrato_id
-                join planos p on p.id = c.plano_id
-                left join emails_simulados e on e.pagamento_id = pg.id
+                join contratos c on c.objeto = pg.codigo_objeto_contratos
+                join planos p on p.objeto = c.codigo_objeto_planos
+                left join emails_simulados e on e.codigo_objeto_pagamentos = pg.objeto
                 where pg.chave_idempotencia = ?
                 """, (rs, linha) -> new Resposta(
-                rs.getObject("contrato_id", UUID.class), rs.getObject("pagamento_id", UUID.class),
-                rs.getObject("plano_id", UUID.class), rs.getString("nome_plano"),
+                rs.getObject("codigo_objeto_contratos", UUID.class), rs.getObject("codigo_objeto_pagamentos", UUID.class),
+                rs.getObject("codigo_objeto_planos", UUID.class), rs.getString("nome_plano"),
                 rs.getString("situacao_contrato"), rs.getString("situacao_pagamento"),
                 rs.getString("modo_pagamento"), rs.getLong("valor_centavos"), rs.getString("moeda"),
                 rs.getTimestamp("expira_em") == null ? null : rs.getTimestamp("expira_em").toInstant(),
@@ -150,10 +150,10 @@ public class ServicoCompraSimulada {
     private OfertaCompra buscarOferta(UUID planoId) {
         try {
             return banco.queryForObject("""
-                    select id, codigo, nome, modalidade, preco_centavos, moeda, duracao_dias, vagas_incluidas
-                    from planos where id = ? and modalidade in ('INDIVIDUAL', 'INSTITUCIONAL') and ativo = true
+                    select objeto, codigo, nome, modalidade, preco_centavos, moeda, duracao_dias, vagas_incluidas
+                    from planos where objeto = ? and modalidade in ('INDIVIDUAL', 'INSTITUCIONAL') and ativo = true
                     """, (rs, linha) -> new OfertaCompra(
-                    rs.getObject("id", UUID.class), rs.getString("codigo"), rs.getString("nome"),
+                    rs.getObject("objeto", UUID.class), rs.getString("codigo"), rs.getString("nome"),
                     rs.getString("modalidade"), rs.getLong("preco_centavos"), rs.getString("moeda").trim(),
                     rs.getInt("duracao_dias"), rs.getInt("vagas_incluidas")),
                     planoId);
@@ -167,8 +167,8 @@ public class ServicoCompraSimulada {
         Boolean ativo = banco.queryForObject("""
                 select exists (
                     select 1 from vinculos_institucionais v
-                    join contratos c on c.id = v.contrato_id
-                    where v.conta_aluno_id = ? and v.situacao = 'ATIVO'
+                    join contratos c on c.objeto = v.codigo_objeto_contratos
+                    where v.codigo_objeto_perfis_aluno = ? and v.situacao = 'ATIVO'
                       and v.desvinculado_em is null and v.vinculado_em <= CURRENT_TIMESTAMP
                       and c.situacao = 'ATIVO' and c.encerrado_em is null
                       and (c.expira_em is null or c.expira_em > CURRENT_TIMESTAMP)
@@ -180,8 +180,8 @@ public class ServicoCompraSimulada {
     private boolean temContratoAtivo(UUID contaId, String modalidade) {
         Boolean ativo = banco.queryForObject("""
                 select exists (
-                    select 1 from contratos c join planos p on p.id = c.plano_id
-                    where c.conta_titular_id = ? and p.modalidade = ?
+                    select 1 from contratos c join planos p on p.objeto = c.codigo_objeto_planos
+                    where c.codigo_objeto_contas = ? and p.modalidade = ?
                       and c.situacao = 'ATIVO' and c.encerrado_em is null
                       and (c.expira_em is null or c.expira_em > CURRENT_TIMESTAMP)
                 )

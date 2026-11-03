@@ -14,6 +14,24 @@ const roteador = createRouter({
   history: createWebHistory(),
   routes: [
     {
+      path: "/redefinir-senha",
+      name: "redefinir-senha",
+      component: () => import("../paginas/RedefinirSenha.vue"),
+      meta: { layout: "autenticacao", publico: true },
+    },
+    {
+      path: "/alterar-senha",
+      name: "alterar-senha",
+      component: () => import("../paginas/AlterarSenha.vue"),
+      meta: { exigePlano: false },
+    },
+    {
+      path: "/meu-plano",
+      name: "meu-plano",
+      component: () => import("../paginas/MeuPlano.vue"),
+      meta: { exigePlano: false },
+    },
+    {
       path: "/",
       name: "apresentacao",
       component: () => import("../paginas/Apresentacao.vue"),
@@ -89,6 +107,7 @@ const roteador = createRouter({
       path: "/conta",
       name: "conta",
       component: () => import("../paginas/Conta.vue"),
+      meta: { exigePlano: false },
     },
     { path: "/:caminho(.*)*", redirect: "/" },
   ],
@@ -103,7 +122,9 @@ roteador.beforeEach(async (to) => {
   if (to.meta.publico) {
     if (autenticado && (to.name === "login" || to.name === "cadastro")) {
       return sessao.temPlano
-        ? (sessao.conta?.tipoConta === "INSTITUICAO" ? "/instituicao" : "/inicio")
+        ? sessao.conta?.tipoConta === "INSTITUICAO"
+          ? "/instituicao"
+          : "/inicio"
         : "/planos";
     }
     return true;
@@ -113,7 +134,10 @@ roteador.beforeEach(async (to) => {
     return { name: "login", query: { redirect: to.fullPath } };
   }
   if (to.meta.perfil && sessao.conta?.tipoConta !== to.meta.perfil) {
-    return { name: sessao.conta?.tipoConta === "INSTITUICAO" ? "instituicao" : "inicio" };
+    return {
+      name:
+        sessao.conta?.tipoConta === "INSTITUICAO" ? "instituicao" : "inicio",
+    };
   }
   if (to.meta.exigePlano !== false && !sessao.temPlano) {
     return { name: "planos", query: { acesso: "necessario" } };

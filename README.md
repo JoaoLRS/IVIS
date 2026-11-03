@@ -55,7 +55,7 @@ O aluno pode possuir dois perfis de acesso:
 
 ### Instituição de Ensino
 
-Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às vagas contratadas.
+Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às Vadas de alunos .
 
 ### Sistema de IA
 
@@ -104,7 +104,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Gerenciamento de alunos vinculados;
 * Cadastro/vinculação de alunos;
 * Remoção de alunos;
-* Controle de vagas contratadas;
+* Controle de Vadas de alunos ;
 * Visualização de vagas utilizadas e disponíveis;
 * Diferenciação entre alunos de consórcio e alunos pagantes.
 
@@ -137,7 +137,7 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 | RF15 | Processamento de pagamentos via gateway | Processar a contratação. Para a apresentação acadêmica, usar o simulador de pagamento controlado pelo backend, sem cobrança real; ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
 | RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos dentro do limite do plano institucional. |
 | RF17 | Controle de acesso por tipo de aluno | Aplicar acesso conforme o plano individual ou o vínculo institucional. |
-| RF18 | Controle de vagas do plano institucional | Exibir vagas contratadas, utilizadas e disponíveis. |
+| RF18 | Controle de vagas do plano institucional | Exibir Vadas de alunos , utilizadas e disponíveis. |
 | RF19 | Restrição de contratação para AlunoConsórcio | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
 | RF20 | Registro de logs de auditoria | Registrar ações sensíveis com responsável e data/hora, protegendo os registros contra alteração indevida. |
 
@@ -167,25 +167,25 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 
 ## 🧩 Casos de Uso
 
-O sistema está estruturado em casos de uso que representam as principais interações entre os atores e o IVIS.
+As especificações detalhadas, com fluxos principais, exceções, estado de implementação e diagrama de ações do ator, estão nos [documentos CDU](etc/cdu/IVIS_Casos_de_Uso.md).
 
-| ID   | Caso de Uso                       |
-| ---- | --------------------------------- |
-| UC01 | Criar Conta                       |
-| UC02 | Fazer Login                       |
-| UC03 | Gerenciar Perfil e Habilidades    |
-| UC04 | Gerenciar Vaga de Interesse       |
-| UC05 | Iniciar Treinamento               |
-| UC06 | Responder Perguntas da Entrevista |
-| UC07 | Receber Feedback da Entrevista    |
-| UC08 | Consultar Histórico de Treinos    |
-| UC09 | Visualizar Home com Planos        |
-| UC10 | Contratar Plano                   |
-| UC11 | Gerenciar Alunos Vinculados       |
-| UC12 | Efetuar Pagamento                 |
-| UC13 | Gerenciar Dados da Conta          |
-
----
+| ID | Caso de Uso |
+| --- | --- |
+| CDU-01 | Acesso IVIS (criar conta e fazer login) |
+| CDU-02 | Gerenciar dados da conta |
+| CDU-03 | Gerenciar habilidades |
+| CDU-04 | Recuperar acesso |
+| CDU-05 | Consultar plano vigente |
+| CDU-06 | Gerenciar vaga de interesse |
+| CDU-07 | Realizar treinamento e receber feedback |
+| CDU-08 | Consultar histórico de treinos |
+| CDU-09 | Visualizar planos disponíveis |
+| CDU-10 | Contratar plano individual |
+| CDU-11 | Contratar plano institucional |
+| CDU-12 | Efetuar pagamento |
+| CDU-13 | Gerenciar alunos vinculados |
+| CDU-14 | Aplicar acesso conforme modalidade |
+| CDU-15 | Registrar auditoria de operações sensíveis |
 
 ## 📖 Histórias de Usuário
 
@@ -314,6 +314,24 @@ etc/
 Esse documento contém a especificação inicial de visão, escopo, stakeholders, atores, casos de uso, histórias de usuário, requisitos e prototipação.
 
 A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10) está em `etc/plano/Ordem_de_Entrega_MVP.md`.
+
+## Verificação de dependências
+
+Para conferir as ferramentas e dependências locais do frontend, backend e API de IA,
+execute na raiz do repositório:
+
+```bash
+node verificar-dependencias.mjs
+```
+
+O verificador lista o que estiver ausente ou incompatível e mostra os comandos de
+instalação correspondentes. Ele não instala pacotes automaticamente. Também pode
+ser chamado de dentro da raiz por `npm run deps:check`. Para revisar se os
+pacotes declarados estão usados e se os imports estão declarados, use
+`npm run deps:audit`. A instalação inicial dos pacotes JavaScript roda com
+`npm run setup:inicial`; o Cypress pertence ao pacote `cypress/e2e`.
+Execute `npm run testar:e2e` para gerar os vídeos em `cypress/downloads`;
+o modo interativo `cypress open` não grava vídeos automaticamente.
 
 ## 🤖 API de IA
 

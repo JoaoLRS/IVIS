@@ -7,7 +7,12 @@ export interface ContaAutenticada {
   tipoConta: "ALUNO" | "INSTITUICAO";
   email: string;
   nome: string;
-  nomeAdministrador?: string | null;
+  nomeResponsavel?: string | null;
+  cpf?: string | null;
+  cnpj?: string | null;
+  telefone?: string | null;
+  endereco?: string | null;
+  objetoInstituicao?: string | null;
 }
 
 interface SessaoResposta {
@@ -85,6 +90,9 @@ export const useEstadoSessao = defineStore("sessao", () => {
   async function cadastrarAluno(dados: {
     nome: string;
     email: string;
+    cpf: string;
+    telefone: string;
+    endereco: string;
     senha: string;
   }) {
     const csrf = await tokenCsrf();
@@ -96,10 +104,13 @@ export const useEstadoSessao = defineStore("sessao", () => {
   }
 
   async function cadastrarInstituicao(dados: {
-    nomeAdministrador: string;
-    razaoSocial: string;
+    nomeResponsavel: string;
+    nomeInstituicao: string;
     email: string;
     senha: string;
+    cnpj: string;
+    telefone: string;
+    endereco: string;
   }) {
     const csrf = await tokenCsrf();
     await clienteHttp.post("/v1/contas/instituicoes", dados, {
