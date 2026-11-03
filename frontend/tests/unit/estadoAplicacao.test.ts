@@ -5,7 +5,7 @@ import {
   salvarTreino,
   type TreinoPersistido,
 } from "../../src/servicos/historico";
-import { gerarAvaliacao, gerarPergunta } from "../../src/servicos/treinos";
+import { gerarPergunta } from "../../src/servicos/treinos";
 import { useEstadoAplicacao } from "../../src/estados/estadoAplicacao";
 import {
   listarHabilidades,
@@ -21,7 +21,6 @@ vi.mock("../../src/servicos/perfilAluno", () => ({
   listarVagas: vi.fn(),
 }));
 vi.mock("../../src/servicos/treinos", () => ({
-  gerarAvaliacao: vi.fn(),
   gerarPergunta: vi.fn(),
 }));
 
@@ -35,7 +34,6 @@ describe("estado da aplicação", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.mocked(gerarPergunta).mockReset();
-    vi.mocked(gerarAvaliacao).mockReset();
     vi.mocked(salvarTreino).mockReset();
     vi.mocked(listarHistorico).mockReset();
     vi.mocked(listarHabilidades).mockReset();
@@ -110,6 +108,10 @@ describe("estado da aplicação", () => {
       data: "2026-11-02T12:00:00Z",
       pontosFortes: [],
       pontosMelhoria: [],
+      avaliacaoQualitativa: false,
+      nivelConfianca: "BAIXA",
+      limitacoes: "",
+      avaliacoesPorPergunta: [],
     }]);
     await carregamento;
 
@@ -171,19 +173,12 @@ describe("estado da aplicação", () => {
     );
   });
 
-  it("avalia, persiste e adiciona o treino concluído ao histórico", async () => {
+  it("persiste e adiciona ao histórico o treino concluído pelo backend", async () => {
     const estado = useEstadoAplicacao();
     vi.mocked(gerarPergunta)
       .mockResolvedValueOnce(perguntaGerada("Pergunta 1"))
       .mockResolvedValueOnce(perguntaGerada("Pergunta 2"))
       .mockResolvedValueOnce(perguntaGerada("Pergunta 3"));
-    vi.mocked(gerarAvaliacao).mockResolvedValue({
-      nota: 88,
-      pontos_fortes: ["Boa comunicação"],
-      pontos_melhoria: ["Detalhar alternativas"],
-      versao_modelo: "stub-1",
-      versao_prompt: "avaliacao-1",
-    });
     vi.mocked(salvarTreino).mockResolvedValue({
       id: "treino-1",
       titulo: "Entrevista por habilidades",
@@ -192,6 +187,10 @@ describe("estado da aplicação", () => {
       data: "2026-11-02T12:00:00Z",
       pontosFortes: ["Boa comunicação"],
       pontosMelhoria: ["Detalhar alternativas"],
+      avaliacaoQualitativa: true,
+      nivelConfianca: "MEDIA",
+      limitacoes: "",
+      avaliacoesPorPergunta: [],
     });
 
     await estado.iniciarTreino();
@@ -199,18 +198,11 @@ describe("estado da aplicação", () => {
     await estado.responder("Resposta 2");
     await estado.responder("Resposta 3");
 
-    const contextoEsperado = {
-      tipo_contexto: "HABILIDADES",
-      habilidades: [],
-      vaga: null,
-      interacoes: [
-        { numero: 1, pergunta: "Pergunta 1", resposta: "Resposta 1" },
-        { numero: 2, pergunta: "Pergunta 2", resposta: "Resposta 2" },
-        { numero: 3, pergunta: "Pergunta 3", resposta: "Resposta 3" },
-      ],
-    };
-    expect(gerarAvaliacao).toHaveBeenCalledWith(contextoEsperado);
-    expect(estado.avaliacaoPendente?.nota).toBe(88);
+    const interacoes = [
+      { numero: 1, pergunta: "Pergunta 1", resposta: "Resposta 1" },
+      { numero: 2, pergunta: "Pergunta 2", resposta: "Resposta 2" },
+      { numero: 3, pergunta: "Pergunta 3", resposta: "Resposta 3" },
+    ];
 
     await estado.concluirTreino();
 
@@ -219,7 +211,7 @@ describe("estado da aplicação", () => {
       vagaId: null,
       contexto: "Habilidades: nenhuma habilidade cadastrada",
       habilidades: [],
-      interacoes: contextoEsperado.interacoes,
+      interacoes,
     });
     expect(estado.historico[0]).toMatchObject({
       id: "treino-1",
