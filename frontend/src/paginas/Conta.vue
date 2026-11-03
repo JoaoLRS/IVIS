@@ -58,76 +58,199 @@ async function salvar() {
     endereco.value = conta.endereco ?? "";
     salvo.value = true;
   } catch (falha) {
-    const resposta = (falha as { response?: { data?: { mensagem?: string } } }).response;
-    erro.value = resposta?.data?.mensagem ?? "Não foi possível salvar os dados da conta.";
+    const resposta = (falha as { response?: { data?: { mensagem?: string } } })
+      .response;
+    erro.value =
+      resposta?.data?.mensagem ?? "Não foi possível salvar os dados da conta.";
   }
 }
 </script>
 
 <template>
-  <CabecalhoPagina
-    :eyebrow="sessao.conta?.tipoConta === 'INSTITUICAO' ? 'CONTA DA INSTITUIÇÃO' : 'CONTA DO ALUNO'"
-    :titulo="sessao.conta?.tipoConta === 'INSTITUICAO' ? 'Editar dados da instituição' : 'Editar dados do aluno'"
-    descricao="Atualize os dados persistidos da sua conta."
-  />
+  <div class="account-page">
+    <CabecalhoPagina
+      :eyebrow="
+        sessao.conta?.tipoConta === 'INSTITUICAO'
+          ? 'CONTA DA INSTITUIÇÃO'
+          : 'CONTA DO ALUNO'
+      "
+      :titulo="
+        sessao.conta?.tipoConta === 'INSTITUICAO'
+          ? 'Editar dados da instituição'
+          : 'Editar dados do aluno'
+      "
+      descricao="Atualize os dados persistidos da sua conta."
+    />
 
-  <section class="card account-edit-card">
-    <form class="card-body" @submit.prevent="salvar">
-      <div v-if="sessao.conta?.tipoConta === 'INSTITUICAO'" class="mb-3">
-        <label class="form-label" for="nome-responsavel">Nome do responsável</label>
-        <input id="nome-responsavel" v-model="nomeResponsavel" class="form-control" autocomplete="name" required />
+    <section class="card account-edit-card">
+      <form class="card-body" @submit.prevent="salvar">
+        <div v-if="sessao.conta?.tipoConta === 'INSTITUICAO'" class="mb-3">
+          <label class="form-label" for="nome-responsavel"
+            >Nome do responsável</label
+          >
+          <input
+            id="nome-responsavel"
+            v-model="nomeResponsavel"
+            class="form-control"
+            autocomplete="name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="nome-conta">{{
+            sessao.conta?.tipoConta === "INSTITUICAO"
+              ? "Nome da instituição"
+              : "Nome"
+          }}</label>
+          <input
+            id="nome-conta"
+            v-model="nome"
+            class="form-control"
+            autocomplete="name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="email-conta">E-mail</label>
+          <input
+            id="email-conta"
+            v-model="email"
+            class="form-control"
+            type="email"
+            autocomplete="email"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label
+            class="form-label"
+            :for="
+              sessao.conta?.tipoConta === 'INSTITUICAO'
+                ? 'cnpj-conta'
+                : 'cpf-conta'
+            "
+          >
+            {{ sessao.conta?.tipoConta === "INSTITUICAO" ? "CNPJ" : "CPF" }}
+          </label>
+          <input
+            v-if="sessao.conta?.tipoConta === 'INSTITUICAO'"
+            id="cnpj-conta"
+            v-model="cnpj"
+            class="form-control"
+            inputmode="numeric"
+            maxlength="18"
+            required
+          />
+          <input
+            v-else
+            id="cpf-conta"
+            v-model="cpf"
+            class="form-control"
+            inputmode="numeric"
+            maxlength="14"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="telefone-conta">Telefone</label>
+          <input
+            id="telefone-conta"
+            v-model="telefone"
+            class="form-control"
+            type="tel"
+            autocomplete="tel"
+            maxlength="30"
+            required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="form-label" for="endereco-conta">Endereço</label>
+          <input
+            id="endereco-conta"
+            v-model="endereco"
+            class="form-control"
+            autocomplete="street-address"
+            maxlength="500"
+            required
+          />
+        </div>
+        <div v-if="sessao.conta?.tipoConta === 'ALUNO'" class="mb-4">
+          <label class="form-label" for="instituicao-conta"
+            >Código do objeto da instituição vinculada</label
+          >
+          <input
+            id="instituicao-conta"
+            class="form-control"
+            :value="
+              sessao.conta.objetoInstituicao || 'Sem instituição vinculada'
+            "
+            readonly
+          />
+        </div>
+        <p v-if="erro" class="alert alert-danger" role="alert">{{ erro }}</p>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-primary" type="submit">
+            Salvar alterações
+          </button>
+          <span v-if="salvo" class="text-success small" role="status"
+            >Dados atualizados.</span
+          >
+        </div>
+      </form>
+    </section>
+    <section class="card account-security-card mt-4">
+      <div class="card-body">
+        <div>
+          <span class="eyebrow">SEGURANÇA</span>
+          <h2>Senha e acesso</h2>
+          <p>Altere sua senha em uma página dedicada.</p>
+        </div>
+        <RouterLink class="btn btn-outline-secondary" to="/alterar-senha">
+          Alterar senha
+        </RouterLink>
       </div>
-      <div class="mb-3">
-        <label class="form-label" for="nome-conta">{{ sessao.conta?.tipoConta === 'INSTITUICAO' ? 'Nome da instituição' : 'Nome' }}</label>
-        <input id="nome-conta" v-model="nome" class="form-control" autocomplete="name" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label" for="email-conta">E-mail</label>
-        <input id="email-conta" v-model="email" class="form-control" type="email" autocomplete="email" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label" :for="sessao.conta?.tipoConta === 'INSTITUICAO' ? 'cnpj-conta' : 'cpf-conta'">
-          {{ sessao.conta?.tipoConta === 'INSTITUICAO' ? 'CNPJ' : 'CPF' }}
-        </label>
-        <input
-          v-if="sessao.conta?.tipoConta === 'INSTITUICAO'"
-          id="cnpj-conta"
-          v-model="cnpj"
-          class="form-control"
-          inputmode="numeric"
-          maxlength="18"
-          required
-        />
-        <input v-else id="cpf-conta" v-model="cpf" class="form-control" inputmode="numeric" maxlength="14" required />
-      </div>
-      <div class="mb-3">
-        <label class="form-label" for="telefone-conta">Telefone</label>
-        <input id="telefone-conta" v-model="telefone" class="form-control" type="tel" autocomplete="tel" maxlength="30" required />
-      </div>
-      <div class="mb-4">
-        <label class="form-label" for="endereco-conta">Endereço</label>
-        <input id="endereco-conta" v-model="endereco" class="form-control" autocomplete="street-address" maxlength="500" required />
-      </div>
-      <div v-if="sessao.conta?.tipoConta === 'ALUNO'" class="mb-4">
-        <label class="form-label" for="instituicao-conta">Código do objeto da instituição vinculada</label>
-        <input
-          id="instituicao-conta"
-          class="form-control"
-          :value="sessao.conta.objetoInstituicao || 'Sem instituição vinculada'"
-          readonly
-        />
-      </div>
-      <p v-if="erro" class="alert alert-danger" role="alert">{{ erro }}</p>
-      <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-primary" type="submit">Salvar alterações</button>
-        <span v-if="salvo" class="text-success small" role="status">Dados atualizados.</span>
-      </div>
-    </form>
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped>
+.account-page {
+  max-width: 980px;
+}
+
 .account-edit-card {
-  max-width: 680px;
+  max-width: 860px;
+  background: #fff;
+}
+
+.account-security-card {
+  max-width: 860px;
+  background: #fff;
+}
+
+.account-security-card .card-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-security-card h2 {
+  margin: 6px 0;
+  color: #292a35;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.account-security-card p {
+  margin: 0;
+  color: #626477;
+}
+
+@media (max-width: 575.98px) {
+  .account-security-card .card-body {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 </style>

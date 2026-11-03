@@ -55,7 +55,7 @@ O aluno pode possuir dois perfis de acesso:
 
 ### Instituição de Ensino
 
-Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às vagas contratadas.
+Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às Vadas de alunos .
 
 ### Sistema de IA
 
@@ -104,7 +104,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Gerenciamento de alunos vinculados;
 * Cadastro/vinculação de alunos;
 * Remoção de alunos;
-* Controle de vagas contratadas;
+* Controle de Vadas de alunos ;
 * Visualização de vagas utilizadas e disponíveis;
 * Diferenciação entre alunos de consórcio e alunos pagantes.
 
@@ -137,7 +137,7 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 | RF15 | Processamento de pagamentos via gateway | Processar a contratação. Para a apresentação acadêmica, usar o simulador de pagamento controlado pelo backend, sem cobrança real; ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
 | RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos dentro do limite do plano institucional. |
 | RF17 | Controle de acesso por tipo de aluno | Aplicar acesso conforme o plano individual ou o vínculo institucional. |
-| RF18 | Controle de vagas do plano institucional | Exibir vagas contratadas, utilizadas e disponíveis. |
+| RF18 | Controle de vagas do plano institucional | Exibir Vadas de alunos , utilizadas e disponíveis. |
 | RF19 | Restrição de contratação para AlunoConsórcio | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
 | RF20 | Registro de logs de auditoria | Registrar ações sensíveis com responsável e data/hora, protegendo os registros contra alteração indevida. |
 

@@ -390,7 +390,9 @@ export function selecionarVagaParaTreino(vaga) {
     .should("be.visible");
 }
 
-export function prepararTreinoComIA(vaga = null) {
+export function prepararTreinoComIA(vaga = null, { falharUmaVez = false } = {}) {
+  let perguntaFalhou = false;
+  let avaliacaoFalhou = false;
   const tituloTreino = vaga
     ? textos.historico.tituloEntrevistaVaga(vaga.titulo)
     : textos.historico.tituloEntrevistaHabilidades;
@@ -410,6 +412,11 @@ export function prepararTreinoComIA(vaga = null) {
       });
     }
     const numero = requisicao.body[camposApi.treino.numeroPergunta];
+    if (falharUmaVez && numero === 2 && !perguntaFalhou) {
+      perguntaFalhou = true;
+      requisicao.reply({ statusCode: 504, body: { codigo: "tempo_esgotado", mensagem: "Tempo esgotado." } });
+      return;
+    }
     requisicao.reply({
       statusCode: codigosHttp.sucesso,
       body: {
@@ -419,15 +426,19 @@ export function prepararTreinoComIA(vaga = null) {
       },
     });
   }).as(aliases.gerarPerguntaIA);
-  cy.intercept(metodosHttp.post, endpoints.iaAvaliacoes, {
-    statusCode: codigosHttp.sucesso,
-    body: {
+  cy.intercept(metodosHttp.post, endpoints.iaAvaliacoes, (requisicao) => {
+    if (falharUmaVez && !avaliacaoFalhou) {
+      avaliacaoFalhou = true;
+      requisicao.reply({ statusCode: 503, body: { codigo: "provedor_indisponivel", mensagem: "Indisponível." } });
+      return;
+    }
+    requisicao.reply({ statusCode: codigosHttp.sucesso, body: {
       nota: valoresCdu.pontuacao,
       pontos_fortes: valoresCdu.pontosFortes,
       pontos_melhoria: valoresCdu.pontosMelhoria,
       versao_modelo: valoresCdu.versaoIa,
       versao_prompt: valoresCdu.versaoPrompt,
-    },
+    }});
   }).as(aliases.avaliarTreinoIA);
   cy.intercept(metodosHttp.post, endpoints.treinosConcluidos, (requisicao) => {
     expect(requisicao.body.tipoContexto).to.eq(

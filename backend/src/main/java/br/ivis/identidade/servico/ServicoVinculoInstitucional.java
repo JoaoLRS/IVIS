@@ -150,6 +150,7 @@ public class ServicoVinculoInstitucional {
                 .orElseThrow(ServicoVinculoInstitucional::alunoNaoEncontrado);
         perfil.atualizarInstituicao(instituicao.getId(), agora);
         perfisAlunos.save(perfil);
+        vinculos.registrarAuditoria(instituicaoId, "VINCULO_ALUNO_CRIADO", contratoId, vinculo.getId(), aluno.getId());
         VinculoInstitucionalResumo resumo = vinculos
                 .buscarResumoAtivoDaInstituicao(vinculo.getId(), instituicao.getId())
                 .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
@@ -174,6 +175,7 @@ public class ServicoVinculoInstitucional {
                 .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
         vinculo.encerrar(Instant.now());
         vinculos.save(vinculo);
+        vinculos.registrarAuditoria(instituicaoId, "VINCULO_ALUNO_REMOVIDO", contrato.getId(), vinculoId, vinculo.getContaAlunoId());
         PerfilAluno perfilAluno = perfisAlunos.findByContaId(vinculo.getContaAlunoId())
                 .orElseThrow(ServicoVinculoInstitucional::vinculoNaoEncontrado);
         if (instituicao.getId().equals(perfilAluno.getObjetoInstituicao())) {

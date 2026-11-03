@@ -1,3 +1,4 @@
+import { abrirTrocaDeSenha, informarSenhasDaConta, confirmarTrocaDeSenha, conferirSenhaAlterada } from "../funcoes/acesso-cdu.js";
 import {
   abrirContaDoAlunoVinculado,
   prepararEdicaoDaContaDoAluno,
@@ -21,6 +22,12 @@ import {
 } from "../funcoes/conta-cdu.js";
 
 describe("CDU-02 - Gerenciar dados da conta", () => {
+  it("abre a página de senha, altera a credencial e limpa os campos sensíveis", () => {
+    abrirTrocaDeSenha();
+    informarSenhasDaConta();
+    confirmarTrocaDeSenha();
+    conferirSenhaAlterada();
+  });
   it("edita os dados pessoais do aluno e preserva o código da instituição", () => {
     abrirContaDoAlunoVinculado();
     prepararEdicaoDaContaDoAluno();

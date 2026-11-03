@@ -94,6 +94,164 @@ npm run build
 
 O resultado é gerado em `frontend/dist/`.
 
+## Instalar dependências para os testes
+
+Execute na raiz do repositório. Estes comandos instalam as dependências JavaScript e criam um ambiente Python isolado para os testes da API de IA:
+
+```powershell
+npm ci
+npm --prefix frontend ci
+npm --prefix cypress/e2e ci
+py -m venv api-ia/.venv
+& .\api-ia\.venv\Scripts\python.exe -m pip install -r api-ia/requirements.txt
+```
+
+Também é necessário ter Java 25, Gradle disponível no terminal e Docker Desktop ativo para os testes de integração do backend. Os testes Python e os testes de interface com mocks não precisam do banco; as jornadas reais Cypress usam a stack Docker.
+
+## Executar os testes e verificações
+
+Os comandos abaixo partem da raiz do repositório e usam PowerShell.
+
+### Testes da API de IA (Python/pytest)
+
+```powershell
+Push-Location .\api-ia
+& .\.venv\Scripts\python.exe -m pytest tests -q
+Pop-Location
+```
+
+Para executar um arquivo ou caso específico:
+
+```powershell
+Push-Location .\api-ia
+python -m pytest tests/test_api.py -q
+python -m pytest tests/test_provedor_nvidia.py -q
+python -m pytest tests/test_medicao.py -q
+python -m pytest tests/test_api.py::test_gerar_pergunta_retorna_resposta_deterministica -q
+Pop-Location
+```
+
+Esses testes usam o stub e provedores HTTP falsos; não chamam a NVIDIA nem precisam de uma chave real.
+
+### Testes do backend (JUnit/Gradle)
+
+Com Docker Desktop iniciado, execute a suíte unitária e de integração:
+
+```powershell
+gradle -p backend test
+```
+
+Os testes de integração usam Testcontainers e iniciam PostgreSQL. Para filtrar uma classe ou um método JUnit:
+
+```powershell
+gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest"
+gradle -p backend test --tests "br.ivis.identidade.ServicoPerfilAlunoTest"
+gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest.trocaDeSenhaExigeSenhaAtualERevogaRenovacoesAnteriores"
+```
+
+### Verificações do frontend
+
+```powershell
+npm --prefix frontend run test:unit
+npm --prefix frontend run build
+npm --prefix frontend run verificar-estilo
+```
+
+`build` também executa a verificação de tipos TypeScript/Vue. Para verificar dependências e arquivos JavaScript/TypeScript não utilizados pelo projeto:
+
+```powershell
+npm run deps:check
+npm run deps:audit
+```
+
+Os testes unitários usam Vitest e exercitam componentes Vue e o fluxo de treinamento com respostas da API simuladas. Para acompanhar os testes enquanto edita:
+
+```powershell
+npm --prefix frontend run test:unit:watch
+```
+
+### Testes Cypress de CDU com APIs simuladas
+
+Inicie o backend, o banco e a API de IA com a stack local:
+
+```powershell
+.\release.ps1 up
+```
+
+Em outro terminal, sirva o frontend atual pelo Vite em `http://localhost:5173`:
+
+```powershell
+npm --prefix frontend run dev
+```
+
+O Cypress usa `http://localhost:5173` por padrão. Use `localhost` exatamente; o backend permite essa origem CORS e não permite `127.0.0.1:5173`.
+
+Os CDUs 01–14, exceto o 15, usam respostas simuladas e não limpam o banco. Para executar todos esses cenários:
+
+```powershell
+npm run testar:e2e -- --spec "cdu/CDU-[0-1][0-4]-*.cy.js"
+```
+
+Para executar um CDU isolado ou o grupo inteiro, use o mesmo comando com outro padrão:
+
+```powershell
+npm run testar:e2e -- --spec "cdu/CDU-04-*.cy.js"
+npm run testar:e2e -- --spec "cdu/CDU-07-*.cy.js"
+npm run testar:e2e -- --spec "cdu/CDU-*.cy.js"
+```
+
+O último comando inclui o CDU-15 real. As jornadas de `caminho_feliz/` também usam backend e banco reais. **Atenção:** antes e depois de cada spec real, os hooks executam `TRUNCATE` nas tabelas transacionais do banco `ivis`. Rode esses cenários somente quando os dados do banco local puderem ser apagados; não use um banco compartilhado ou com dados que queira preservar.
+
+### Jornadas Cypress reais e CDU-15
+
+Confirme que a stack está ativa e que o banco local `ivis` contém apenas dados descartáveis. Os hooks limpam automaticamente as tabelas transacionais antes e depois das jornadas reais; não é necessária variável de ambiente:
+
+```powershell
+npm run testar:e2e -- --spec "caminho_feliz/*.cy.js"
+```
+
+Para testar a gravação da auditoria da contratação real:
+
+```powershell
+npm run testar:e2e -- --spec "cdu/CDU-15-*.cy.js"
+```
+
+Para executar a suíte Cypress completa, incluindo CDUs simulados, CDU-15 e jornadas reais:
+
+```powershell
+npm run testar:e2e
+```
+
+O Cypress recusa a limpeza se o nome do banco não for `ivis`, mas essa verificação não confirma se os dados são descartáveis. Execute as jornadas reais somente contra o banco local do Compose sem dados que queira preservar.
+
+Para abrir o Cypress em modo interativo, use a pasta do pacote:
+
+```powershell
+Set-Location .\cypress\e2e
+npx cypress open
+```
+
+No painel do Cypress, selecione o spec desejado. Para executar sem interface, os vídeos ficam em `cypress/downloads` e as capturas de falhas em `cypress/screenshots`.
+
+### Resumo para rodar todas as verificações automatizadas
+
+Depois de instalar as dependências, com Java 25 e Docker Desktop disponíveis e a stack IVIS iniciada, a sequência completa é:
+
+```powershell
+Push-Location .\api-ia
+python -m pytest tests -q
+Pop-Location
+gradle -p backend test
+npm --prefix frontend run test:unit
+npm --prefix frontend run build
+npm --prefix frontend run verificar-estilo
+npm run deps:check
+npm run deps:audit
+npm run testar:e2e
+```
+
+O último comando Cypress pode apagar os dados transacionais do banco local `ivis`; faça a execução completa somente com dados descartáveis.
+
 ## Primeiro acesso e planos demonstrativos
 
 - A raiz do site abre a apresentação pública; o acesso à área do aluno/instituição exige sessão e plano individual ativo ou vínculo institucional ativo.

@@ -23,6 +23,7 @@ import {
   prepararCaminhoFelizPerfilAluno,
   prepararCaminhoFelizPerfilInstituicao,
   prepararLoginPerfilAluno,
+  prepararVisitanteSemSessao,
   prepararLogout,
   selecionarPerfil,
   visitar,
@@ -31,6 +32,10 @@ import {
   login,
   sairDaConta,
 } from "../funcoes/funcoes.js";
+import {
+  contasIsolamentoCdu,
+  prepararAcessoEntreContas,
+} from "../funcoes/acesso-cdu.js";
 
 describe("CDU-01 - Acesso IVIS", () => {
   it("cadastra aluno com os dados obrigatórios e apresenta as ofertas", () => {
@@ -84,5 +89,54 @@ describe("CDU-01 - Acesso IVIS", () => {
       textos.areaAluno.saudacao(aluno.nome),
     );
     sairDaConta();
+  });
+
+  it("não exibe os dados da primeira conta após outra conta entrar no mesmo navegador", () => {
+    prepararAcessoEntreContas();
+
+    visitar(rotas.login, textos.tituloLogin);
+    login(
+      contasIsolamentoCdu.alunoA.email,
+      dadosTeste.senha,
+      rotas.inicioAluno,
+      textos.areaAluno.saudacao(contasIsolamentoCdu.alunoA.nome),
+    );
+    cy.wait("@historicoPorConta")
+      .its("request.headers.authorization")
+      .should("eq", `Bearer ${contasIsolamentoCdu.alunoA.id}`);
+    cy.get("summary").contains("Seu desenvolvimento").click();
+    cy.contains("a", "Histórico").click();
+    cy.contains(".history-list-row", "Treino privado da conta A").should(
+      "be.visible",
+    );
+    sairDaConta();
+
+    login(
+      contasIsolamentoCdu.alunoB.email,
+      dadosTeste.senha,
+      rotas.inicioAluno,
+      textos.areaAluno.saudacao(contasIsolamentoCdu.alunoB.nome),
+    );
+    cy.wait("@historicoPorConta")
+      .its("request.headers.authorization")
+      .should("eq", `Bearer ${contasIsolamentoCdu.alunoB.id}`);
+    cy.get("summary").contains("Seu desenvolvimento").click();
+    cy.contains("a", "Histórico").click();
+    cy.location("pathname").should("eq", rotas.historico);
+    cy.contains(".history-list-row", "Treino privado da conta B").should(
+      "be.visible",
+    );
+    cy.contains("Treino privado da conta A").should("not.exist");
+  });
+
+  it("redireciona para o login ao abrir o histórico sem sessão", () => {
+    prepararVisitanteSemSessao();
+    cy.visit(rotas.historico);
+
+    cy.location("pathname").should("eq", rotas.login);
+    cy.location("search").then((search) => {
+      expect(new URLSearchParams(search).get("redirect")).to.eq(rotas.historico);
+    });
+    cy.contains("h1", textos.tituloLogin).should("be.visible");
   });
 });

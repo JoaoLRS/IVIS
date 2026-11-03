@@ -548,7 +548,7 @@ onMounted(carregarOferta);
 }
 .checkout-card-form .form-control {
   min-height: 43px;
-  border-color: #dfe0e9;
+  border-color: #9298a7;
   border-radius: 9px;
   font-size: 13px;
   box-shadow: none;

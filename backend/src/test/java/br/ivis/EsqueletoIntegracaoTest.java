@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -514,6 +515,26 @@ class EsqueletoIntegracaoTest {
         assertEquals(204, deletarAutenticado(
                 "/v1/instituicao/vinculos/" + vinculoId, csrf, tokenInstituicaoA).statusCode());
 
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT acao,codigo_objeto_contas,ocorrido_em FROM eventos_auditoria WHERE codigo_objeto_contratos=? ORDER BY ocorrido_em")) {
+            comando.setObject(1, contratoA);
+            try (var eventos = comando.executeQuery()) {
+                assertTrue(eventos.next());
+                assertEquals("VINCULO_ALUNO_CRIADO", eventos.getString("acao"));
+                assertEquals(idConta(emailInstituicaoA), eventos.getObject("codigo_objeto_contas", UUID.class));
+                assertTrue(eventos.getTimestamp("ocorrido_em") != null);
+                assertTrue(eventos.next());
+                assertEquals("VINCULO_ALUNO_REMOVIDO", eventos.getString("acao"));
+                assertFalse(eventos.next());
+            }
+            try (var alterar = conexao.prepareStatement("UPDATE eventos_auditoria SET resultado='FALHA' WHERE codigo_objeto_contratos=?");
+                    var remover = conexao.prepareStatement("DELETE FROM eventos_auditoria WHERE codigo_objeto_contratos=?")) {
+                alterar.setObject(1, contratoA); remover.setObject(1, contratoA);
+                assertEquals("42501", assertThrows(java.sql.SQLException.class, alterar::executeUpdate).getSQLState());
+                assertEquals("42501", assertThrows(java.sql.SQLException.class, remover::executeUpdate).getSQLState());
+            }
+        }
+
         HttpResponse<String> capacidade = obterAutenticado("/v1/instituicao/resumo-vagas", tokenInstituicaoA);
         var resumo = json().readTree(capacidade.body()).get(0);
         assertEquals(1, resumo.get("quantidadeVagas").asInt());
@@ -529,6 +550,112 @@ class EsqueletoIntegracaoTest {
                 assertTrue(resultado.getTimestamp("desvinculado_em") != null);
             }
         }
+    }
+
+    @Test
+    void alunoVinculadoNaoContrataPlanoIndividual() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String aluno = "restrito-" + UUID.randomUUID() + "@exemplo.test";
+        String instituicao = "titular-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(aluno, csrf);
+        cadastrarInstituicao(instituicao, csrf);
+        UUID contrato = criarContratoInstitucional(instituicao, 1, "limite-" + UUID.randomUUID());
+        assertEquals(201, postarAutenticado("/v1/instituicao/vinculos",
+                """
+                {"contratoId":"%s","contaAlunoId":"%s"}
+                """.formatted(contrato, idConta(aluno)), csrf, autenticar(instituicao, csrf)).statusCode());
+        UUID plano;
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.createStatement();
+                var linhas = comando.executeQuery("SELECT objeto FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'")) {
+            assertTrue(linhas.next()); plano = linhas.getObject(1, UUID.class);
+        }
+        var validade = YearMonth.now(ZoneOffset.UTC).plusMonths(1);
+        var resposta = postarAutenticado("/v1/contratacoes/simuladas", """
+                {"planoId":"%s","numeroCartao":"4242424242424242","validade":"%02d/%02d","cvv":"123"}
+                """.formatted(plano, validade.getMonthValue(), validade.getYear() % 100),
+                csrf, autenticar(aluno, csrf), UUID.randomUUID().toString());
+        assertEquals(409, resposta.statusCode());
+        assertEquals("aluno_vinculado_a_instituicao", json().readTree(resposta.body()).get("codigo").asString());
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT count(*) FROM contratos WHERE codigo_objeto_contas=?")) {
+            comando.setObject(1, idConta(aluno));
+            try (var linhas = comando.executeQuery()) { linhas.next(); assertEquals(0, linhas.getInt(1)); }
+        }
+    }
+
+    @Test
+    void instituicaoNaoConsultaNemConcluiTreinoDeAluno() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "perfil-treino-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarInstituicao(email, csrf);
+        String token = autenticar(email, csrf);
+        assertEquals(403, obterAutenticado("/v1/treinos", token).statusCode());
+        assertEquals(403, postarAutenticado("/v1/treinos/concluidos", """
+                {"tipoContexto":"HABILIDADES","contexto":"Java","habilidades":["Java"],
+                 "interacoes":[{"numero":1,"pergunta":"Explique Java","resposta":"Resposta sintética"}]}
+                """, csrf, token).statusCode());
+    }
+
+    @Test
+    void historicoIgnoraContaInformadaNaUrlERetornaSomenteTreinosDoTitular() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String emailA = "historico-a-" + UUID.randomUUID() + "@exemplo.test";
+        String emailB = "historico-b-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(emailA, csrf); cadastrarAluno(emailB, csrf);
+        UUID alunoA = idConta(emailA), alunoB = idConta(emailB);
+        UUID treinoA = prepararHistorico(alunoA), treinoB = prepararHistorico(alunoB);
+        var listaA = json().readTree(obterAutenticado("/v1/treinos?contaId=" + alunoB, autenticar(emailA, csrf)).body());
+        var listaB = json().readTree(obterAutenticado("/v1/treinos", autenticar(emailB, csrf)).body());
+        assertEquals(1, listaA.size()); assertEquals(1, listaB.size());
+        assertEquals(treinoA.toString(), listaA.get(0).get("id").asString());
+        assertEquals(treinoB.toString(), listaB.get(0).get("id").asString());
+    }
+
+    private UUID prepararHistorico(UUID aluno) throws Exception {
+        UUID treino = UUID.randomUUID();
+        try (var conexao = fonteDeDados.getConnection();
+                var contrato = conexao.prepareStatement("""
+                    INSERT INTO contratos (codigo_objeto_contas,codigo_objeto_planos,situacao,preco_centavos_contratado,iniciado_em)
+                    SELECT ?,objeto,'ATIVO',preco_centavos,now() FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'
+                    """);
+                var treinamento = conexao.prepareStatement("""
+                    INSERT INTO treinamentos (objeto,codigo_objeto_perfis_aluno,tipo_contexto,situacao,contexto_registrado,finalizado_em)
+                    VALUES (?,?,'HABILIDADES','CONCLUIDO','{"descricao":"Java"}',now())
+                    """);
+                var avaliacao = conexao.prepareStatement("""
+                    INSERT INTO avaliacoes_treinamento (codigo_objeto_treinamentos,nota,versao_modelo,versao_prompt)
+                    VALUES (?,80,'sintetico','v1')
+                    """)) {
+            contrato.setObject(1, aluno); contrato.executeUpdate();
+            treinamento.setObject(1, treino); treinamento.setObject(2, aluno); treinamento.executeUpdate();
+            avaliacao.setObject(1, treino); avaliacao.executeUpdate();
+        }
+        return treino;
+    }
+
+    @Test
+    void trocaDeSenhaExigeSenhaAtualERevogaRenovacoesAnteriores() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "senha-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        String token = autenticar(email, csrf);
+        assertEquals(401, postarAutenticado("/v1/conta/senha", """
+                {"senhaAtual":"senha-incorreta","novaSenha":"nova-senha-segura-456"}
+                """, csrf, token).statusCode());
+        assertEquals(204, postarAutenticado("/v1/conta/senha", """
+                {"senhaAtual":"senha-de-teste-segura-123","novaSenha":"nova-senha-segura-456"}
+                """, csrf, token).statusCode());
+        assertEquals(401, postarComCsrf("/v1/sessoes", """
+                {"email":"%s","senha":"senha-de-teste-segura-123"}
+                """.formatted(email), csrf, null).statusCode());
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
+                "SELECT count(*) FROM sessoes_autenticacao WHERE codigo_objeto_contas=? AND revogada_em IS NULL")) {
+            comando.setObject(1, idConta(email));
+            try (var linhas = comando.executeQuery()) { linhas.next(); assertEquals(0, linhas.getInt(1)); }
+        }
+        assertEquals(200, postarComCsrf("/v1/sessoes", """
+                {"email":"%s","senha":"nova-senha-segura-456"}
+                """.formatted(email), csrf, null).statusCode());
     }
 
     private void cadastrarAluno(String email, ProtecaoCsrf csrf) throws Exception {

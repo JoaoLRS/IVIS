@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config configuracao.vite.ts --host 0.0.0.0",
-    "build": "vue-tsc --noEmit -p tsconfig.json && vite build --config configuracao.vite.ts",
+    "build": "npm run typecheck && vite build --config configuracao.vite.ts",
     "preview": "vite preview --config configuracao.vite.ts --host 0.0.0.0",
     "testar:e2e": "npm --prefix ../cypress/e2e run testar:e2e",
+    "test:unit": "vitest run --config configuracao.vitest.ts",
+    "test:unit:watch": "vitest --config configuracao.vitest.ts",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
+    "lint": "eslint --config configuracao.eslint.js src tests",
     "verificar:dependencias": "node ../verificar-dependencias.mjs",
     "formatar": "prettier --write \"src/**/*.{vue,ts}\"",
-    "verificar-estilo": "eslint --config configuracao.eslint.js src"
+    "verificar-estilo": "npm run lint"
   },
   "dependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
@@ -24,11 +28,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.18.3",
+    "@vue/test-utils": "^2.5.1",
     "eslint": "^9.35.0",
     "eslint-plugin-vue": "^10.4.0",
+    "happy-dom": "^21.0.4",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.43.0",
+    "vitest": "^4.1.12",
     "vue-tsc": "^3.0.6"
   },
   "allowScripts": {

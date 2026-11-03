@@ -11,6 +11,14 @@ import br.ivis.identidade.dto.VinculoInstitucionalResumo;
 import br.ivis.identidade.modelo.VinculoInstitucional;
 
 public interface VinculoInstitucionalRepositorio extends JpaRepository<VinculoInstitucional, UUID> {
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = """
+            INSERT INTO eventos_auditoria (codigo_objeto_contas,acao,resultado,tipo_recurso,codigo_objeto_contratos,detalhes)
+            VALUES (:ator,:acao,'SUCESSO','CONTRATO',:contrato,
+                jsonb_build_object('vinculoId',cast(:vinculo as text),'alunoId',cast(:aluno as text)))
+            """, nativeQuery = true)
+    void registrarAuditoria(@Param("ator") UUID ator, @Param("acao") String acao,
+            @Param("contrato") UUID contrato, @Param("vinculo") UUID vinculo, @Param("aluno") UUID aluno);
 
     long countByContratoIdAndSituacao(UUID contratoId, String situacao);
 

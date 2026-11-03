@@ -8,7 +8,7 @@ Estas convenções registram o padrão encontrado na suíte e a organização da
 - Executar as jornadas em `caminho_feliz/` com frontend, backend, banco e API de IA reais, sem interceptações que substituam respostas. O provedor de IA pode ser o stub configurado no serviço local.
 - As jornadas sequenciais usam `testIsolation: false` e `retries: 0`: as etapas compartilham a sessão e dependem das anteriores. Os cenários de CDU mantêm o isolamento padrão.
 - Verificar resultados visíveis e, nas jornadas reais, recarregar a página quando necessário para comprovar persistência. Evitar esperas fixas; usar asserções com repetição automática ou aliases de requisições.
-- Os hooks em `../support/e2e.js` limpam as tabelas transacionais antes e depois apenas das jornadas reais em `caminho_feliz/` e do CDU-15; os cenários com mocks não alteram o banco. A limpeza e a consulta de auditoria exigem a confirmação `IVIS_CYPRESS_LIMPAR_BANCO=1` e recusam bancos cujo nome não seja `ivis`. Usar somente o banco local descartável do Compose e executar uma suíte por vez.
+- Os hooks em `../support/e2e.js` limpam as tabelas transacionais antes e depois apenas das jornadas reais em `caminho_feliz/` e do CDU-15; os cenários com mocks não alteram o banco. A limpeza ocorre automaticamente, sem variável de confirmação, e a tarefa recusa bancos cujo nome não seja `ivis`. Usar somente o banco local descartável do Compose e executar uma suíte por vez: a limpeza apaga contas, contratos e demais dados transacionais.
 
 ## Estrutura dos cenários de CDU
 
@@ -39,12 +39,20 @@ continuam isolados e usam respostas simuladas.
 
 ## Executar a suíte
 
-Com os serviços do Docker Compose disponíveis em `http://localhost:8080` e após confirmar que o banco `ivis` é descartável, executar no PowerShell da raiz:
+O Cypress usa `http://localhost:5173`, origem permitida pelo backend e servida pelo Vite com o código-fonte atual. Inicie o frontend e mantenha os serviços reais ativos quando executar jornadas reais:
 
 ```powershell
-$env:IVIS_CYPRESS_LIMPAR_BANCO = "1"
+.\release.ps1 up
+npm --prefix frontend run dev
+```
+
+Para executar todos os specs no PowerShell da raiz:
+
+```powershell
 npm run testar:e2e
 ```
+
+Use `localhost` exatamente como configurado. O backend tem CORS restrito a `http://localhost:5173`; acessar o Vite por `127.0.0.1` ou em outra porta faz as jornadas reais falharem na criação de sessão/conta.
 
 Para repassar opções do Cypress, executar diretamente no pacote:
 

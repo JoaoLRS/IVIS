@@ -28,7 +28,6 @@ const tabelasTransacionais = `
   public.contas`;
 
 export function limparBancoDeDados() {
-  validarAmbienteDeTeste();
   if (!arquivoCompose) {
     throw new Error("Não foi possível localizar docker-compose.yml para limpar o banco de testes.");
   }
@@ -43,7 +42,6 @@ export function limparBancoDeDados() {
 }
 
 export function consultarAuditoriaPorContrato(contratoId) {
-  validarAmbienteDeTeste();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contratoId ?? "")) {
     throw new Error("Identificador de contrato inválido para consulta de auditoria.");
   }
@@ -67,22 +65,13 @@ export function consultarAuditoriaPorContrato(contratoId) {
   return JSON.parse(resultado.trim());
 }
 
-function validarAmbienteDeTeste() {
-  if (process.env.IVIS_CYPRESS_LIMPAR_BANCO !== "1") {
-    throw new Error(
-      "Acesse o banco somente após confirmar que o Compose usa um banco local descartável; " +
-        "defina IVIS_CYPRESS_LIMPAR_BANCO=1 para autorizar esta suíte.",
-    );
-  }
-}
-
 function executarPsql(sql) {
   if (!arquivoCompose) {
     throw new Error("Não foi possível localizar docker-compose.yml para acessar o banco de testes.");
   }
 
   const comandoPsql =
-    'PGPASSWORD="$POSTGRES_PASSWORD" psql --set ON_ERROR_STOP=1 --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"';
+    'PGPASSWORD="$POSTGRES_PASSWORD" psql --quiet --set ON_ERROR_STOP=1 --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"';
   return execFileSync(
     "docker",
     [

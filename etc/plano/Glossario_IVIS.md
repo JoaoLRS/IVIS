@@ -9,7 +9,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Aluno** | Pessoa que utiliza o IVIS para cadastrar habilidades e vagas de interesse, realizar treinamentos e consultar o próprio histórico. |
 | **Aluno Pagante** | Modalidade de acesso do aluno que possui um plano individual contratado diretamente. A modalidade e as permissões são determinadas pelo backend. |
 | **Aluno de Consórcio** | Modalidade de acesso do aluno que possui vínculo ativo a um contrato institucional. A instituição que administra o vínculo deriva do contrato; o aluno não define essa condição no cliente. Nos requisitos atuais também aparece o nome `AlunoConsórcio`. |
-| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às vagas contratadas. |
+| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às Vadas de alunos . |
 | **Plano individual** | Oferta contratada diretamente por um aluno para obter os benefícios e o acesso correspondentes. |
 | **Plano institucional / plano de consórcio** | Oferta contratada por uma instituição, com capacidade de vagas para vincular alunos. “Consórcio” é o nome de negócio usado nos requisitos para essa modalidade. |
 | **Contrato** | Registro da contratação de um plano por uma conta. Mantém estado, vigência e o preço acordado, preservando o histórico mesmo que o catálogo de planos mude. |

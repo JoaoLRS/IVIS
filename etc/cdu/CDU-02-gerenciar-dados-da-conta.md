@@ -20,7 +20,8 @@
 3. O usuário altera os campos e solicita salvar.
 4. O sistema valida os dados e verifica a unicidade do novo e-mail.
 5. O sistema grava a alteração na conta da sessão e confirma a atualização.
-6. Para trocar a senha, o usuário informa a senha atual e uma nova senha válida; o sistema confere a senha atual, grava o novo hash e revoga as sessões de renovação existentes.
+6. Na página Minha conta, o usuário escolhe a opção Alterar senha. Em uma página própria, informa a senha atual e uma nova senha válida; o sistema confere a senha atual, grava o novo hash e revoga as sessões de renovação existentes.
+7. Os campos de texto e senha aparecem com fundo branco e borda visível; ao receber foco, a borda destaca a área interativa.
 
 ## Fluxos alternativos e exceções
 
@@ -37,7 +38,12 @@
 
 ## Situação atual no sistema
 
-Parcial. A tela edita os campos de aluno e instituição descritos acima. O backend oferece troca segura de senha, mas falta a interface; foto/logo não estão disponíveis.
+Implementado para dados pessoais/institucionais e troca de senha. A troca de senha fica em uma página própria acessível pela tela Minha conta; o backend valida a senha atual e revoga sessões de renovação anteriores. Foto/logo não estão disponíveis.
+
+## Cobertura automatizada
+
+- `cypress/e2e/cdu/CDU-02-gerenciar-dados-da-conta.cy.js`: navegação para a página separada de senha, envio do payload de troca, limpeza dos campos após sucesso e edição dos dados de aluno/instituição com payload verificado.
+- O spec também verifica que os campos da conta e da senha têm fundo branco e borda com contraste visível. Os cenários Cypress usam respostas simuladas; persistência da alteração, validação da senha atual e revogação de sessões são cobertas pelos testes do backend.
 
 ## Diagrama de ações do ator
 
@@ -47,5 +53,6 @@ flowchart LR
     ator --> a1["Abrir minha conta"]
     ator --> a2["Consultar ou editar dados"]
     ator --> a3["Salvar alterações"]
-    ator --> a4["Solicitar troca de senha"]
+    ator --> a4["Abrir página de alteração de senha"]
+    ator --> a5["Confirmar senha atual e nova senha"]
 ```

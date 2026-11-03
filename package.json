@@ -20,7 +20,7 @@
         "ignoreBinaries": ["docker", "gradle", "java", "node", "npm", "npx", "py", "python", "python3"]
       },
       "cypress/e2e": {
-        "entry": ["**/*.cy.{js,ts}", "configuracao.cypress.ts"],
+        "entry": ["**/*.cy.{js,ts}", "cypress.config.ts"],
         "project": ["**/*.{js,ts}"],
         "ignoreBinaries": ["taskkill"]
       },

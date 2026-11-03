@@ -36,7 +36,7 @@
 
 ## Situação atual no sistema
 
-Parcial. A tela de login solicita recuperação e o backend gera e envia o token. No ambiente local, o Mailpit captura as mensagens. O backend aceita a redefinição, mas falta a tela/rota que leia o token e envie a nova senha; o fluxo não pode ser concluído pela interface.
+Implementado. A tela de login solicita recuperação e o backend gera e envia o token. No ambiente local, o Mailpit captura as mensagens. A rota pública `/redefinir-senha?token=...` recebe a nova senha, confirma sua repetição e apresenta sucesso ou erro de link inválido/expirado. O backend consome o token e revoga sessões de renovação anteriores.
 
 ## Diagrama de ações do ator
 

@@ -157,7 +157,7 @@ onMounted(carregar);
 
     <div class="institution-stats">
       <article><Users :size="20" /><span>Alunos vinculados<strong>{{ alunos.length }}</strong></span></article>
-      <article><Building2 :size="20" /><span>Vagas contratadas<strong>{{ vagasTotais }}</strong></span></article>
+      <article><Building2 :size="20" /><span>Vadas de alunos <strong>{{ vagasTotais }}</strong></span></article>
       <article><UserPlus :size="20" /><span>Vagas disponíveis<strong>{{ vagasLivres }}</strong></span></article>
     </div>
 
@@ -197,4 +197,22 @@ onMounted(carregar);
 
 <style scoped>
 .institution-page{max-width:1180px;margin:0 auto;padding:20px 0 48px;color:#282936}.institution-heading{display:flex;justify-content:space-between;align-items:end;gap:24px;margin:10px 0 26px}.institution-kicker{color:#6555dc;font-size:11px;font-weight:700;letter-spacing:1.2px}.institution-heading h1{margin:7px 0;color:#292a35;font:700 28px Manrope,sans-serif}.institution-heading p{margin:0;color:#707284;font-size:14px}.institution-admin{display:flex;align-items:center;gap:10px;padding:13px 16px;border:1px solid #e4e4ed;background:#fff}.institution-admin span{display:grid;gap:3px}.institution-admin small{color:#777988;font-size:11px}.institution-admin strong{font-size:13px}.institution-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}.institution-stats article{display:flex;align-items:center;gap:13px;padding:18px;border:1px solid #e4e4ed;background:#fff;color:#6655dc}.institution-stats span{display:grid;gap:4px;color:#707284;font-size:12px}.institution-stats strong{color:#22232f;font-size:22px}.institution-card{border:1px solid #e4e4ed;background:#fff}.institution-card>header{display:flex;justify-content:space-between;align-items:center;padding:20px 22px;border-bottom:1px solid #ededf2}.institution-card h2{margin:0;color:#292a35;font:700 18px Manrope,sans-serif}.institution-card header p{margin:5px 0 0;color:#777988;font-size:12px}.institution-refresh,.institution-remove{display:inline-flex;align-items:center;gap:7px;border:1px solid #dedde9;background:#fff;padding:9px 12px;color:#5144bf;font-size:12px;font-weight:600}.institution-add-form{display:grid;gap:8px;padding:18px 22px;border-bottom:1px solid #ededf2}.institution-add-form label{font-size:12px;font-weight:700}.institution-add-form>div{display:flex;gap:9px}.institution-add-form input{flex:1;min-width:0;height:42px;padding:0 12px;border:1px solid #dcdce7}.institution-add-form button,.institution-register-form>button{display:inline-flex;align-items:center;gap:7px;padding:0 15px;border:0;background:#604fe0;color:#fff;font-weight:600}.institution-add-form button:disabled,.institution-register-form>button:disabled{opacity:.55}.institution-add-form small{color:#777988;font-size:11px}.institution-register-form{display:grid;gap:14px;padding:20px 22px;border-bottom:1px solid #ededf2;background:#fbfbfe}.institution-register-heading h3{margin:0;color:#292a35;font:700 15px Manrope,sans-serif}.institution-register-heading p{margin:5px 0 0;color:#777988;font-size:12px}.institution-register-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.institution-register-grid label{display:grid;gap:6px;color:#444552;font-size:12px;font-weight:700}.institution-register-grid input{min-width:0;height:40px;padding:0 11px;border:1px solid #dcdce7;background:#fff;font:400 13px sans-serif}.institution-register-wide{grid-column:1/-1}.institution-register-form>button{justify-self:start;height:40px}.institution-table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:14px 18px;border-bottom:1px solid #ededf2;font-size:12px}th{color:#777988;font-weight:600}td{color:#383946}.institution-remove{color:#a13b49}.institution-empty{padding:22px;color:#777988;font-size:13px}.institution-alert{margin:14px 22px;padding:11px 13px;font-size:12px}.institution-alert.error{background:#fff0f0;color:#a13b49}.institution-alert.success{background:#ecf8ef;color:#287a49}@media(max-width:700px){.institution-heading{align-items:flex-start;flex-direction:column}.institution-stats{grid-template-columns:1fr}.institution-card>header{align-items:flex-start;gap:12px;flex-direction:column}.institution-add-form>div{align-items:stretch;flex-direction:column}.institution-add-form button{justify-content:center;height:42px}.institution-register-grid{grid-template-columns:1fr}.institution-register-wide{grid-column:auto}.institution-register-form>button{width:100%;justify-content:center}}
+  .institution-page input:not([type="radio"]):not([type="checkbox"]) {
+    background: #fff;
+    border: 1px solid #9298a7;
+    color: #292a35;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .institution-page input:not([type="radio"]):not([type="checkbox"]):hover {
+    border-color: #687084;
+  }
+
+  .institution-page input:not([type="radio"]):not([type="checkbox"]):focus {
+    border-color: #6757df;
+    box-shadow: 0 0 0 0.2rem #6757df1b;
+    outline: 0;
+  }
 </style>

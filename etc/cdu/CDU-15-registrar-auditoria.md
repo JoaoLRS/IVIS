@@ -33,7 +33,7 @@
 
 ## Situação atual no sistema
 
-Parcial. A tabela de auditoria existe e o backend registra aprovações e recusas de contratação/pagamento simulados. Inclusão, remoção e outras operações sensíveis ainda não são cobertas. Não há visualizador; a política de retenção e proteção contra alteração exigida pelo RNF09 também está pendente.
+O backend registra aprovações e recusas de contratação/pagamento simulados e inclusões/remoções de vínculos na mesma transação da operação. Os eventos incluem ator, contrato, resultado, horário e identificadores do vínculo/aluno, sem senha ou dados de cartão. A migration V8 impede UPDATE e DELETE dos eventos por comandos comuns; administradores do banco ainda precisam de controles operacionais próprios. Não há visualizador. O prazo de retenção do RNF09 permanece pendente de definição da equipe.
 
 ## Diagrama de ações do ator
 

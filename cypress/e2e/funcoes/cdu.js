@@ -834,6 +834,18 @@ export function enviarRespostaDaEntrevista() {
   cy.contains(elementos.botao, textos.treino.enviarResposta).click();
 }
 
+export function conferirRespostaPreservadaAposFalha(numero, avaliacao = false) {
+  cy.wait(aliases.aguardar(avaliacao ? aliases.avaliarTreinoIA : aliases.gerarPerguntaIA))
+    .its("response.statusCode").should("eq", avaliacao ? 503 : 504);
+  cy.contains('[role="alert"]', "Sua resposta foi mantida; tente novamente.").should("be.visible");
+  cy.get(seletores.treino.resposta).should("have.value", textos.treino.respostaDemonstracao(numero));
+  cy.get(`${aliases.aguardar(aliases.salvarTreinoConcluido)}.all`).should("have.length", 0);
+}
+
+export function reenviarRespostaPreservada() {
+  cy.contains("button", "Tentar novamente").click();
+}
+
 export function conferirProximaPerguntaDaEntrevista(numero) {
   cy.wait(aliases.aguardar(aliases.gerarPerguntaIA))
     .its(`request.body.${camposApi.treino.numeroPergunta}`)

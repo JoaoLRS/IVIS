@@ -19,9 +19,11 @@ watch(
     if (conta) {
       estado.atualizarDadosAluno({ nome: conta.nome, email: conta.email });
       if (token && conta.tipoConta === "ALUNO") {
-        void estado.carregarPerfil(token, conta.id, () => sessao.conta?.id ?? null).catch(() => {
-          // Cada tela apresenta seu próprio estado vazio se a API estiver indisponível.
-        });
+        void estado
+          .carregarPerfil(token, conta.id, () => sessao.conta?.id ?? null)
+          .catch(() => {
+            // Cada tela apresenta seu próprio estado vazio se a API estiver indisponível.
+          });
       }
     }
   },
@@ -38,6 +40,7 @@ const titulos = computed<Record<string, string>>(() => ({
     sessao.conta?.tipoConta === "INSTITUICAO"
       ? "Dados da instituição"
       : "Dados do aluno",
+  "alterar-senha": "Alterar senha",
   planos: "Planos disponíveis",
 }));
 </script>

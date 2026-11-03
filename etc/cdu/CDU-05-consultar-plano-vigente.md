@@ -33,7 +33,12 @@
 
 ## Situação atual no sistema
 
-Parcial. A API retorna contratos próprios ou por vínculo e é usada para determinar acesso após login. Falta uma página dedicada que apresente ao usuário todos os detalhes do plano vigente.
+Implementado. A API retorna contratos próprios ou por vínculo. A página `/meu-plano`, disponível no menu para aluno e instituição mesmo sem plano ativo, apresenta plano, origem, validade, benefícios e capacidade quando o usuário é titular. Essas informações ficam em um card com status vigente, blocos de validade/modalidade/capacidade e benefícios. A aplicação usa Roboto Mono em todas as páginas. Falhas permitem repetir a consulta; ausência de plano oferece acesso ao catálogo.
+
+## Cobertura automatizada
+
+- `cypress/e2e/cdu/CDU-05-consultar-plano-vigente.cy.js` verifica plano e benefícios, estado sem plano e direcionamento segundo o acesso institucional. O primeiro cenário também confere a estrutura do card e a fonte global Roboto Mono.
+- `frontend/tests/unit/paginas/MeuPlano.test.ts` cobre renderização do card, capacidade/benefícios, estado vazio e nova tentativa após falha. As respostas são simuladas; regras de titularidade e origem são verificadas no backend.
 
 ## Diagrama de ações do ator
 

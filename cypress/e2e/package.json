@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "testar:e2e": "cypress run --config-file configuracao.cypress.ts"
+    "testar:e2e": "cypress run"
   },
   "devDependencies": {
     "cypress": "^15.1.0"

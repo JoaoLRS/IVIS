@@ -14,7 +14,7 @@
 ## Fluxo principal
 
 1. A instituição abre a área de gestão institucional.
-2. O sistema apresenta alunos vinculados e, por contrato, as vagas contratadas, utilizadas e disponíveis.
+2. O sistema apresenta alunos vinculados e, por contrato, as Vadas de alunos , utilizadas e disponíveis.
 3. Para adicionar, a instituição escolhe entre informar o e-mail de uma conta de aluno existente ou preencher o cadastro de um novo aluno.
 4. O sistema verifica titularidade do contrato, vaga disponível e ausência de outro vínculo institucional ativo para o aluno.
 5. Se for um novo aluno, o sistema cria a conta e o perfil com a senha protegida por hash; se for existente, localiza a conta pelo e-mail.

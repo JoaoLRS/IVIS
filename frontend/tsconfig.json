@@ -14,7 +14,12 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "configuracao.vite.ts",
-    "../cypress/e2e/configuracao.cypress.ts"
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "configuracao.vite.ts",
+    "configuracao.vitest.ts",
+    "../cypress/e2e/cypress.config.ts"
   ]
 }
