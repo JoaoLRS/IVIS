@@ -119,7 +119,7 @@ Push-Location api-ia
 Pop-Location
 ```
 
-Para Cypress, iniciar Vite e selecionar os specs CDU simulados. A suíte completa inclui as jornadas reais e o CDU-15: preparar a stack Compose e o Vite conforme o [README do Cypress](../cypress/e2e/README.md), então executar `npm run testar:e2e`. Registrar specs, ambiente, resultado, screenshots/vídeos e referência de defeito. Não converter a existência de um spec em resultado aprovado.
+Para Cypress, a suíte usa o frontend do Compose em `http://localhost:8080`. A suíte completa inclui as jornadas reais e o CDU-15: preparar a stack Compose conforme o [README do Cypress](../cypress/e2e/README.md), então executar `npm run testar:e2e`. Registrar specs, ambiente, resultado, screenshots/vídeos e referência de defeito. Não converter a existência de um spec em resultado aprovado.
 
 **Saída proposta para o ciclo:** nenhuma falha aberta de severidade bloqueadora ou crítica nos fluxos prioritários; todos os casos executados com observado e evidência; falhas altas com decisão explícita; requisitos parciais e RNFs sem critério mensurável listados como ressalva; aceite registrado por responsável. Esta regra é proposta para revisão da equipe, não um aceite já concedido.
 

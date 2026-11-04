@@ -924,11 +924,11 @@ class FluxosAplicacaoIntegracaoTest {
     private String iniciarTreinoCruzado(ProtecaoCsrf csrf, String token) throws Exception {
         assertEquals(201, postarAutenticado("/v1/habilidades",
                 "{\"nome\":\"Java\",\"nivel\":3}", csrf, token).statusCode());
-        when(clienteIa.gerarPergunta(any())).thenAnswer(invocacao -> {
+        org.mockito.Mockito.doAnswer(invocacao -> {
             GerarPerguntaEntrada entrada = invocacao.getArgument(0);
             return new GerarPerguntaResposta(new PerguntaGerada("Pergunta " + entrada.numeroPergunta()),
                     "modelo-teste", "perguntas-v2");
-        });
+        }).when(clienteIa).gerarPergunta(any());
         var inicio = postarAutenticado("/v1/treinos", """
                 {"tipoContexto":"HABILIDADES","habilidades":["Java"]}
                 """, csrf, token);

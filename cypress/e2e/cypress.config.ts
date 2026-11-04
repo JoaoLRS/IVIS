@@ -13,7 +13,7 @@ export default defineConfig({
   responseTimeout: 30000,
   retries: { runMode: 2, openMode: 0 },
   e2e: {
-    baseUrl: "http://localhost:5173",
+    baseUrl: "http://localhost:8080",
     specPattern: "**/*.cy.{js,ts}",
     supportFile: "../support/e2e.js",
     setupNodeEvents(on) {
