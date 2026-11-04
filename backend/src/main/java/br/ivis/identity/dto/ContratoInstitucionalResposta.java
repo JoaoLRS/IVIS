@@ -4,6 +4,7 @@ import java.util.UUID;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import br.ivis.identity.dto.ContratoIdentidade.ContaResposta;
 
@@ -31,7 +32,8 @@ public final class ContratoInstitucionalResposta {
             @NotBlank @Size(min = 11, max = 18) String cpf,
             @NotBlank @Size(max = 30) String telefone,
             @NotBlank @Size(max = 500) String endereco,
-            @NotBlank @Size(min = 12, max = 128) String senha) {
+            @NotBlank @Size(min = 8, max = 128)
+            @Pattern(regexp = PoliticaSenha.EXPRESSAO, message = PoliticaSenha.MENSAGEM) String senha) {
     }
 
     public record CriacaoVinculoResposta(VinculoInstitucionalResumo vinculo, Capacidade capacidade) {

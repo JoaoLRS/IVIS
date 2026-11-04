@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from "vue";
 import { UserPlus, Users, Building2, UserRoundX, RefreshCw } from "lucide-vue-next";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import { obterTokenCsrf } from "../servicos/perfilAluno";
+import RequisitosSenha from "../componentes/RequisitosSenha.vue";
+import { senhaValida } from "../validacao/senha";
 import {
   cadastrarEVincularAluno,
   listarAlunosInstituicao,
@@ -76,6 +78,10 @@ async function cadastrarAluno() {
   if (!contratoId.value || !vagasLivres.value) return;
   erro.value = "";
   sucesso.value = "";
+  if (!senhaValida(novoAluno.value.senha)) {
+    erro.value = "A senha do aluno ainda não atende a todos os requisitos informados.";
+    return;
+  }
   if (novoAluno.value.senha !== novoAluno.value.confirmarSenha) {
     erro.value = "As senhas não coincidem. Confira e tente novamente.";
     return;
@@ -176,9 +182,10 @@ onMounted(carregar);
           <label>CPF<input v-model="novoAluno.cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required /></label>
           <label>Telefone<input v-model="novoAluno.telefone" type="tel" autocomplete="tel" maxlength="30" required /></label>
           <label class="institution-register-wide">Endereço<input v-model="novoAluno.endereco" autocomplete="street-address" maxlength="500" required /></label>
-          <label>Senha<input v-model="novoAluno.senha" type="password" autocomplete="new-password" minlength="12" maxlength="128" required /></label>
-          <label>Confirmar senha<input v-model="novoAluno.confirmarSenha" type="password" autocomplete="new-password" minlength="12" maxlength="128" required /></label>
+          <label>Senha<input v-model="novoAluno.senha" type="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="requisitos-senha-aluno" required /></label>
+          <label>Confirmar senha<input v-model="novoAluno.confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label>
         </div>
+        <RequisitosSenha id="requisitos-senha-aluno" :senha="novoAluno.senha" />
         <button type="submit" :disabled="processando || !vagasLivres"><UserPlus :size="16" /> {{ processando ? "Salvando..." : "Cadastrar e vincular" }}</button>
       </form>
       <p v-else class="institution-empty">Nenhum plano institucional ativo foi encontrado. Contrate um plano para liberar as vagas para seus alunos.</p>
