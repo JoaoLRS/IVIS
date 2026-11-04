@@ -3,6 +3,8 @@ import { ref } from "vue";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import { clienteHttp } from "../servicos/clienteHttp";
 import { obterTokenCsrf } from "../servicos/perfilAluno";
+import RequisitosSenha from "../componentes/RequisitosSenha.vue";
+import { senhaValida } from "../validacao/senha";
 
 const senhaAtual = ref("");
 const novaSenha = ref("");
@@ -15,6 +17,11 @@ async function alterarSenha() {
   if (processando.value) return;
   erro.value = "";
   mensagem.value = "";
+
+  if (!senhaValida(novaSenha.value)) {
+    erro.value = "A nova senha ainda não atende a todos os requisitos informados.";
+    return;
+  }
 
   if (novaSenha.value !== confirmacaoSenha.value) {
     erro.value = "As senhas devem ser iguais.";
@@ -63,8 +70,7 @@ async function alterarSenha() {
         <div class="password-card-heading">
           <h2>Atualize sua senha</h2>
           <p>
-            Use pelo menos 12 caracteres. A alteração encerra as renovações de
-            sessão anteriores.
+            A alteração encerra as renovações de sessão anteriores.
           </p>
         </div>
 
@@ -89,10 +95,12 @@ async function alterarSenha() {
             type="password"
             autocomplete="new-password"
             required
-            minlength="12"
+            minlength="8"
             maxlength="128"
+            aria-describedby="requisitos-nova-senha"
             class="form-control"
           />
+          <RequisitosSenha id="requisitos-nova-senha" :senha="novaSenha" />
         </div>
 
         <div class="mb-4">
@@ -105,7 +113,7 @@ async function alterarSenha() {
             type="password"
             autocomplete="new-password"
             required
-            minlength="12"
+            minlength="8"
             maxlength="128"
             class="form-control"
           />

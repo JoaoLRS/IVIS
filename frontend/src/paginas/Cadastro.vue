@@ -3,6 +3,8 @@ import { computed, ref } from "vue";
 import { GraduationCap, LogOut, School } from "lucide-vue-next";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
+import RequisitosSenha from "../componentes/RequisitosSenha.vue";
+import { senhaValida } from "../validacao/senha";
 
 type PerfilCadastro = "aluno" | "instituicao";
 
@@ -48,6 +50,10 @@ function mensagemErro(erro: unknown) {
 async function enviarCadastro() {
   mensagem.value = "";
   cadastroConcluido.value = false;
+  if (!senhaValida(senha.value)) {
+    mensagem.value = "A senha ainda não atende a todos os requisitos informados.";
+    return;
+  }
   if (senha.value !== confirmarSenha.value) {
     mensagem.value = "As senhas não coincidem. Confira e tente novamente.";
     return;
@@ -296,7 +302,9 @@ async function continuarAposCadastro() {
                 type="password"
                 placeholder="Crie uma senha"
                 autocomplete="new-password"
-                minlength="12"
+                minlength="8"
+                maxlength="128"
+                aria-describedby="requisitos-senha-cadastro"
                 required
               />
             </div>
@@ -311,11 +319,14 @@ async function continuarAposCadastro() {
                 type="password"
                 placeholder="Digite novamente"
                 autocomplete="new-password"
-                minlength="12"
+                minlength="8"
+                maxlength="128"
                 required
               />
             </div>
           </div>
+
+          <RequisitosSenha id="requisitos-senha-cadastro" :senha="senha" />
 
           <p v-if="mensagem" class="cadastro-message" role="status">
             {{ mensagem }}

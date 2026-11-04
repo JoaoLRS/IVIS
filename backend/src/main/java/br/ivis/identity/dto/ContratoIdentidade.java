@@ -2,6 +2,7 @@ package br.ivis.identity.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
@@ -16,14 +17,16 @@ public final class ContratoIdentidade {
             @NotBlank @Size(min = 11, max = 18) String cpf,
             @NotBlank @Size(max = 30) String telefone,
             @NotBlank @Size(max = 500) String endereco,
-            @NotBlank @Size(min = 12, max = 128) String senha) {
+            @NotBlank @Size(min = 8, max = 128)
+            @Pattern(regexp = PoliticaSenha.EXPRESSAO, message = PoliticaSenha.MENSAGEM) String senha) {
     }
 
     public record CadastroInstituicaoRequisicao(
             @NotBlank @Size(max = 160) String nomeResponsavel,
             @NotBlank @Size(max = 200) String nomeInstituicao,
             @NotBlank @Email @Size(max = 254) String email,
-            @NotBlank @Size(min = 12, max = 128) String senha,
+            @NotBlank @Size(min = 8, max = 128)
+            @Pattern(regexp = PoliticaSenha.EXPRESSAO, message = PoliticaSenha.MENSAGEM) String senha,
             @NotBlank @Size(min = 14, max = 18) String cnpj,
             @NotBlank @Size(max = 30) String telefone,
             @NotBlank @Size(max = 500) String endereco) {
@@ -47,7 +50,8 @@ public final class ContratoIdentidade {
 
     public record TrocaSenhaRequisicao(
             @NotBlank @Size(max = 128) String senhaAtual,
-            @NotBlank @Size(min = 12, max = 128) String novaSenha) {
+            @NotBlank @Size(min = 8, max = 128)
+            @Pattern(regexp = PoliticaSenha.EXPRESSAO, message = PoliticaSenha.MENSAGEM) String novaSenha) {
     }
 
     public record ContaResposta(
