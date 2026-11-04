@@ -191,7 +191,6 @@ As especificações detalhadas, com fluxos principais, exceções, estado de imp
 | CDU-14 | Aplicar acesso conforme modalidade |
 | CDU-15 | Registrar auditoria de operações sensíveis |
 | CDU-16 | Validar requisitos de senha |
-| CDU-17 | Limpar dados de teste de uma conta (operacional) |
 
 ## 📖 Histórias de Usuário
 
@@ -309,7 +308,9 @@ O projeto também poderá ser utilizado como objeto de **avaliação de desempen
 
 ## 📚 Documentação
 
-A documentação do projeto está organizada no diretório:
+O [plano de teste](etc/plano%20de%20teste.md) reúne escopo, rastreabilidade dos requisitos, casos prioritários, ambientes e critérios de execução e aceite.
+
+A documentação inicial do projeto está organizada no diretório:
 
 ```text
 etc/

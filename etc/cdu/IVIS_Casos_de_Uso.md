@@ -1,10 +1,10 @@
 # Casos de uso do IVIS
 
-Este diretório reúne 16 casos de uso ligados aos requisitos funcionais do IVIS e um caso operacional de limpeza de dados de teste. Os fluxos foram revisados contra o frontend Vue, o backend Spring Boot, a API de IA e as migrations presentes no repositório. Cada CDU termina com um diagrama Mermaid das ações do ator.
+Este diretório reúne 16 casos de uso ligados aos requisitos funcionais do IVIS. Os fluxos foram revisados contra o frontend Vue, o backend Spring Boot, a API de IA e as migrations presentes no repositório. Cada CDU termina com um diagrama Mermaid das ações do ator.
 
 ## Parecer sobre a pertinência
 
-Os 17 temas cobrem identidade e acesso, política de senha, preparação para entrevistas, planos individuais e institucionais, controle de acesso, rastreabilidade e limpeza operacional de dados de teste. Cadastro e login estão no CDU-01; a validação visual e a política de nova senha têm fluxo próprio no CDU-16, reutilizado por cadastro, alteração, recuperação e cadastro institucional de aluno. As especificações indicam os estados parciais para distinguir comportamento descrito do que está disponível no código.
+Os 16 temas cobrem identidade e acesso, política de senha, preparação para entrevistas, planos individuais e institucionais, controle de acesso e rastreabilidade. Cadastro e login estão no CDU-01; a validação visual e a política de nova senha têm fluxo próprio no CDU-16, reutilizado por cadastro, alteração, recuperação e cadastro institucional de aluno. As especificações indicam os estados parciais para distinguir comportamento descrito do que está disponível no código.
 
 Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVIS_Requisitos.md). O estado de implementação não representa validação de produção nem aceite do requisito.
 
@@ -51,4 +51,4 @@ Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVI
 
 Os specs CDU-01 a CDU-14 e CDU-16 simulam as respostas da API para exercitar as telas, validar mensagens, rotas, indicadores e payloads enviados. Eles não comprovam persistência, autorização no backend, auditoria nem consistência transacional. Essas regras são verificadas nos testes Java/Python e, quando dependem da integração completa, nas jornadas `caminho_feliz` e no CDU-15, que precisam do banco descartável `ivis_e2e`. A troca de senha é verificada no CDU-02 como fluxo separado de navegação, incluindo os campos visíveis e o payload; o CDU-16 verifica os indicadores visuais. Persistência e revogação de sessões pertencem aos testes do backend.
 
-A API técnica de limpeza de conta por CPF/CNPJ está documentada no CDU-17. Sua autorização, isolamento por conta e ausência em produção são verificados pelos testes de integração do backend.
+A API técnica de limpeza de dados não é um caso de uso do usuário final. Sua configuração e restrições estão no [guia do backend](../../backend/LEIA-ME.md); os testes de integração verificam autorização, isolamento por conta e ausência em produção.
