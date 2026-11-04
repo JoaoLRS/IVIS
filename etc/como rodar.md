@@ -9,7 +9,7 @@ Este guia parte da **raiz do repositório**. O caminho mais simples usa Docker p
 | Executar o sistema completo | Docker Desktop iniciado, com Docker Compose |
 | Desenvolver ou testar o frontend | Node.js 22 ou superior e npm |
 | Testar o backend fora do container | JDK 25 e Docker Desktop; o Gradle Wrapper já está no projeto |
-| Testar a API de IA fora do container | Python e `pip` |
+| Testar a API de IA fora do container | Python 3.12 ou 3.13 e `pip` |
 
 Na primeira execução, o Docker e os gerenciadores de pacotes precisam baixar imagens e dependências. **Java e Gradle locais não são necessários para subir o sistema pelo Docker.**
 
@@ -107,7 +107,7 @@ Os testes de integração usam Testcontainers para iniciar PostgreSQL. No Bash, 
 No PowerShell, crie o ambiente virtual e instale as dependências uma vez:
 
 ```powershell
-py -m venv api-ia/.venv
+py -3.12 -m venv api-ia/.venv
 & .\api-ia\.venv\Scripts\python.exe -m pip install -r api-ia/requirements.txt
 Push-Location api-ia
 & .\.venv\Scripts\python.exe -m pytest tests -q

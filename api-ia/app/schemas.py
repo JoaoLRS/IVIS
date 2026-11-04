@@ -9,7 +9,7 @@ class EsquemaBase(BaseModel):
 
 class Habilidade(EsquemaBase):
     nome: str = Field(min_length=1)
-    nivel: int
+    nivel: int = Field(ge=1, le=5)
 
 
 class Vaga(EsquemaBase):
@@ -46,6 +46,12 @@ class ContextoEntrada(EsquemaBase):
 class GerarPerguntaEntrada(ContextoEntrada):
     numero_pergunta: int = Field(ge=1)
     total_perguntas: int = Field(ge=1, le=10)
+
+    @model_validator(mode="after")
+    def validar_numero_pergunta(self) -> "GerarPerguntaEntrada":
+        if self.numero_pergunta > self.total_perguntas:
+            raise ValueError("O número da pergunta não pode superar o total.")
+        return self
 
 
 class GerarAvaliacaoEntrada(ContextoEntrada):

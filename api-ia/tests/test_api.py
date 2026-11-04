@@ -176,6 +176,55 @@ def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
     }
 
 
+def test_rota_pergunta_rejeita_texto_vazio_do_provedor(monkeypatch) -> None:
+    class ProvedorFalso:
+        async def gerar_pergunta(self, recebido):
+            return {
+                "pergunta": {"texto": ""},
+                "versao_modelo": "fake-1",
+                "versao_prompt": "fake-prompt-1",
+            }
+
+    monkeypatch.setattr(rotas, "obter_servico_ativo", lambda: ServicoIA(ProvedorFalso()))
+    resposta = cliente.post(
+        "/v1/perguntas/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "interacoes": [],
+            "numero_pergunta": 1,
+            "total_perguntas": 3,
+        },
+    )
+
+    assert resposta.status_code == 502
+    assert resposta.json()["codigo"] == "saida_invalida"
+
+
+def test_rota_rejeita_numero_de_pergunta_maior_que_total_sem_chamar_provedor(monkeypatch) -> None:
+    def provedor_inesperado():
+        raise AssertionError("Entrada inválida não deve chamar o provedor.")
+
+    monkeypatch.setattr(rotas, "obter_servico_ativo", provedor_inesperado)
+    resposta = cliente.post(
+        "/v1/perguntas/gerar",
+        headers={"X-Chave-Servico": CHAVE_TESTE},
+        json={
+            "id_correlacao": "correlacao-123",
+            "tipo_contexto": "HABILIDADES",
+            "habilidades": [{"nome": "Python", "nivel": 4}],
+            "interacoes": [],
+            "numero_pergunta": 4,
+            "total_perguntas": 3,
+        },
+    )
+
+    assert resposta.status_code == 422
+    assert resposta.json()["codigo"] == "entrada_invalida"
+
+
 def test_operacao_indisponivel_sem_chave_nvidia() -> None:
     resposta = cliente.post(
         "/v1/perguntas/gerar",
