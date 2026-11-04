@@ -20,6 +20,7 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import javax.sql.DataSource;
@@ -32,6 +33,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import br.ivis.ai.service.IaClient;
 import br.ivis.ai.dto.ContratoIa.*;
+import br.ivis.common.error.ExcecaoNegocio;
+import org.springframework.http.HttpStatus;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -39,7 +42,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 /** Sobe a aplicação inteira contra um PostgreSQL vazio (Testcontainers); exige Docker. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-class EsqueletoIntegracaoTest {
+class FluxosAplicacaoIntegracaoTest {
 
     @Container
     static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
@@ -630,6 +633,78 @@ class EsqueletoIntegracaoTest {
         assertEquals(403, postarAutenticado("/v1/treinos", """
                 {"tipoContexto":"HABILIDADES","habilidades":["Java"]}
                 """, csrf, token).statusCode());
+    }
+
+    @Test
+    void alunoSemPlanoNaoIniciaTreinoNemGravaPergunta() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "sem-plano-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        String token = autenticar(email, csrf);
+
+        var resposta = postarAutenticado("/v1/treinos",
+                "{\"tipoContexto\":\"HABILIDADES\",\"habilidades\":[\"Java\"]}", csrf, token);
+
+        assertEquals(403, resposta.statusCode(), resposta.body());
+        try (var conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement(
+                        "select count(*) from treinamentos where codigo_objeto_perfis_aluno=?")) {
+            comando.setObject(1, idConta(email));
+            try (var linhas = comando.executeQuery()) {
+                assertTrue(linhas.next());
+                assertEquals(0, linhas.getInt(1));
+            }
+        }
+    }
+
+    @Test
+    void falhaDaIaPreservaPerguntaERetentativaSalvaRespostaUmaVez() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "retentativa-treino-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        UUID aluno = idConta(email);
+        String token = autenticar(email, csrf);
+        try (var conexao = fonteDeDados.getConnection();
+                var contrato = conexao.prepareStatement("""
+                    INSERT INTO contratos (codigo_objeto_contas,codigo_objeto_planos,situacao,preco_centavos_contratado,iniciado_em)
+                    SELECT ?,objeto,'ATIVO',preco_centavos,now() FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'
+                    """)) {
+            contrato.setObject(1, aluno);
+            contrato.executeUpdate();
+        }
+        assertEquals(201, postarAutenticado("/v1/habilidades",
+                "{\"nome\":\"Java\",\"nivel\":3}", csrf, token).statusCode());
+        AtomicBoolean falhar = new AtomicBoolean(true);
+        when(clienteIa.gerarPergunta(any())).thenAnswer(invocacao -> {
+            GerarPerguntaEntrada entrada = invocacao.getArgument(0);
+            if (entrada.numeroPergunta() == 2 && falhar.getAndSet(false)) {
+                throw new ExcecaoNegocio(HttpStatus.SERVICE_UNAVAILABLE, "ia_indisponivel", "IA indisponível.");
+            }
+            return new GerarPerguntaResposta(new PerguntaGerada("Pergunta " + entrada.numeroPergunta()),
+                    "modelo-teste", "perguntas-v2");
+        });
+
+        var inicio = postarAutenticado("/v1/treinos",
+                "{\"tipoContexto\":\"HABILIDADES\",\"habilidades\":[\"Java\"]}", csrf, token);
+        assertEquals(201, inicio.statusCode(), inicio.body());
+        var sessao = json().readTree(inicio.body());
+        String treinoId = sessao.get("id").asString();
+        String perguntaId = sessao.get("perguntas").get(0).get("id").asString();
+        String caminho = "/v1/treinos/" + treinoId + "/respostas";
+        String corpo = "{\"perguntaId\":\"%s\",\"resposta\":\"Resposta preservada\"}"
+                .formatted(perguntaId);
+
+        assertEquals(503, postarAutenticado(caminho, corpo, csrf, token).statusCode());
+        var retomada = json().readTree(obterAutenticado("/v1/treinos/em-andamento", token).body());
+        assertEquals(1, retomada.get("perguntas").size());
+        assertTrue(retomada.get("perguntas").get(0).get("resposta").isNull());
+
+        var repeticao = postarAutenticado(caminho, corpo, csrf, token);
+        assertEquals(200, repeticao.statusCode(), repeticao.body());
+        var atualizada = json().readTree(repeticao.body());
+        assertEquals("Resposta preservada", atualizada.get("perguntas").get(0).get("resposta").asString());
+        assertEquals(2, atualizada.get("perguntas").size());
+        assertEquals(200, postarAutenticado(caminho, corpo, csrf, token).statusCode());
     }
 
     @Test
