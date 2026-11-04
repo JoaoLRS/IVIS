@@ -27,6 +27,17 @@ describe("página de redefinição de senha", () => {
     vi.mocked(obterTokenCsrf).mockResolvedValue("csrf-teste");
   });
 
+  it("não busca CSRF nem chama a API quando a nova senha é fraca", async () => {
+    const pagina = montarPagina("token-valido");
+    await pagina.get("#nova-senha").setValue("abcdefg1");
+    await pagina.get("#confirmar-senha").setValue("abcdefg1");
+    await pagina.get("form").trigger("submit");
+
+    expect(pagina.get('[role="alert"]').text()).toContain("requisitos");
+    expect(obterTokenCsrf).not.toHaveBeenCalled();
+    expect(clienteHttp.post).not.toHaveBeenCalled();
+  });
+
   it("bloqueia o envio quando o link não contém token", () => {
     const pagina = montarPagina("");
 

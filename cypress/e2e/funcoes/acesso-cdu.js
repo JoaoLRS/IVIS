@@ -74,6 +74,9 @@ export function prepararAcessoEntreContas() {
     statusCode: codigosHttp.sucesso,
     body: [],
   });
+  cy.intercept(metodosHttp.get, "**/api/v1/treinos/em-andamento", {
+    statusCode: codigosHttp.semConteudo,
+  });
   cy.intercept(metodosHttp.get, endpoints.treinos, (requisicao) => {
     const token = requisicao.headers.authorization?.replace(/^Bearer\s+/i, "");
     requisicao.reply({

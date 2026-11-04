@@ -45,6 +45,7 @@ public class SegurancaConfig {
                 .cors(cors -> cors.configurationSource(configuracaoCors))
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(repositorioCsrf)
+                        .ignoringRequestMatchers("/v1/ambiente/limpar-dados")
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(erros -> erros
@@ -55,6 +56,7 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/saude", "/v1/pronto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/sessoes/csrf").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/planos", "/v1/planos/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/ambiente/limpar-dados").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/v1/contas/alunos",
                                 "/v1/contas/instituicoes",

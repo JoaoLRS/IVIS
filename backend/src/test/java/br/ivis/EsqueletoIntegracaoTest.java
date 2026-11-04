@@ -74,6 +74,17 @@ class EsqueletoIntegracaoTest {
     }
 
     @Test
+    void limpezaDeDadosNaoExisteSemPerfilDeDesenvolvimentoOuHomologacao() throws Exception {
+        HttpRequest requisicao = HttpRequest.newBuilder(
+                URI.create("http://localhost:" + porta + "/api/v1/ambiente/limpar-dados"))
+                .header("Content-Type", "application/json")
+                .header("X-IVIS-Limpeza-Chave", "chave-de-teste-com-mais-de-32-caracteres")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"documento\":\"12345678901\"}"))
+                .build();
+        assertEquals(404, cliente.send(requisicao, HttpResponse.BodyHandlers.ofString()).statusCode());
+    }
+
+    @Test
     void migracoesCriamBancoVazioIntegralmente() throws Exception {
         try (Connection conexao = fonteDeDados.getConnection();
                 Statement comando = conexao.createStatement();
@@ -108,7 +119,7 @@ class EsqueletoIntegracaoTest {
                   "cpf": "12345678901",
                   "telefone": "81999990000",
                   "endereco": "Rua de teste, 10",
-                  "senha": "uma-senha-forte-123"
+                  "senha": "Uma-senha-forte-123"
                 }
                 """;
         ProtecaoCsrf csrf = obterProtecaoCsrf();
@@ -124,9 +135,27 @@ class EsqueletoIntegracaoTest {
                                 + "WHERE c.email_normalizado = 'ana@exemplo.com'")) {
             assertTrue(resultado.next());
             assertEquals("ana@exemplo.com", resultado.getString("email_normalizado"));
-            assertNotEquals("uma-senha-forte-123", resultado.getString("hash_senha"));
+            assertNotEquals("Uma-senha-forte-123", resultado.getString("hash_senha"));
             assertEquals("Ana Aluna", resultado.getString("nome"));
         }
+    }
+
+    @Test
+    void cadastroExigeOitoCaracteresEMisturaDeCaracteresNaSenha() throws Exception {
+        ProtecaoCsrf csrf = obterProtecaoCsrf();
+        for (String senha : List.of("Aa1!aaa", "aaaaaaa1!", "AAAAAAA1!", "Abcdefg!", "Abcdefg1")) {
+            HttpResponse<String> resposta = postarComCsrf("/v1/contas/alunos", """
+                    {"nome":"Teste Senha","email":"politica-%s@exemplo.test", "cpf":"12345678901",
+                     "telefone":"81999990000","endereco":"Rua de teste, 10","senha":"%s"}
+                    """.formatted(UUID.randomUUID(), senha), csrf, null);
+            assertEquals(400, resposta.statusCode(), resposta.body());
+            assertEquals("dados_invalidos", json().readTree(resposta.body()).get("codigo").asString());
+        }
+        HttpResponse<String> valida = postarComCsrf("/v1/contas/alunos", """
+                {"nome":"Teste Senha","email":"politica-%s@exemplo.test", "cpf":"%s",
+                 "telefone":"81999990000","endereco":"Rua de teste, 10","senha":"Aa1!abcd"}
+                """.formatted(UUID.randomUUID(), cpfTeste()), csrf, null);
+        assertEquals(201, valida.statusCode(), valida.body());
     }
 
     @Test
@@ -139,7 +168,7 @@ class EsqueletoIntegracaoTest {
                   "nomeResponsavel": "Responsável de Teste",
                   "nomeInstituicao": "Instituto de Teste",
                   "email": "contato@instituto-teste.example",
-                  "senha": "outra-senha-forte-456",
+                  "senha": "Outra-senha-forte-456",
                   "cnpj": "12345678000195",
                   "telefone": "8133334444",
                   "endereco": "Rua de teste, 20"
@@ -169,7 +198,7 @@ class EsqueletoIntegracaoTest {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Login Teste","email":"%s","cpf":"12345678902","telefone":"81999990001","endereco":"Rua de teste, 21","senha":"senha-de-teste-segura-123"}
+                {"nome":"Login Teste","email":"%s","cpf":"12345678902","telefone":"81999990001","endereco":"Rua de teste, 21","senha":"Senha-de-teste-segura-123"}
                 """.formatted(emailExistente),
                 csrf,
                 null).statusCode());
@@ -204,7 +233,7 @@ class EsqueletoIntegracaoTest {
         HttpResponse<String> cadastro = postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Sessao Teste","email":"%s","cpf":"%s","telefone":"81999990003","endereco":"Rua de teste, 24","senha":"senha-de-teste-segura-123"}
+                {"nome":"Sessao Teste","email":"%s","cpf":"%s","telefone":"81999990003","endereco":"Rua de teste, 24","senha":"Senha-de-teste-segura-123"}
                 """.formatted(email, cpfTeste()),
                 csrf,
                 null);
@@ -213,7 +242,7 @@ class EsqueletoIntegracaoTest {
         HttpResponse<String> login = postarComCsrf(
                 "/v1/sessoes",
                 """
-                {"email":"%s","senha":"senha-de-teste-segura-123"}
+                {"email":"%s","senha":"Senha-de-teste-segura-123"}
                 """.formatted(email),
                 csrf,
                 null);
@@ -722,13 +751,13 @@ class EsqueletoIntegracaoTest {
         cadastrarAluno(email, csrf);
         String token = autenticar(email, csrf);
         assertEquals(401, postarAutenticado("/v1/conta/senha", """
-                {"senhaAtual":"senha-incorreta","novaSenha":"nova-senha-segura-456"}
+                {"senhaAtual":"senha-incorreta","novaSenha":"Nova-senha-segura-456"}
                 """, csrf, token).statusCode());
         assertEquals(204, postarAutenticado("/v1/conta/senha", """
-                {"senhaAtual":"senha-de-teste-segura-123","novaSenha":"nova-senha-segura-456"}
+                {"senhaAtual":"Senha-de-teste-segura-123","novaSenha":"Nova-senha-segura-456"}
                 """, csrf, token).statusCode());
         assertEquals(401, postarComCsrf("/v1/sessoes", """
-                {"email":"%s","senha":"senha-de-teste-segura-123"}
+                {"email":"%s","senha":"Senha-de-teste-segura-123"}
                 """.formatted(email), csrf, null).statusCode());
         try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement(
                 "SELECT count(*) FROM sessoes_autenticacao WHERE codigo_objeto_contas=? AND revogada_em IS NULL")) {
@@ -736,7 +765,7 @@ class EsqueletoIntegracaoTest {
             try (var linhas = comando.executeQuery()) { linhas.next(); assertEquals(0, linhas.getInt(1)); }
         }
         assertEquals(200, postarComCsrf("/v1/sessoes", """
-                {"email":"%s","senha":"nova-senha-segura-456"}
+                {"email":"%s","senha":"Nova-senha-segura-456"}
                 """.formatted(email), csrf, null).statusCode());
     }
 
@@ -744,7 +773,7 @@ class EsqueletoIntegracaoTest {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/alunos",
                 """
-                {"nome":"Perfil Teste","email":"%s","cpf":"%s","telefone":"81999990002","endereco":"Rua de teste, 22","senha":"senha-de-teste-segura-123"}
+                {"nome":"Perfil Teste","email":"%s","cpf":"%s","telefone":"81999990002","endereco":"Rua de teste, 22","senha":"Senha-de-teste-segura-123"}
                 """.formatted(email, cpfTeste()),
                 csrf,
                 null).statusCode());
@@ -754,7 +783,7 @@ class EsqueletoIntegracaoTest {
         assertEquals(201, postarComCsrf(
                 "/v1/contas/instituicoes",
                 """
-                {"nomeResponsavel":"Responsável de Teste","nomeInstituicao":"Instituicao de Teste","email":"%s","senha":"senha-de-teste-segura-123","cnpj":"%s","telefone":"8133334445","endereco":"Rua de teste, 23"}
+                {"nomeResponsavel":"Responsável de Teste","nomeInstituicao":"Instituicao de Teste","email":"%s","senha":"Senha-de-teste-segura-123","cnpj":"%s","telefone":"8133334445","endereco":"Rua de teste, 23"}
                 """.formatted(email, cnpjTeste()),
                 csrf,
                 null).statusCode());
@@ -823,7 +852,7 @@ class EsqueletoIntegracaoTest {
         HttpResponse<String> login = postarComCsrf(
                 "/v1/sessoes",
                 """
-                {"email":"%s","senha":"senha-de-teste-segura-123"}
+                {"email":"%s","senha":"Senha-de-teste-segura-123"}
                 """.formatted(email),
                 csrf,
                 null);

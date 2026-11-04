@@ -81,6 +81,13 @@ Para executar os testes como imagem nativa, use `./gradlew nativeTest`; essa tar
 | `IVIS_IA_TIMEOUT_PERGUNTA` | `105s` | Timeout para geração de perguntas (90s da NVIDIA mais margem de rede). |
 | `IVIS_IA_TIMEOUT_AVALIACAO` | `110s` | Timeout para avaliação (90s da NVIDIA mais margem de rede). |
 | `SPRING_PROFILES_ACTIVE` | *(vazio)* | Swagger e OpenAPI ficam desativados por padrão; `dev` os ativa e `prod` os mantém desativados. `estruturado` liga logs em JSON (ECS); combine perfis com vírgula, por exemplo `prod,estruturado`. |
+| `IVIS_LIMPEZA_CHAVE` | *(vazio)* | Chave aleatória de pelo menos 32 caracteres para a API de limpeza, disponível apenas em `dev`, `homolog` ou `homologacao`, sem `prod`. |
+
+## Limpeza de dados em desenvolvimento e homologação
+
+Com o perfil `dev`, `homolog` ou `homologacao` ativo, sem `prod`, e `IVIS_LIMPEZA_CHAVE` configurada, envie `POST /api/v1/ambiente/limpar-dados` com o cabeçalho `X-IVIS-Limpeza-Chave` e o JSON `{"documento":"123.456.789-01"}` ou `{"documento":"12.345.678/0001-95"}`. A resposta de sucesso é `204`, documento não encontrado retorna `404`, documento inválido retorna `400` e chave incorreta retorna `403`. A chave ausente ou curta deixa a operação indisponível (`503`).
+
+A operação apaga a conta identificada e seus dados vinculados em uma única transação, incluindo sessões, contratos, pagamentos, e-mails simulados, treinos e registros de auditoria. Ao apagar uma instituição, os alunos vinculados permanecem no banco, com o vínculo removido. Outras contas e os planos compartilhados permanecem. A rota não é registrada fora dos perfis permitidos.
 
 ## Convenções de API (Etapa 0, item 4)
 
@@ -103,7 +110,7 @@ Para executar os testes como imagem nativa, use `./gradlew nativeTest`; essa tar
 - `POST /api/v1/senhas/recuperacao` recebe `{"email":"..."}` e responde `202` com a mesma mensagem para e-mail cadastrado ou não cadastrado. `POST /api/v1/senhas/redefinicao` recebe `{"token":"...","novaSenha":"..."}`; ambos exigem CSRF, mas não JWT.
 - Tokens são armazenados apenas como hash, expiram em 30 minutos por padrão, são de uso único e há limites locais por e-mail/IP. O link carrega o token no fragmento (`#token=...`), que o navegador não envia na requisição HTTP. Falha de SMTP é registrada sem incluir endereço ou token no log; o token daquela tentativa é invalidado e o cliente recebe a mesma resposta neutra. Consulte a disponibilidade do Mailpit em desenvolvimento.
 - Mailpit captura o SMTP em `127.0.0.1:1025`; a interface web fica em `http://localhost:8025`, publicada somente no loopback. Nenhum e-mail é encaminhado a destinatários reais.
-- Cadastro exige nome ou razão social, e-mail válido e senha de 12 a 128 caracteres. A criação da conta e do perfil é atômica; e-mail repetido retorna `409 email_ja_cadastrado`. Login inválido retorna sempre `401 credenciais_invalidas`, independentemente de o e-mail existir.
+- Cadastro exige nome ou razão social, e-mail válido e senha de 8 a 128 caracteres com letra maiúscula, letra minúscula, número e caractere especial. A mesma política vale para troca e redefinição de senha. A criação da conta e do perfil é atômica; e-mail repetido retorna `409 email_ja_cadastrado`. Login inválido retorna sempre `401 credenciais_invalidas`, independentemente de o e-mail existir.
 - Login/renovação retornam `accessToken`, `tipoToken`, `expiraEmSegundos` e resumo da conta. O refresh token é entregue apenas pelo cookie `ivis_refresh`; não o armazenar no frontend. A renovação substitui e revoga o token anterior.
 - Antes de operações mutáveis, obter `GET /api/v1/sessoes/csrf`, manter o cookie `XSRF-TOKEN` e enviar seu valor em `X-XSRF-TOKEN`. Enviar também `Authorization: Bearer <accessToken>` nas rotas autenticadas; logout exige o access token corrente.
 - JSON em UTF-8; identificadores em português brasileiro, sem acentos.

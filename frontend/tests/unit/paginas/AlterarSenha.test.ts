@@ -28,6 +28,18 @@ describe("página Alterar senha", () => {
     vi.mocked(obterTokenCsrf).mockResolvedValue("csrf-teste");
   });
 
+  it("não busca CSRF nem chama a API quando a nova senha é fraca", async () => {
+    const pagina = montarPagina();
+    await pagina.get("#senha-atual").setValue("SenhaAtual123!");
+    await pagina.get("#nova-senha-conta").setValue("abcdefg1");
+    await pagina.get("#confirmar-senha-conta").setValue("abcdefg1");
+    await pagina.get("form").trigger("submit");
+
+    expect(pagina.get('[role="alert"]').text()).toContain("requisitos");
+    expect(obterTokenCsrf).not.toHaveBeenCalled();
+    expect(clienteHttp.post).not.toHaveBeenCalled();
+  });
+
   it("não chama a API se a nova senha e sua confirmação forem diferentes", async () => {
     const pagina = montarPagina();
     await pagina.get("#senha-atual").setValue("SenhaAtual123!");
