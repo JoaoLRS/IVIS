@@ -783,6 +783,180 @@ class FluxosAplicacaoIntegracaoTest {
     }
 
     @Test
+    void falhaNaAvaliacaoFinalPreservaRespostasERetentativaConcluiUmaUnicaVez() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "avaliacao-falha-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        concederPlanoIndividual(email);
+        String token = autenticar(email, csrf);
+        String treinoId = iniciarTreinoCruzado(csrf, token);
+        var sessao = json().readTree(obterAutenticado("/v1/treinos/em-andamento", token).body());
+        for (int numero = 1; numero <= 3; numero++) {
+            String perguntaId = sessao.get("perguntas").get(numero - 1).get("id").asString();
+            var resposta = postarAutenticado("/v1/treinos/" + treinoId + "/respostas", """
+                    {"perguntaId":"%s","resposta":"Resposta %d"}
+                    """.formatted(perguntaId, numero), csrf, token);
+            assertEquals(200, resposta.statusCode(), resposta.body());
+            sessao = json().readTree(resposta.body());
+        }
+        when(clienteIa.gerarAvaliacao(any()))
+                .thenThrow(new ExcecaoNegocio(HttpStatus.SERVICE_UNAVAILABLE,
+                        "ia_indisponivel", "IA indisponível."))
+                .thenReturn(new GerarAvaliacaoResposta(82, List.of("Exemplo concreto"),
+                        List.of("Detalhar resultados"), "modelo-teste", "avaliacao-v2"));
+
+        String caminho = "/v1/treinos/" + treinoId + "/concluir";
+        var falha = postarAutenticado(caminho, "{}", csrf, token);
+        assertEquals(503, falha.statusCode(), falha.body());
+        assertEquals("ia_indisponivel", json().readTree(falha.body()).get("codigo").asString());
+        var retomada = obterAutenticado("/v1/treinos/em-andamento", token);
+        assertEquals(200, retomada.statusCode(), retomada.body());
+        assertEquals(sessao, json().readTree(retomada.body()));
+        assertEquals(0, json().readTree(obterAutenticado("/v1/treinos", token).body()).size());
+        verificarPersistenciaTreino(treinoId, "EM_ANDAMENTO", 3, 0);
+
+        // Uma nova sessão HTTP deve retomar o treino persistido e permitir a retentativa.
+        token = autenticar(email, csrf);
+        var conclusao = postarAutenticado(caminho, "{}", csrf, token);
+        assertEquals(200, conclusao.statusCode(), conclusao.body());
+        assertEquals(82, json().readTree(conclusao.body()).get("nota").asInt());
+        var repeticao = postarAutenticado(caminho, "{}", csrf, token);
+        assertEquals(200, repeticao.statusCode(), repeticao.body());
+        assertEquals(json().readTree(conclusao.body()), json().readTree(repeticao.body()));
+        assertEquals(204, obterAutenticado("/v1/treinos/em-andamento", token).statusCode());
+        var historico = json().readTree(obterAutenticado("/v1/treinos", token).body());
+        assertEquals(1, historico.size());
+        assertEquals(treinoId, historico.get(0).get("id").asString());
+        verificarPersistenciaTreino(treinoId, "CONCLUIDO", 3, 1);
+        org.mockito.Mockito.verify(clienteIa, org.mockito.Mockito.times(2)).gerarAvaliacao(any());
+    }
+
+    @Test
+    void outroAlunoNaoRespondeConcluiNemCancelaTreinoDoTitular() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String titular = "treino-titular-" + UUID.randomUUID() + "@exemplo.test";
+        String outro = "treino-outro-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(titular, csrf);
+        cadastrarAluno(outro, csrf);
+        concederPlanoIndividual(titular);
+        concederPlanoIndividual(outro);
+        String tokenTitular = autenticar(titular, csrf);
+        String tokenOutro = autenticar(outro, csrf);
+        String treinoId = iniciarTreinoCruzado(csrf, tokenTitular);
+        var sessao = json().readTree(obterAutenticado("/v1/treinos/em-andamento", tokenTitular).body());
+        String perguntaId = sessao.get("perguntas").get(0).get("id").asString();
+
+        assertEquals(404, postarAutenticado("/v1/treinos/" + treinoId + "/respostas", """
+                {"perguntaId":"%s","resposta":"Resposta de outra conta"}
+                """.formatted(perguntaId), csrf, tokenOutro).statusCode());
+        assertEquals(404, postarAutenticado("/v1/treinos/" + treinoId + "/concluir",
+                "{}", csrf, tokenOutro).statusCode());
+        assertEquals(404, deletarAutenticado("/v1/treinos/" + treinoId, csrf, tokenOutro).statusCode());
+        assertEquals(204, obterAutenticado("/v1/treinos/em-andamento", tokenOutro).statusCode());
+        assertEquals(sessao, json().readTree(obterAutenticado(
+                "/v1/treinos/em-andamento", tokenTitular).body()));
+        verificarPersistenciaTreino(treinoId, "EM_ANDAMENTO", 0, 0);
+        org.mockito.Mockito.verify(clienteIa, org.mockito.Mockito.times(1)).gerarPergunta(any());
+        org.mockito.Mockito.verify(clienteIa, org.mockito.Mockito.never()).gerarAvaliacao(any());
+    }
+
+    @Test
+    void removerVinculoBloqueiaTreinoComTokenExistenteELiberaVagaParaOutroAluno() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String aluno = "acesso-vinculo-" + UUID.randomUUID() + "@exemplo.test";
+        String outro = "nova-vaga-" + UUID.randomUUID() + "@exemplo.test";
+        String instituicao = "revoga-acesso-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(aluno, csrf);
+        cadastrarAluno(outro, csrf);
+        cadastrarInstituicao(instituicao, csrf);
+        String tokenInstituicao = autenticar(instituicao, csrf);
+        String tokenAluno = autenticar(aluno, csrf);
+        UUID contrato = criarContratoInstitucional(instituicao, 1, "revogacao-" + UUID.randomUUID());
+        var vinculo = postarAutenticado("/v1/instituicao/vinculos", """
+                {"contratoId":"%s","contaAlunoId":"%s"}
+                """.formatted(contrato, idConta(aluno)), csrf, tokenInstituicao);
+        assertEquals(201, vinculo.statusCode(), vinculo.body());
+        var lista = json().readTree(obterAutenticado("/v1/instituicao/alunos", tokenInstituicao).body());
+        String vinculoId = lista.get(0).get("id").asString();
+        String treinoId = iniciarTreinoCruzado(csrf, tokenAluno);
+        var sessao = json().readTree(obterAutenticado("/v1/treinos/em-andamento", tokenAluno).body());
+        String perguntaId = sessao.get("perguntas").get(0).get("id").asString();
+
+        assertEquals(204, deletarAutenticado("/v1/instituicao/vinculos/" + vinculoId,
+                csrf, tokenInstituicao).statusCode());
+        assertEquals(403, obterAutenticado("/v1/treinos/em-andamento", tokenAluno).statusCode());
+        assertEquals(403, postarAutenticado("/v1/treinos", """
+                {"tipoContexto":"HABILIDADES","habilidades":["Java"]}
+                """, csrf, tokenAluno).statusCode());
+        assertEquals(403, postarAutenticado("/v1/treinos/" + treinoId + "/respostas", """
+                {"perguntaId":"%s","resposta":"Tentativa após remoção"}
+                """.formatted(perguntaId), csrf, tokenAluno).statusCode());
+        assertEquals(403, postarAutenticado("/v1/treinos/" + treinoId + "/concluir",
+                "{}", csrf, tokenAluno).statusCode());
+        verificarPersistenciaTreino(treinoId, "EM_ANDAMENTO", 0, 0);
+        org.mockito.Mockito.verify(clienteIa, org.mockito.Mockito.times(1)).gerarPergunta(any());
+        org.mockito.Mockito.verify(clienteIa, org.mockito.Mockito.never()).gerarAvaliacao(any());
+
+        var capacidade = json().readTree(obterAutenticado(
+                "/v1/instituicao/resumo-vagas", tokenInstituicao).body()).get(0);
+        assertEquals(0, capacidade.get("vagasUtilizadas").asInt());
+        assertEquals(1, capacidade.get("vagasDisponiveis").asInt());
+        var novoVinculo = postarAutenticado("/v1/instituicao/vinculos", """
+                {"contratoId":"%s","contaAlunoId":"%s"}
+                """.formatted(contrato, idConta(outro)), csrf, tokenInstituicao);
+        assertEquals(201, novoVinculo.statusCode(), novoVinculo.body());
+        String tokenOutro = autenticar(outro, csrf);
+        String novoTreinoId = iniciarTreinoCruzado(csrf, tokenOutro);
+        assertNotEquals(treinoId, novoTreinoId);
+        assertEquals(403, obterAutenticado("/v1/treinos/em-andamento", tokenAluno).statusCode());
+    }
+
+    private void concederPlanoIndividual(String email) throws Exception {
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement("""
+                INSERT INTO contratos (codigo_objeto_contas,codigo_objeto_planos,situacao,preco_centavos_contratado,iniciado_em)
+                SELECT ?,objeto,'ATIVO',preco_centavos,now() FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'
+                """)) {
+            comando.setObject(1, idConta(email));
+            assertEquals(1, comando.executeUpdate());
+        }
+    }
+
+    private String iniciarTreinoCruzado(ProtecaoCsrf csrf, String token) throws Exception {
+        assertEquals(201, postarAutenticado("/v1/habilidades",
+                "{\"nome\":\"Java\",\"nivel\":3}", csrf, token).statusCode());
+        when(clienteIa.gerarPergunta(any())).thenAnswer(invocacao -> {
+            GerarPerguntaEntrada entrada = invocacao.getArgument(0);
+            return new GerarPerguntaResposta(new PerguntaGerada("Pergunta " + entrada.numeroPergunta()),
+                    "modelo-teste", "perguntas-v2");
+        });
+        var inicio = postarAutenticado("/v1/treinos", """
+                {"tipoContexto":"HABILIDADES","habilidades":["Java"]}
+                """, csrf, token);
+        assertEquals(201, inicio.statusCode(), inicio.body());
+        return json().readTree(inicio.body()).get("id").asString();
+    }
+
+    private void verificarPersistenciaTreino(String treinoId, String situacao, int respostas, int avaliacoes)
+            throws Exception {
+        try (var conexao = fonteDeDados.getConnection(); var comando = conexao.prepareStatement("""
+                SELECT t.situacao, t.finalizado_em,
+                  (SELECT count(*) FROM respostas_entrevista r JOIN perguntas_entrevista p
+                    ON p.objeto=r.codigo_objeto_perguntas_entrevista WHERE p.codigo_objeto_treinamentos=t.objeto),
+                  (SELECT count(*) FROM avaliacoes_treinamento a WHERE a.codigo_objeto_treinamentos=t.objeto)
+                FROM treinamentos t WHERE t.objeto=?
+                """)) {
+            comando.setObject(1, UUID.fromString(treinoId));
+            try (var linhas = comando.executeQuery()) {
+                assertTrue(linhas.next());
+                assertEquals(situacao, linhas.getString(1));
+                assertEquals("CONCLUIDO".equals(situacao), linhas.getTimestamp(2) != null);
+                assertEquals(respostas, linhas.getInt(3));
+                assertEquals(avaliacoes, linhas.getInt(4));
+            }
+        }
+    }
+
+    @Test
     void historicoIgnoraContaInformadaNaUrlERetornaSomenteTreinosDoTitular() throws Exception {
         var csrf = obterProtecaoCsrf();
         String emailA = "historico-a-" + UUID.randomUUID() + "@exemplo.test";

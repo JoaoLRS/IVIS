@@ -88,7 +88,9 @@ services:
     networks:
       - rede-ia
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/pronto', timeout=3)"]
+      # O processo pode iniciar sem a chave NVIDIA; /pronto continua indicando
+      # indisponibilidade dos treinos, sem bloquear os demais módulos.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/saude', timeout=3)"]
       interval: 10s
       timeout: 5s
       start_period: 10s

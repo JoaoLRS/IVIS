@@ -4,11 +4,11 @@ Estas convenções registram o padrão encontrado na suíte e a organização da
 
 - Escrever nomes de cenários e funções em português, descrevendo ações e resultados observáveis.
 - Centralizar dados, rotas, seletores e textos em `funcoes/constantes.js`; reutilizar funções de apoio em `funcoes/`.
-- Organizar os testes de aceitação de interface por caso de uso em `cdu/`, conforme `etc/cdu/`, inclusive o CDU-16 de requisitos de senha. A API técnica de limpeza de dados é verificada no backend e não pertence aos casos de uso do usuário final. Em geral, os cenários de interface usam `cy.intercept` para controlar respostas e verificar o comportamento do frontend e os dados enviados. Respostas simuladas não comprovam persistência, auditoria ou regras do backend. O CDU-15 é uma exceção: percorre cadastro e contratação reais e consulta o evento persistido no banco descartável `ivis_e2e`.
+- Organizar os testes de aceitação de interface por caso de uso em `cdu/`, conforme `etc/cdu/`, inclusive o CDU-16 de requisitos de senha. A API técnica de limpeza de dados é verificada no backend e não pertence aos casos de uso do usuário final. Em geral, os cenários de interface usam `cy.intercept` para controlar respostas e verificar o comportamento do frontend e os dados enviados. Respostas simuladas não comprovam persistência, auditoria ou regras do backend. O CDU-15 é uma exceção: percorre cadastro e contratação reais e consulta o evento persistido no banco `ivis` do Compose.
 - Executar as jornadas em `caminho_feliz/` com frontend, backend, banco e API de IA reais, sem interceptações que substituam respostas. Essas jornadas exigem acesso ao provedor NVIDIA.
 - As jornadas sequenciais usam `testIsolation: false` e `retries: 0`: as etapas compartilham a sessão e dependem das anteriores. Os cenários de CDU mantêm o isolamento padrão.
 - Verificar resultados visíveis e, nas jornadas reais, recarregar a página quando necessário para comprovar persistência. Evitar esperas fixas; usar asserções com repetição automática ou aliases de requisições.
-- Os hooks em `../support/e2e.js` limpam as tabelas transacionais antes e depois apenas das jornadas reais em `caminho_feliz/` e do CDU-15; os cenários com mocks não alteram o banco. A tarefa acessa exclusivamente o contêiner `ivis-e2e-banco` e recusa um banco cujo nome não seja `ivis_e2e`. Execute uma suíte por vez: a limpeza apaga contas, contratos e demais dados transacionais **desse banco descartável**.
+- Os hooks em `../support/e2e.js` limpam apenas as contas das fixtures reais e seus dados vinculados, antes e depois das jornadas em `caminho_feliz/` e do CDU-15. A tarefa usa `docker compose exec -T ivis-banco` no mesmo banco da aplicação, sem TRUNCATE. Os e-mails `dadosTeste.aluno.email`, `alunoAtualizadoCaminhoFeliz.email` e `dadosTeste.instituicao.email` são reservados para esses testes. Execute uma suíte por vez; outras contas e o catálogo de planos são preservados.
 
 ## Estrutura dos cenários de CDU
 
@@ -39,34 +39,26 @@ continuam isolados e usam respostas simuladas.
 
 ## Executar a suíte
 
-O Cypress usa `http://localhost:5173`. Para os cenários simulados, basta iniciar o Vite. Para as jornadas reais, inicie um PostgreSQL isolado e um backend apontado para ele; mantenha a API de IA acessível. Exemplo no PowerShell, em terminais separados:
+O Cypress usa `http://localhost:5173`. Use a mesma stack e o mesmo banco da aplicação. Não é necessário outro PostgreSQL nem outro backend.
 
 ```powershell
-docker run --rm -d --name ivis-e2e-banco -e POSTGRES_DB=ivis_e2e -e POSTGRES_USER=ivis -e POSTGRES_PASSWORD=ivis_e2e_local -p 127.0.0.1:15433:5432 postgres:17-alpine
+# Subir os serviços:
+.\release.ps1 up
 
-# Terminal do backend, com IVIS_JWT_CHAVE_ASSINATURA e IVIS_IA_CHAVE_SERVICO definidos:
-$env:IVIS_BD_URL = 'jdbc:postgresql://localhost:15433/ivis_e2e'
-$env:IVIS_BD_USUARIO = 'ivis'
-$env:IVIS_BD_SENHA = 'ivis_e2e_local'
-$env:IVIS_IA_URL = 'http://localhost:8000'
-$env:IVIS_CORS_ORIGENS = 'http://localhost:5173'
-$env:IVIS_COOKIE_SEGURO = 'false'
-$env:PORT = '18081'
-cd backend
-.\gradlew.bat bootRun
-
-# Terminal do frontend:
-$env:VITE_API_URL = 'http://localhost:18081/api'
+# Em outro terminal, iniciar o frontend com o proxy padrão para localhost:8081:
 npm --prefix frontend run dev
-```
 
-Para executar todos os specs no PowerShell da raiz:
-
-```powershell
+# Executar a suíte:
 npm run testar:e2e
 ```
 
-Use `localhost` exatamente como configurado. Após as jornadas, pare o backend e execute `docker stop ivis-e2e-banco` para remover o banco descartável. O Compose normal e seu banco `ivis` não participam da limpeza Cypress.
+Remova do terminal eventuais sobrescritas antigas de `VITE_API_URL` para outro backend. As jornadas de treino exigem a chave NVIDIA configurada em `api-ia/.env`. Use `localhost` como configurado e mantenha os serviços ativos durante toda a execução.
+
+Para validar a limpeza seletiva no mesmo banco, sem deixar dados de verificação (a transação é revertida):
+
+```powershell
+node --test cypress/tasks/limpar-banco.integracao.test.mjs
+```
 
 Para repassar opções do Cypress, executar diretamente no pacote:
 

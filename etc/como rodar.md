@@ -22,7 +22,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 if (-not (Test-Path api-ia/.env)) { Copy-Item api-ia/.env.example api-ia/.env }
 ```
 
-Edite `api-ia/.env` e preencha `NVIDIA_API_KEY` para gerar perguntas e avaliações reais. O `.env` da raiz contém a configuração local dos demais serviços. Não envie esses arquivos ao Git. O script gera uma chave JWT local caso `IVIS_JWT_CHAVE_ASSINATURA` esteja vazia.
+Edite `api-ia/.env` e preencha `NVIDIA_API_KEY` para gerar perguntas e avaliações reais. Sem a chave, o sistema inicia com um aviso e os treinos ficam indisponíveis; cadastro, planos e os demais módulos podem ser utilizados. O healthcheck do Compose verifica `/saude` (processo ativo), enquanto `/pronto` continua retornando 503 sem o provedor configurado. O `.env` da raiz contém a configuração local dos demais serviços. Não envie esses arquivos ao Git. O script gera uma chave JWT local caso `IVIS_JWT_CHAVE_ASSINATURA` esteja vazia.
 
 ```powershell
 .\release.ps1 up
@@ -131,7 +131,7 @@ Os cenários de CDU com `cy.intercept` usam respostas simuladas e podem rodar ap
 npm --prefix cypress/e2e run testar:e2e -- --spec "cdu/CDU-16-*.cy.js"
 ```
 
-**A suíte completa inclui jornadas reais** (`caminho_feliz/` e CDU-15). Elas precisam de backend, API de IA e um PostgreSQL **isolado e descartável** chamado `ivis_e2e`, no container `ivis-e2e-banco`. Os hooks limpam os dados transacionais desse banco antes e depois dessas jornadas. O banco normal do Compose, `ivis`, não participa dessa limpeza. Siga a [preparação do ambiente Cypress](../cypress/e2e/README.md) antes de executar `npm run testar:e2e` na raiz. As jornadas reais precisam da chave NVIDIA.
+**A suíte completa inclui jornadas reais** (`caminho_feliz/` e CDU-15). Elas usam o mesmo backend, API de IA e banco `ivis` do Compose. Os hooks removem apenas as contas das fixtures reais e seus dados vinculados, preservando outras contas e o catálogo. Siga a [preparação do Cypress](../cypress/e2e/README.md) antes de executar `npm run testar:e2e`. As jornadas de treino precisam da chave NVIDIA.
 
 ### Dependências do projeto
 

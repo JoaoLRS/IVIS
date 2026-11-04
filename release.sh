@@ -96,9 +96,12 @@ wait_for_url() {
 }
 
 wait_for_stack() {
-  wait_for_url "API de IA" "http://127.0.0.1:8000/pronto"
+  wait_for_url "API de IA (processo)" "http://127.0.0.1:8000/saude"
   wait_for_url "backend e banco" "http://127.0.0.1:8081/api/v1/pronto"
   wait_for_url "frontend" "http://127.0.0.1:8080/"
+  if ! curl --silent --fail --max-time 3 "http://127.0.0.1:8000/pronto" >/dev/null 2>&1; then
+    printf 'Aviso: a API de IA iniciou, mas os treinos estão indisponíveis. Configure NVIDIA_API_KEY em api-ia/.env e execute bash release.sh up novamente. Se a chave já estiver configurada, consulte docker compose logs --tail=80 ivis-api-ia.\n' >&2
+  fi
   printf '\nAmbiente iniciado.\nFrontend: http://localhost:8080\nAPI de IA: http://localhost:8000\nBackend: http://localhost:8081/api\nMailpit: http://localhost:8025\n'
 }
 

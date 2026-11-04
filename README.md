@@ -339,7 +339,7 @@ pacotes declarados estão usados e se os imports estão declarados, use
 `npm run setup:inicial`; o Cypress pertence ao pacote `cypress/e2e`.
 Execute `npm run testar:e2e` para gerar os vídeos em `cypress/downloads`;
 o modo interativo `cypress open` não grava vídeos automaticamente. As jornadas
-reais exigem o banco descartável `ivis_e2e`; siga a preparação em
+reais usam o mesmo banco `ivis` do Compose; siga a preparação em
 [cypress/e2e/README.md](cypress/e2e/README.md) antes de executar a suíte inteira.
 
 ## 🤖 API de IA

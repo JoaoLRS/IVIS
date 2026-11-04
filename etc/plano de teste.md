@@ -21,12 +21,11 @@ Este plano **não declara todos os RFs aprovados**. A escolha de quantidade de v
 | Frontend | Vue 3/Vite em `http://localhost:5173` no desenvolvimento ou `http://localhost:8080` no Compose. |
 | Backend | Java 25/Spring Boot em `http://localhost:8081/api`; prontidão em `/v1/pronto`. Testes de integração usam PostgreSQL temporário via Testcontainers. |
 | API de IA | Python 3.12/3.13 e FastAPI; prontidão em `http://localhost:8000/pronto`. Testes pytest simulam o transporte NVIDIA; jornadas reais exigem `NVIDIA_API_KEY`. |
-| Banco do Compose | PostgreSQL 17, banco `ivis`, porta local `5433` por padrão. Usado para desenvolvimento; não é o banco descartável do Cypress. |
-| Banco das jornadas Cypress reais | Container `ivis-e2e-banco`, banco `ivis_e2e`, porta local `15433` no roteiro. Os hooks limpam suas tabelas transacionais antes e depois dos specs reais. |
+| Banco do Compose e Cypress | PostgreSQL 17, banco `ivis`, porta local `5433` por padrão. As jornadas reais usam o serviço `ivis-banco`; a limpeza é limitada às contas das fixtures e seus dados vinculados. |
 | E-mail | Mailpit em `http://localhost:8025`; nenhuma entrega externa no ambiente local. |
 | Cypress | Configuração em [`cypress/e2e/cypress.config.ts`](../cypress/e2e/cypress.config.ts); vídeos em `cypress/downloads` e capturas de falha em `cypress/screenshots`. |
 
-Usar contas, CPF/CNPJ, respostas e cartões **fictícios**. Não anexar `.env`, senhas, tokens, cookies, chaves, números de cartão reais, dumps ou logs com dados pessoais às evidências. Para isolamento, preparar pelo menos dois alunos e duas instituições com dados distintos. Registrar IDs fictícios e o procedimento de limpeza. A [preparação do Cypress](../cypress/e2e/README.md) deve ser seguida antes das jornadas reais; não executá-las contra o banco `ivis` ou outro banco compartilhado.
+Usar contas, CPF/CNPJ, respostas e cartões **fictícios**. Não anexar `.env`, senhas, tokens, cookies, chaves, números de cartão reais, dumps ou logs com dados pessoais às evidências. Para isolamento, preparar pelo menos dois alunos e duas instituições com dados distintos. Registrar IDs fictícios e o procedimento de limpeza. A [preparação do Cypress](../cypress/e2e/README.md) deve ser seguida antes das jornadas reais; os e-mails das fixtures ficam reservados para testes e a limpeza remove somente essas contas e seus dados vinculados no banco `ivis`.
 
 ## 3. Estratégia e níveis
 
@@ -36,7 +35,7 @@ Usar contas, CPF/CNPJ, respostas e cartões **fictícios**. Não anexar `.env`, 
 | Unitário e integração backend | Regras de identidade, planos, vínculos, sessão, treino, auditoria, migrations e autorização com PostgreSQL. | [`backend/src/test/java`](../backend/src/test/java/), JUnit/Spring Test/Testcontainers. |
 | API de IA | Contratos FastAPI, autenticação de serviço, adaptação NVIDIA, timeout e falhas. | [`api-ia/tests`](../api-ia/tests/), pytest e transporte HTTP simulado. |
 | Interface com API simulada | Formulários, navegação, mensagens e payloads por caso de uso. | [`cypress/e2e/cdu`](../cypress/e2e/cdu/), CDU-01 a CDU-14 e CDU-16. |
-| Ponta a ponta real | Persistência e integração entre UI, backend, banco e API de IA; auditoria do CDU-15. | [`cypress/e2e/caminho_feliz`](../cypress/e2e/caminho_feliz/) e [CDU-15](../cypress/e2e/cdu/CDU-15-registrar-auditoria.cy.js), com `ivis_e2e`. |
+| Ponta a ponta real | Persistência e integração entre UI, backend, banco e API de IA; auditoria do CDU-15. | [`cypress/e2e/caminho_feliz`](../cypress/e2e/caminho_feliz/) e [CDU-15](../cypress/e2e/cdu/CDU-15-registrar-auditoria.cy.js), com o banco `ivis` do Compose. |
 | Exploratória e não funcional | Responsividade, teclado, clareza, latência real e qualidade das respostas de IA. | Registrar roteiro, medições, avaliadores e resultados separadamente. O [script de medição](../api-ia/scripts/medir_desempenho.py) mede latência, não qualidade semântica. |
 
 Prioridade **alta** para autenticação, titularidade/isolamento, contratação, capacidade institucional, persistência de treino e auditoria. Prioridade **média** para CRUD de perfil, plano, histórico e apresentação de feedback. Ajustes visuais sem impacto em regra são revisados conforme a alteração.
@@ -86,7 +85,7 @@ Os IDs abaixo preservam e corrigem os casos do PDF. Cada execução formal preci
 | CT-ISOL-04 | RF09/RF10 | Alunos A/B alternam no mesmo navegador; histórico e estado local de A não aparecem para B. | CDU-08; frontend estadoAplicacao; integração de histórico. |
 | CT-ISOL-05 | RF16/RNF07 | Instituições A/B consultam vínculos; A não vê nem altera vínculo de B. | CDU-13; integração de vínculos. |
 | CT-TREINO-06 | RF07/RF08/RF09 | Aluno com acesso conclui entrevista; perguntas, respostas, nota e feedback pertencem ao aluno. | CDU-07; integração de treino; jornada real. |
-| CT-TREINO-07 | RF07/RF08 | Falha de IA durante resposta/avaliação mantém sessão recuperável e impede conclusão sem avaliação. | Integração cobre falha ao pedir a próxima pergunta; falta teste específico de falha na avaliação final. |
+| CT-TREINO-07 | RF07/RF08 | Falha de IA durante resposta/avaliação mantém sessão recuperável e impede conclusão sem avaliação. | `FluxosAplicacaoIntegracaoTest`: falha na próxima pergunta e na avaliação final; preservação das respostas, retomada após novo login e conclusão idempotente na retentativa. |
 | CT-PLANO-08 | RF16/RF18 | Com capacidade N definida pela oferta, N vínculos ativos são permitidos; o excedente falha sem criar vínculo. | CDU-13; `VinculoInstitucionalServiceTest`. |
 | CT-PLANO-09 | RF16/RF18 | Remover aluno encerra vínculo ativo e libera uma vaga. | CDU-13; integração de vínculos. |
 | CT-COMPRA-10 | RF13/RF14/RF15 | Cartão fictício aprovado ativa acesso; recusado não concede acesso nem realiza cobrança real. | CDU-10/11/12; integração de contratação. |
@@ -95,6 +94,8 @@ Os IDs abaixo preservam e corrigem os casos do PDF. Cada execução formal preci
 | CT-AUD-13 | RF20/RNF09 | Ação coberta gera evento com ator/data; alteração comum de evento é recusada. Retenção fica pendente. | CDU-15; integração de auditoria. |
 | CT-SENHA-14 | RF01/RF02/RF04 | Nova senha exige 8–128 caracteres, maiúscula, minúscula, número e especial; feedback visual acompanha digitação. | CDU-16; `PoliticaSenhaTest`; testes Vue. |
 | CT-REC-15 | RF04 | Solicitação de recuperação não revela existência do e-mail; token é de uso único e expira. | CDU-04; `RecuperacaoSenhaServiceTest`. |
+| CT-ISOL-16 | RF07/RF09/RF17 | Aluno B com plano ativo tenta responder, concluir e cancelar treino de A; API retorna 404, sem alterar o treino nem acionar a IA. | `FluxosAplicacaoIntegracaoTest.outroAlunoNaoRespondeConcluiNemCancelaTreinoDoTitular`. |
+| CT-VINC-17 | RF16/RF17/RF18 | Remover vínculo bloqueia início, retomada, resposta e conclusão de treino com o token já emitido; respostas e avaliações permanecem intactas e a vaga permite vincular outro aluno que inicia seu próprio treino. | `FluxosAplicacaoIntegracaoTest.removerVinculoBloqueiaTreinoComTokenExistenteELiberaVagaParaOutroAluno`. |
 
 A limpeza de dados por CPF/CNPJ é verificada separadamente em [`LimpezaDadosIntegracaoTest.java`](../backend/src/test/java/br/ivis/LimpezaDadosIntegracaoTest.java): a rota só existe em dev/homologação e deve apagar apenas a conta identificada e seus dados vinculados.
 
@@ -118,7 +119,7 @@ Push-Location api-ia
 Pop-Location
 ```
 
-Para Cypress, iniciar Vite e selecionar os specs CDU simulados. A suíte completa inclui as jornadas reais e o CDU-15: preparar primeiro `ivis_e2e` conforme o [README do Cypress](../cypress/e2e/README.md), então executar `npm run testar:e2e`. Registrar specs, ambiente, resultado, screenshots/vídeos e referência de defeito. Não converter a existência de um spec em resultado aprovado.
+Para Cypress, iniciar Vite e selecionar os specs CDU simulados. A suíte completa inclui as jornadas reais e o CDU-15: preparar a stack Compose e o Vite conforme o [README do Cypress](../cypress/e2e/README.md), então executar `npm run testar:e2e`. Registrar specs, ambiente, resultado, screenshots/vídeos e referência de defeito. Não converter a existência de um spec em resultado aprovado.
 
 **Saída proposta para o ciclo:** nenhuma falha aberta de severidade bloqueadora ou crítica nos fluxos prioritários; todos os casos executados com observado e evidência; falhas altas com decisão explícita; requisitos parciais e RNFs sem critério mensurável listados como ressalva; aceite registrado por responsável. Esta regra é proposta para revisão da equipe, não um aceite já concedido.
 
@@ -129,7 +130,9 @@ Para Cypress, iniciar Vite e selecionar os specs CDU simulados. A suíte complet
 | 04/11/2026 | Local, commit `215a183` | Vitest frontend | 63 testes passaram em 17 arquivos | Saída do comando `npm run test:unit`; não cobre backend real. |
 | 04/11/2026 | Local, commit `215a183` | pytest API de IA | 38 testes passaram | Um aviso de depreciação em Starlette/AnyIO; provedor NVIDIA simulado. |
 | 04/11/2026 | Local, commit `215a183` | JUnit backend | 61 testes passaram, 0 falhas | `gradle test --rerun-tasks --console=plain`; integração executada com Testcontainers. |
-| 04/11/2026 | Não executado nesta revisão | Cypress | Sem resultado registrado | Preparar Vite e, para jornadas reais, `ivis_e2e` e NVIDIA. |
+| 04/11/2026 | Não executado nesta revisão | Cypress | Sem resultado registrado | Preparar Vite e, para jornadas reais, stack Compose e NVIDIA. |
+| 04/11/2026 | Local, stack Compose em `localhost:8080`, banco único `ivis` | Cypress CDU-15 e perfil instituição | 6 testes passaram, incluindo hooks de limpeza | Execução com `--config baseUrl=http://localhost:8080,retries=0`; vídeos em `cypress/downloads`. Limpeza seletiva também validada por `node --test cypress/tasks/limpar-banco.integracao.test.mjs`, com transação revertida e preservação de outra conta, contrato e auditoria. |
+| 04/11/2026 | Local, base `f3ab890` com novos testes cruzados ainda não commitados | JUnit backend | Compilação passou; 32 testes passaram; 3 classes falharam na inicialização por Docker indisponível | `gradlew.bat test --console=plain`; os novos cenários em `FluxosAplicacaoIntegracaoTest` não chegaram a executar. Reexecutar com o motor Docker disponível. |
 
 ### Modelo de evidência e defeito
 
