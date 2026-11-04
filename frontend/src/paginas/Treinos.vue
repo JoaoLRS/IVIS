@@ -38,6 +38,10 @@ const processando = ref(false);
 const totalPerguntas = 3;
 const perguntas = computed(() => estado.perguntasDoTreino);
 watch(
+  () => estado.vagaEmTreinamento,
+  (vaga) => { if (estado.treinoAtivo) modo.value = vaga ? "vaga" : "habilidades"; },
+);
+watch(
   () => estado.vagas,
   (vagas) => {
     if (!vagaSelecionada.value && vagas.length) {
@@ -96,6 +100,9 @@ function mensagemDaFalha(erro: unknown, respostaPreservada: boolean) {
   if (erro.response?.status === 503 || erro.response?.status === 504) {
     return `O serviço de IA está temporariamente indisponível.${detalhe}`;
   }
+  if (erro.response?.status === 409) {
+    return "O estado do treino mudou. Atualize a página para continuar.";
+  }
   return `Não foi possível concluir a solicitação ao serviço de IA.${detalhe}`;
 }
 
@@ -118,7 +125,7 @@ async function iniciar() {
 }
 
 async function encerrar() {
-  if (!estado.avaliacaoPendente) return;
+  if (estado.respostas.length !== totalPerguntas) return;
   processando.value = true;
   mensagemErro.value = "";
   try {
@@ -140,6 +147,18 @@ async function responder() {
     respostaEmEdicao.value = "";
   } catch (erro) {
     mensagemErro.value = mensagemDaFalha(erro, true);
+  } finally {
+    processando.value = false;
+  }
+}
+
+async function cancelar() {
+  processando.value = true;
+  mensagemErro.value = "";
+  try {
+    await estado.cancelarTreino();
+  } catch (erro) {
+    mensagemErro.value = mensagemDaFalha(erro, false);
   } finally {
     processando.value = false;
   }
@@ -324,13 +343,14 @@ async function responder() {
     <div class="interview-top">
       <button
         class="btn btn-link p-0"
-        :disabled="!estado.avaliacaoPendente || processando"
+        :disabled="estado.respostas.length !== totalPerguntas || processando"
         @click="encerrar"
       >
         <ChevronLeft :size="16" /> Finalizar treino</button
       ><span class="interview-status"><i /> ENTREVISTA EM ANDAMENTO</span
+      ><button class="btn btn-link text-danger p-0" :disabled="processando" @click="cancelar">Cancelar treino</button
       ><span class="text-secondary small"
-        ><Clock3 :size="14" /> Demonstração</span
+        ><Clock3 :size="14" /> Entrevista técnica</span
       >
     </div>
     <div class="row g-3">
@@ -345,8 +365,8 @@ async function responder() {
             </div>
             <div class="alert alert-warning mt-3 mb-0">
               As perguntas e a avaliação são solicitadas pelo backend. Suas
-              respostas permanecem nesta sessão e são mantidas se houver uma
-              falha.
+              respostas são salvas no servidor e podem ser retomadas após
+              recarregar a página.
             </div>
             <div
               v-if="mensagemErro"
@@ -448,7 +468,7 @@ async function responder() {
                 </div>
               </form>
               <div v-else class="chat-composer chat-composer-finished">
-                <button class="btn btn-primary" @click="encerrar">
+                <button class="btn btn-primary" :disabled="processando" @click="encerrar">
                   <Check :size="16" /> Finalizar e ver feedback
                 </button>
               </div>

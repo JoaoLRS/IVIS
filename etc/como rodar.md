@@ -25,7 +25,7 @@ No PowerShell:
 .\release.ps1 up
 ```
 
-O comando prepara os arquivos locais `.env` e `api-ia/.env` a partir dos exemplos, compila e sobe PostgreSQL, Mailpit, API de IA, backend e frontend. O Compose usa o stub da API de IA por padrão, tornando as jornadas locais repetíveis sem depender do tempo de resposta da NVIDIA. Para ativar a NVIDIA, defina `IVIS_IA_USAR_STUB=false` no `.env` da raiz e informe a chave em `api-ia/.env`. O script espera os serviços de IA, backend/banco e frontend responderem antes de encerrar.
+O comando prepara os arquivos locais `.env` e `api-ia/.env` a partir dos exemplos, compila e sobe PostgreSQL, Mailpit, API de IA, backend e frontend. Configure `NVIDIA_API_KEY` em `api-ia/.env` antes de iniciar. O script espera os serviços de IA, backend/banco e frontend responderem antes de encerrar.
 
 Endereços padrão:
 
@@ -127,11 +127,11 @@ Push-Location .\api-ia
 python -m pytest tests/test_api.py -q
 python -m pytest tests/test_provedor_nvidia.py -q
 python -m pytest tests/test_medicao.py -q
-python -m pytest tests/test_api.py::test_gerar_pergunta_retorna_resposta_deterministica -q
+python -m pytest tests/test_api.py::test_rota_pergunta_usa_provedor_injetado -q
 Pop-Location
 ```
 
-Esses testes usam o stub e provedores HTTP falsos; não chamam a NVIDIA nem precisam de uma chave real.
+Esses testes usam provedores HTTP falsos; não chamam a NVIDIA nem precisam de uma chave real.
 
 ### Testes do backend (JUnit/Gradle)
 
@@ -145,7 +145,7 @@ Os testes de integração usam Testcontainers e iniciam PostgreSQL. Para filtrar
 
 ```powershell
 gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest"
-gradle -p backend test --tests "br.ivis.identidade.ServicoPerfilAlunoTest"
+gradle -p backend test --tests "br.ivis.identity.PerfilAlunoServiceTest"
 gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest.trocaDeSenhaExigeSenhaAtualERevogaRenovacoesAnteriores"
 ```
 
@@ -262,12 +262,11 @@ O último comando Cypress pode apagar os dados transacionais do banco local `ivi
 
 Os valores são ilustrativos para a atividade acadêmica. Não há cobrança financeira. O fluxo de compra não envia uma mensagem real: a confirmação simulada fica registrada no sistema e não armazena PAN ou CVV.
 
-## Usar a NVIDIA em vez do stub (opcional)
+## Configurar a NVIDIA
 
 Edite `api-ia/.env`, que é local e não deve ser enviado ao Git:
 
 ```dotenv
-IVIS_IA_USAR_STUB=false
 NVIDIA_API_KEY=sua-chave
 NVIDIA_MODEL=nvidia/nemotron-3.5-bolt-e4b
 ```
@@ -278,7 +277,7 @@ Recrie a API de IA:
 docker compose up --build -d ivis-api-ia
 ```
 
-Use a mesma `IVIS_IA_CHAVE_SERVICO` em `.env` e `api-ia/.env`. Se o provedor NVIDIA falhar, a aplicação não troca silenciosamente para o stub. As notas do stub são demonstrativas e não representam uma avaliação semântica real.
+Use a mesma `IVIS_IA_CHAVE_SERVICO` em `.env` e `api-ia/.env`. Se o provedor NVIDIA falhar, a API retorna um erro de integração.
 
 ## Publicar o frontend na Vercel
 
@@ -317,13 +316,13 @@ Confirme que backend está pronto em `http://localhost:8081/api/v1/pronto`, que 
 
 ### Serviço de IA retorna indisponível
 
-Com o stub ativo, confirme `IVIS_IA_USAR_STUB=true` em `api-ia/.env`. Se o stub estiver desativado, confira a chave NVIDIA e o acesso ao provedor.
+Confira `NVIDIA_API_KEY` em `api-ia/.env` e o acesso ao provedor NVIDIA.
 
 ## Estrutura dos módulos
 
 - `frontend/`: Vue 3, TypeScript, Vite e Bootstrap.
 - `backend/`: API Spring Boot, autenticação, planos, perfis, habilidades, vagas e vínculos institucionais.
-- `api-ia/`: API FastAPI com stub e adaptador NVIDIA.
+- `api-ia/`: API FastAPI com adaptador NVIDIA.
 - `docker-compose.yml`: PostgreSQL, Mailpit, backend, API de IA e frontend.
 - `release.sh`: inicia e administra a stack local e pode publicar o frontend na Vercel.
 - `release.ps1`: inicia e administra a stack local no Windows/PowerShell.

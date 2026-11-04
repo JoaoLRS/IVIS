@@ -20,13 +20,7 @@ async def saude() -> dict[str, str]:
 
 @app.get("/pronto")
 async def pronto() -> dict[str, str]:
-    stub_indisponivel = (
-        configuracoes.usar_stub and configuracoes.falha_stub != "nenhuma"
-    )
-    nvidia_nao_configurada = (
-        not configuracoes.usar_stub and configuracoes.chave_nvidia is None
-    )
-    if stub_indisponivel or nvidia_nao_configurada:
+    if configuracoes.chave_nvidia is None:
         raise HTTPException(
             status_code=503,
             detail={

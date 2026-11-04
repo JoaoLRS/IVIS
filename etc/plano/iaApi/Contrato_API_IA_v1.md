@@ -1,6 +1,6 @@
 # Contrato da API de IA — versão 1 (proposta)
 
-Este documento define o contrato v1 entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). O contrato foi aprovado para orientar o stub e a integração posterior com NVIDIA NGC, sem mudança das rotas ou dos formatos HTTP.
+Este documento define o contrato v1 entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). A integração usa o provedor NVIDIA sem mudança das rotas ou dos formatos HTTP.
 
 Identificadores em português brasileiro, sem acentos, conforme o [glossário](../Glossario_IVIS.md).
 
@@ -47,7 +47,7 @@ Resposta `200`:
 ```json
 {
   "pergunta": { "texto": "…" },
-  "versao_modelo": "stub-1",
+  "versao_modelo": "nvidia/nemotron-3.5-bolt-e4b",
   "versao_prompt": "perguntas-1"
 }
 ```
@@ -77,7 +77,7 @@ Resposta `200`:
   "nota": 78,
   "pontos_fortes": ["…"],
   "pontos_melhoria": ["…"],
-  "versao_modelo": "stub-1",
+  "versao_modelo": "nvidia/nemotron-3.5-bolt-e4b",
   "versao_prompt": "avaliacao-1"
 }
 ```
@@ -116,12 +116,11 @@ Formato: `{ "codigo": "…", "mensagem": "…" }`.
 
 Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação em até 20 s** no percentil 95. O backend usa timeout um pouco acima desses valores. Os números só podem ser confirmados com medições na Etapa 6 da [ordem de entrega](../Ordem_de_Entrega_MVP.md).
 
-## Comportamento do stub
+## Provedor ativo
 
-- Gera perguntas a partir de um conjunto fixo, variando pelo tema (habilidade ou requisito) e pelo `numero_pergunta`.
-- Calcula `nota` de forma determinística a partir do tamanho das respostas (respostas vazias reduzem a nota), apenas para o backend e o frontend poderem ser testados com resultados que **dependam das respostas**. Essa nota não representa uma avaliação qualitativa.
-- Devolve `versao_modelo: "stub-1"`. Um treino avaliado pelo stub é identificável pela versão persistida em `avaliacoes_treinamento`.
-- Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição); a readiness fica indisponível quando a simulação de falha está ativa.
+A API usa o provedor NVIDIA. A resposta informa o modelo em `versao_modelo`,
+que também é persistido em `avaliacoes_treinamento`. Sem chave configurada, a
+API responde `503/provedor_indisponivel`.
 
 ## Pendências
 

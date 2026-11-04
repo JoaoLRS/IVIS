@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.security:spring-security-config:7.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.security" artifactId="spring-security-config" version="7.1.0" baseVersion="7.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-config/7.1.0/ebc863ad43703c6f5517881e16d3d73de80cd193/spring-security-config-7.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-config/7.1.0/41e5b797cd5bc47d120706039e721ee2bc2eb0f2/spring-security-config-7.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.security/spring-security-config/7.1.0/d6707947bad4cdc00d2b17e0b4cf53ed55c568f2/spring-security-config-7.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

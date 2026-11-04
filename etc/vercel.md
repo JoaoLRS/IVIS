@@ -35,7 +35,7 @@ No projeto Vercel, configure as variáveis do ambiente **Production**. As variá
 | `IVIS_CORS_ORIGENS` | Serviço `backend` | Origens exatas dos frontends autorizados, separadas por vírgula e sem barra final. Para Production, use `https://ivis-ia.vercel.app`; para um deployment Preview, inclua a origem exata do Preview, como `https://ivis-b4s65t63k-lucifer-son.vercel.app`, no ambiente correspondente. |
 | `IVIS_URL_REDEFINICAO_SENHA` | Serviço `backend` | URL completa da página do frontend, por exemplo `https://ivis-ia.vercel.app/redefinir-senha`. |
 | `IVIS_IA_CHAVE_SERVICO` | Serviços `backend` e `api-ia` | Mesmo segredo forte e exclusivo nos dois serviços. |
-| `IVIS_IA_USAR_STUB` | Serviço `api-ia` | `true` para a demonstração acadêmica sem chave de modelo; `false` somente se configurar um provedor de IA real. |
+| `NVIDIA_API_KEY` | Serviço `api-ia` | Chave do provedor NVIDIA, obrigatória para gerar perguntas e avaliações. |
 
 Se instalar a integração Neon na Vercel, ela pode fornecer uma `DATABASE_URL` no formato URI padrão `postgresql://`. O backend Spring não consome essa variável diretamente: configure `IVIS_BD_URL`, `IVIS_BD_USUARIO` e `IVIS_BD_SENHA` separadamente com host, banco e credenciais do Neon. Prefira o endpoint com pooler mostrado no Neon Console para a aplicação hospedada.
 

@@ -2,7 +2,7 @@
 
 Este documento explica como o código atual de `api-ia/` funciona: os módulos,
 as duas rotas de negócio, a autenticação entre serviços, a validação de dados,
-os provedores stub e NVIDIA e a integração com o backend Java.
+o provedor NVIDIA e a integração com o backend Java.
 
 ## 1. Visão geral
 
@@ -17,11 +17,8 @@ flowchart LR
     API --> AUTH[Autenticação X-Chave-Servico]
     AUTH --> SCH[Validação Pydantic]
     SCH --> SVC[ServicoIA]
-    SVC --> SEL{IVIS_IA_USAR_STUB}
-    SEL -->|true| STUB[ProvedorStub]
-    SEL -->|false| NVIDIA[ProvedorNvidia]
+    SVC --> NVIDIA[ProvedorNvidia]
     NVIDIA --> NIM[Endpoint NVIDIA Nemotron]
-    STUB --> OUT[Validação da resposta]
     NIM --> OUT
     OUT --> C
 ```
@@ -48,7 +45,6 @@ sua configuração.
 | [`app/config.py`](../../../api-ia/app/config.py) | Lê variáveis do ambiente e do arquivo local `.env`. |
 | [`app/servico.py`](../../../api-ia/app/servico.py) | Seleciona o provedor e valida a resposta produzida por ele. |
 | [`app/provedor.py`](../../../api-ia/app/provedor.py) | Define a interface que os provedores precisam implementar. |
-| [`app/provedor_stub.py`](../../../api-ia/app/provedor_stub.py) | Gera respostas demonstrativas locais, sem chamar um modelo externo. |
 | [`app/provedor_nvidia.py`](../../../api-ia/app/provedor_nvidia.py) | Chama o endpoint NVIDIA, trata chamadas assíncronas e transforma a saída em JSON. |
 | [`tests/`](../../../api-ia/tests) | Testes das rotas, dos provedores e do script de medição. |
 | [`scripts/medir_desempenho.py`](../../../api-ia/scripts/medir_desempenho.py) | Mede latência e formato das respostas usando dados sintéticos. |
@@ -149,7 +145,7 @@ principais status são:
 Os erros recebidos da NVIDIA são convertidos em mensagens genéricas. Isso evita
 devolver detalhes internos ou credenciais ao cliente.
 
-## 6. Configuração e escolha do provedor
+## 6. Configuração do provedor
 
 `config.py` define as configurações e usa `SecretStr` para guardar as chaves.
 Ele carrega `api-ia/.env`; as variáveis do ambiente do processo têm precedência
@@ -160,37 +156,18 @@ As configurações mais importantes são:
 | Variável | Uso atual |
 |---|---|
 | `IVIS_IA_CHAVE_SERVICO` | Chave de serviço interna; precisa ter pelo menos 32 caracteres. |
-| `IVIS_IA_USAR_STUB` | `true` seleciona o stub; `false` seleciona NVIDIA. |
-| `IVIS_IA_STUB_FALHA` | Simula as falhas do stub em teste. |
 | `NVIDIA_API_KEY` | Chave privada para chamadas ao endpoint NVIDIA. |
 | `NVIDIA_MODEL` | Modelo NVIDIA; padrão atual `nvidia/nemotron-3.5-bolt-e4b`. |
 | `NVIDIA_BASE_URL` | Base atual `https://integrate.api.nvidia.com/v1`. |
 | `NVIDIA_TIMEOUT_SEGUNDOS` | Limite total atual de 90 segundos. |
 
-`servico.py` mantém uma instância do serviço para cada implementação. A função
-`obter_servico_ativo()` escolhe uma delas conforme `IVIS_IA_USAR_STUB`. Se NVIDIA
-estiver selecionada e `NVIDIA_API_KEY` não estiver configurada, a operação
-responde `503`.
+`servico.py` usa o provedor NVIDIA. Se `NVIDIA_API_KEY` não estiver configurada,
+a operação responde `503`.
 
 `/pronto` verifica se a configuração local necessária existe; não faz uma
 requisição de teste à NVIDIA.
 
-## 7. O stub
-
-`provedor_stub.py` fornece uma implementação demonstrativa da mesma interface
-que o provedor NVIDIA. Ele não usa rede nem uma chave NVIDIA.
-
-- Gera uma pergunta escolhendo uma frase fixa e preenchendo o tema com uma
-  habilidade ou um requisito da vaga.
-- A nota de avaliação depende do tamanho das respostas, não da correção ou da
-  qualidade técnica delas.
-- `IVIS_IA_STUB_FALHA=indisponivel` simula `503`.
-- `IVIS_IA_STUB_FALHA=tempo_esgotado` simula `504`.
-
-Uma resposta com `versao_modelo: "stub-1"` significa que aquela chamada não foi
-feita pelo Nemotron.
-
-## 8. O adaptador NVIDIA
+## 7. O adaptador NVIDIA
 
 `provedor_nvidia.py` implementa a interface `ProvedorIA` para o Nemotron.
 
@@ -262,7 +239,7 @@ o timeout do Java.
 
 ## 11. Testes, dependências e container
 
-Os testes cobrem validação das rotas, autenticação, erros do stub, adaptação da
+Os testes cobrem validação das rotas, autenticação, ausência de configuração, adaptação da
 resposta NVIDIA e consulta de resultados `202`. Os testes do provedor usam
 respostas simuladas: eles verificam o código sem consumir chamadas NVIDIA.
 
@@ -299,4 +276,4 @@ da aplicação e executa o servidor como usuário sem privilégios administrativ
 - [Contrato da API v1](Contrato_API_IA_v1.md)
 - [Plano de implementação da API](Plano_Implementacao_API_IA.md)
 - [Instruções de execução da API](../../../api-ia/LEIA-ME.md)
-- [Cliente Java da API de IA](../../../backend/src/main/java/br/ivis/ia/ClienteIa.java)
+- [Cliente Java da API de IA](../../../backend/src/main/java/br/ivis/ai/service/IaClient.java)

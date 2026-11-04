@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.testcontainers:testcontainers-postgresql:2.0.5" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.testcontainers" artifactId="testcontainers-postgresql" version="2.0.5" baseVersion="2.0.5" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.testcontainers/testcontainers-postgresql/2.0.5/a7a9f748bb0e043098d3fc36d4929538ee0f6de8/testcontainers-postgresql-2.0.5.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.testcontainers/testcontainers-postgresql/2.0.5/bcd562e2a5d56899f5f17b5b0253755b5dc68929/testcontainers-postgresql-2.0.5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.testcontainers/testcontainers-postgresql/2.0.5/e8c9f3b51c12bf81c9c9b2ae963a5acd64ea9e0a/testcontainers-postgresql-2.0.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

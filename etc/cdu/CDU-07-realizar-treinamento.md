@@ -40,7 +40,7 @@
 
 ## Situação atual no sistema
 
-Implementado com geração de perguntas e avaliação pelo backend/API de IA configurável (stub local ou provedor externo). A interface usa três perguntas. Só o treino finalizado é persistido; treinos cancelados ou incompletos não aparecem no histórico.
+Implementado com geração de perguntas e avaliação pelo backend/API de IA com provedor NVIDIA. A interface usa três perguntas. Só o treino finalizado é persistido; treinos cancelados ou incompletos não aparecem no histórico.
 
 ## Diagrama de ações do ator
 

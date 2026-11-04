@@ -25,18 +25,21 @@ export IVIS_BD_SENHA=ivis_local
 export IVIS_IA_CHAVE_SERVICO=chave-local-com-pelo-menos-32-caracteres
 export IVIS_JWT_CHAVE_ASSINATURA="$(openssl rand -base64 32)"
 export IVIS_COOKIE_SEGURO=false
-gradle bootRun
+./gradlew bootRun
 ```
 
-O backend chama a API de IA usando `IVIS_IA_URL` e `X-Chave-Servico`; o navegador
-chama somente as rotas do backend `/api/v1/ia/perguntas/gerar` e
-`/api/v1/ia/avaliacoes/gerar`. Respostas da IA são validadas antes de serem
-retornadas. Em falhas, o backend preserva as interações recebidas e devolve um
-erro contratual sem repassar detalhes internos.
+O backend chama a API de IA usando `IVIS_IA_URL` e `X-Chave-Servico`. O navegador
+inicia o treino em `POST /api/v1/treinos`, retoma em `GET /api/v1/treinos/em-andamento`,
+envia cada resposta por ID em `POST /api/v1/treinos/{id}/respostas` e conclui em
+`POST /api/v1/treinos/{id}/concluir`. A sessão e as interações ficam no PostgreSQL;
+somente alunos com acesso ativo podem usar essas rotas. A geração e a avaliação
+externas ocorrem fora das transações do banco.
 
-O Gradle Wrapper ainda não foi gerado. Uma vez, com Gradle instalado, rode `gradle wrapper --gradle-version 9.1.0` dentro de `backend/` e versione `gradlew`, `gradlew.bat` e `gradle/wrapper/`.
+O Gradle Wrapper está em `backend/`. No PowerShell, entre nessa pasta e execute
+`.\gradlew.bat bootRun` ou `.\gradlew.bat test`. Em Linux/macOS, use `./gradlew`.
+O JDK 25 deve estar configurado como `JAVA_HOME` e como Gradle JVM na IDE.
 
-Testes (exigem Docker, usam Testcontainers): `gradle test`.
+Testes (exigem Docker, usam Testcontainers): `./gradlew test`.
 
 ## Compilar como GraalVM Native Image
 
@@ -47,12 +50,12 @@ Pré-requisitos: GraalVM for JDK 25 com Native Image instalado e, no Windows, a 
 Na pasta `backend/`, compile e execute:
 
 ```bash
-gradle nativeCompile
+./gradlew nativeCompile
 ```
 
 O executável fica em `build/native/nativeCompile/ivis-backend` (Linux/macOS) ou `build/native/nativeCompile/ivis-backend.exe` (Windows). A aplicação continua precisando das mesmas variáveis de ambiente documentadas acima, incluindo as credenciais do banco e a chave JWT.
 
-Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa também requer Docker porque os testes de integração usam Testcontainers.
+Para executar os testes como imagem nativa, use `./gradlew nativeTest`; essa tarefa também requer Docker porque os testes de integração usam Testcontainers.
 
 ## Variáveis de ambiente
 
@@ -82,7 +85,7 @@ Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa
 ## Convenções de API (Etapa 0, item 4)
 
 - Base `/api` (servlet context path) + `/v1`: por exemplo `/api/v1/saude`. O `clienteHttp.ts` do frontend já aponta para `http://localhost:8081/api`.
-- Planos (domínio `br.ivis.planos`): `GET /api/v1/planos` e `GET /api/v1/planos/{id}` são públicos. `GET /api/v1/conta/plano` consulta contratos ativos próprios ou por vínculo institucional, usando o principal autenticado. Consulte [OPENAPI.md](OPENAPI.md) para campos, isolamento e limites desta entrega. Ofertas e benefícios vêm do banco; nenhum preço comercial foi inventado.
+- Planos (domínio `br.ivis.plans`): `GET /api/v1/planos` e `GET /api/v1/planos/{id}` são públicos. `GET /api/v1/conta/plano` consulta contratos ativos próprios ou por vínculo institucional, usando o principal autenticado. Consulte [OPENAPI.md](OPENAPI.md) para campos, isolamento e limites desta entrega. Ofertas e benefícios vêm do banco; nenhum preço comercial foi inventado.
 - Identidade: `POST /api/v1/contas/alunos`, `POST /api/v1/contas/instituicoes`, `POST /api/v1/sessoes` (login), `POST /api/v1/sessoes/renovacao` e `DELETE /api/v1/sessoes/atual` (logout autenticado).
 - Conta e senha: `GET/PATCH /api/v1/conta`, `POST /api/v1/conta/senha`, `POST /api/v1/senhas/recuperacao` e `POST /api/v1/senhas/redefinicao`. Perfil e senha autenticados derivam a conta do JWT; troca/redefinição de senha revoga todas as sessões de renovação existentes.
 - Habilidades e vagas: `GET/POST /api/v1/habilidades`, `PUT/DELETE /api/v1/habilidades/{id}`, `GET/POST /api/v1/vagas` e `PUT/DELETE /api/v1/vagas/{id}`. Todas exigem JWT de uma conta com perfil de aluno; o titular vem do `sub`, nunca do payload.
@@ -123,9 +126,9 @@ Para executar os testes como imagem nativa, use `gradle nativeTest`; essa tarefa
 
 ## Preparação de segurança
 
-O backend inclui Spring Security e OAuth2 Resource Server com validação HS256 do JWT. A cadeia HTTP é stateless, não usa autenticação de formulário; health/readiness, consulta de CSRF, cadastro, login e renovação são públicos, e as demais rotas exigem JWT válido. As rotas de IA existentes também exigem autenticação. O JWT leva o UUID da conta em `sub` e o tipo de conta, sem incluir plano ou permissões de negócio.
+O backend inclui Spring Security e OAuth2 Resource Server com validação HS256 do JWT. A cadeia HTTP é stateless, não usa autenticação de formulário; health/readiness, consulta de CSRF, cadastro, login e renovação são públicos, e as demais rotas exigem JWT válido. As rotas de treino também verificam acesso ativo. O JWT leva o UUID da conta em `sub` e o tipo de conta, sem incluir plano ou permissões de negócio.
 
-CORS é aplicado pela cadeia de segurança, restringido a `IVIS_CORS_ORIGENS`, aceita `PATCH` e permite credenciais para a renovação por cookie. CSRF permanece habilitado nas operações mutáveis; os endpoints bearer da IA são excluídos por não usar autenticação por cookie. Cadastros criam as contas e perfis com transação; e-mail é normalizado em minúsculas e único. Refresh tokens aleatórios de uso único são armazenados apenas como hash SHA-256 e rotacionados a cada renovação. As sessões expiram em sete dias, os JWTs em quinze minutos, e logout revoga a sessão do refresh correspondente à conta autenticada.
+CORS é aplicado pela cadeia de segurança, restringido a `IVIS_CORS_ORIGENS`, aceita `PATCH` e permite credenciais para a renovação por cookie. CSRF permanece habilitado nas operações mutáveis, incluindo as rotas de treino. Cadastros criam as contas e perfis com transação; e-mail é normalizado em minúsculas e único. Refresh tokens aleatórios de uso único são armazenados apenas como hash SHA-256 e rotacionados a cada renovação. As sessões expiram em sete dias, os JWTs em quinze minutos, e logout revoga a sessão do refresh correspondente à conta autenticada.
 
 Perfil próprio e alteração de senha usam o UUID do `sub` autenticado, nunca um identificador recebido do cliente. A troca de senha exige a senha atual. Tokens de recuperação têm 256 bits aleatórios, são persistidos somente como SHA-256, expiram, são consumidos uma única vez e cada pedido novo invalida tokens ativos anteriores. Troca e recuperação revogam todas as sessões de refresh da conta; access tokens emitidos anteriormente permanecem válidos somente até sua expiração natural (15 minutos). A resposta à solicitação é neutra para não revelar se o e-mail existe. O Mailpit é usado somente como captura SMTP local; sua interface e SMTP são publicados no loopback, e a implantação não deve substituir o host por um provedor real sem decisão específica.
 
@@ -135,12 +138,17 @@ Tentativas inválidas são limitadas por e-mail normalizado e endereço IP, com 
 
 ```
 src/main/java/br/ivis/
-  AplicacaoIvis.java
-  comum/
-    erro/          RespostaErro, ErroCampo, ExcecaoNegocio, TratadorGlobalDeErros, TratadorFalhaInesperada
-    requisicao/    FiltroIdentificadorRequisicao
-    configuracao/  ConfiguracaoCors, ConfiguracaoSeguranca
-    saude/         SaudeControlador
+  IvisApplication.java
+  common/
+    error/    RespostaErro, ErroCampo, ExcecaoNegocio, TratadorGlobalDeErros, TratadorFalhaInesperada
+    request/  FiltroIdentificadorRequisicao
+    config/   CorsConfig, SegurancaConfig, OpenApiConfig
+    health/   SaudeController
+  identity/   controller/, dto/, model/, repository/, service/
+  plans/      controller/, dto/, model/, repository/, service/
+  training/   controller/
+  ai/         config/, dto/, service/
+  security/   ChavesJwtConfig, CodificacaoSenhaConfig
 src/main/resources/
   application.yml
   db/migration/    V1__base_inicial.sql, V2__modelo_relacional_treinos.sql,

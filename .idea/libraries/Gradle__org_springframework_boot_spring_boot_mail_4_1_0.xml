@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.boot:spring-boot-mail:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.boot" artifactId="spring-boot-mail" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-mail/4.1.0/b8051f1cfbd57903eaa11612f6a1e51828e6fe8c/spring-boot-mail-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-mail/4.1.0/c5d7365de5aa2704be888818e5b7c87c1ef67d1a/spring-boot-mail-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-mail/4.1.0/e2fd36cebacbb1d0c22eb4e5b6fb736112a68514/spring-boot-mail-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

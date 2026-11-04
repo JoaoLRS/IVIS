@@ -78,6 +78,7 @@ def test_provedor_nvidia_chama_modelo_e_retorna_contrato(monkeypatch) -> None:
     assert requisicao["json"]["chat_template_kwargs"]["enable_thinking"] is False
     assert requisicao["json"]["response_format"]["type"] == "json_schema"
     assert "id_correlacao" not in requisicao["json"]["messages"][1]["content"]
+    assert "nível 1 é iniciante" in requisicao["json"]["messages"][0]["content"]
 
 
 def test_provedor_nvidia_rejeita_json_invalido(monkeypatch) -> None:

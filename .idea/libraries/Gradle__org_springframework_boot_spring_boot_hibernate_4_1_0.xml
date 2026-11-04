@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.boot:spring-boot-hibernate:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.boot" artifactId="spring-boot-hibernate" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-hibernate/4.1.0/af702315125871004a8a7df290f55ac5e5617d91/spring-boot-hibernate-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-hibernate/4.1.0/3714c259d301f2adc82e9c59dcf093c6d5deb91f/spring-boot-hibernate-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-hibernate/4.1.0/85683a2b976f5d84448c8ad92695518709a9cf43/spring-boot-hibernate-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

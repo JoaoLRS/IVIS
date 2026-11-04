@@ -29,10 +29,12 @@ describe("CDU-07 - Realizar treinamento e receber feedback", () => {
     conferirProximaPerguntaDaEntrevista(3);
     digitarRespostaDaEntrevista(3);
     enviarRespostaDaEntrevista();
-    conferirRespostaPreservadaAposFalha(3, true);
-    reenviarRespostaPreservada();
+    cy.wait("@gerarPerguntaIA");
     conferirAvaliacaoDaEntrevista();
     finalizarEntrevista();
+    conferirRespostaPreservadaAposFalha(3, true);
+    reenviarRespostaPreservada(true);
+    cy.wait("@avaliarTreinoIA");
     conferirFeedbackDaEntrevista();
   });
   it("responde às três perguntas da IA, registra o treino e confere a avaliação", () => {
@@ -47,8 +49,10 @@ describe("CDU-07 - Realizar treinamento e receber feedback", () => {
     conferirProximaPerguntaDaEntrevista(3);
     digitarRespostaDaEntrevista(3);
     enviarRespostaDaEntrevista();
+    cy.wait("@gerarPerguntaIA");
     conferirAvaliacaoDaEntrevista();
     finalizarEntrevista();
+    cy.wait("@avaliarTreinoIA");
     conferirFeedbackDaEntrevista();
   });
 });

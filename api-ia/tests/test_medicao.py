@@ -32,7 +32,7 @@ def test_resumo_inclui_versoes_e_marca_aquecimento_com_falha() -> None:
                 "duracao_ms": 12.5,
                 "status_http": 200,
                 "erro": None,
-                "versao_modelo": "stub-1",
+                "versao_modelo": "modelo-teste",
                 "versao_prompt": "perguntas-1",
             }
         ],
@@ -40,7 +40,7 @@ def test_resumo_inclui_versoes_e_marca_aquecimento_com_falha() -> None:
         operacao="perguntas",
     )
 
-    assert resumo["versoes_modelo"] == ["stub-1"]
+    assert resumo["versoes_modelo"] == ["modelo-teste"]
     assert resumo["versoes_prompt"] == ["perguntas-1"]
     assert resumo["situacao"] == "INCOMPLETO"
 
@@ -50,7 +50,7 @@ def test_validar_resposta_de_pergunta_confere_contrato() -> None:
         "perguntas",
         {
             "pergunta": {"texto": "Pergunta sintética"},
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "perguntas-1",
         },
     )
@@ -58,7 +58,7 @@ def test_validar_resposta_de_pergunta_confere_contrato() -> None:
         "perguntas",
         {
             "pergunta": {"texto": ""},
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "perguntas-1",
         },
     )
@@ -71,7 +71,7 @@ def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
             "nota": 80,
             "pontos_fortes": ["Ponto forte"],
             "pontos_melhoria": ["Ponto de melhoria"],
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "avaliacao-1",
         },
     )
@@ -81,7 +81,7 @@ def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
             "nota": True,
             "pontos_fortes": ["Ponto forte"],
             "pontos_melhoria": ["Ponto de melhoria"],
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "avaliacao-1",
         },
     )

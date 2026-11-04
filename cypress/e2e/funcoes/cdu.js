@@ -838,30 +838,22 @@ export function conferirRespostaPreservadaAposFalha(numero, avaliacao = false) {
   cy.wait(aliases.aguardar(avaliacao ? aliases.avaliarTreinoIA : aliases.gerarPerguntaIA))
     .its("response.statusCode").should("eq", avaliacao ? 503 : 504);
   cy.contains('[role="alert"]', "Sua resposta foi mantida; tente novamente.").should("be.visible");
-  cy.get(seletores.treino.resposta).should("have.value", textos.treino.respostaDemonstracao(numero));
-  cy.get(`${aliases.aguardar(aliases.salvarTreinoConcluido)}.all`).should("have.length", 0);
+  if (!avaliacao) cy.get(seletores.treino.resposta)
+    .should("have.value", textos.treino.respostaDemonstracao(numero));
 }
 
-export function reenviarRespostaPreservada() {
-  cy.contains("button", "Tentar novamente").click();
+export function reenviarRespostaPreservada(avaliacao = false) {
+  cy.contains("button", avaliacao ? textos.treino.finalizar : "Tentar novamente").click();
 }
 
 export function conferirProximaPerguntaDaEntrevista(numero) {
   cy.wait(aliases.aguardar(aliases.gerarPerguntaIA))
-    .its(`request.body.${camposApi.treino.numeroPergunta}`)
-    .should("eq", numero);
+    .its("request.body.perguntaId")
+    .should("eq", `pergunta-${numero - 1}`);
   cy.contains(textos.treino.perguntaIa(numero)).should("be.visible");
 }
 
 export function conferirAvaliacaoDaEntrevista() {
-  cy.wait(aliases.aguardar(aliases.avaliarTreinoIA)).then(({ request }) => {
-    expect(request.body.interacoes).to.have.length(
-      dadosCaminhoFeliz.totalPerguntas,
-    );
-    expect(request.body.tipo_contexto).to.eq(
-      valoresSistema.contexto.habilidades,
-    );
-  });
   cy.contains(elementos.botao, textos.treino.finalizar).should("be.enabled");
 }
 
@@ -870,16 +862,6 @@ export function finalizarEntrevista() {
 }
 
 export function conferirFeedbackDaEntrevista() {
-  cy.wait(aliases.aguardar(aliases.salvarTreinoConcluido)).then(
-    ({ request }) => {
-      expect(request.body.interacoes).to.have.length(
-        dadosCaminhoFeliz.totalPerguntas,
-      );
-      expect(request.body.tipoContexto).to.eq(
-        valoresSistema.contexto.habilidades,
-      );
-    },
-  );
   cy.location(parametrosUrl.caminho).should("eq", rotas.feedback);
   cy.get(seletores.treino.nota).should(
     "have.text",

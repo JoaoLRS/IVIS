@@ -11,8 +11,7 @@ cliente = TestClient(app)
 
 def setup_function() -> None:
     config.configuracoes.chave_servico = SecretStr(CHAVE_TESTE)
-    config.configuracoes.usar_stub = True
-    config.configuracoes.falha_stub = "nenhuma"
+    config.configuracoes.chave_nvidia = None
 
 
 def test_liveness_nao_expoe_configuracoes() -> None:
@@ -23,7 +22,8 @@ def test_liveness_nao_expoe_configuracoes() -> None:
     assert CHAVE_TESTE not in resposta.text
 
 
-def test_readiness_do_stub_nao_expoe_configuracoes() -> None:
+def test_readiness_disponivel_com_provedor_real_configurado() -> None:
+    config.configuracoes.chave_nvidia = SecretStr("chave-nvidia-de-teste")
     resposta = cliente.get("/pronto")
 
     assert resposta.status_code == 200
@@ -31,11 +31,7 @@ def test_readiness_do_stub_nao_expoe_configuracoes() -> None:
     assert CHAVE_TESTE not in resposta.text
 
 
-def test_readiness_indisponivel_quando_stub_e_provedor_real_estao_desativados(
-    monkeypatch,
-) -> None:
-    config.configuracoes.usar_stub = False
-    monkeypatch.setattr(config.configuracoes, "chave_nvidia", None)
+def test_readiness_indisponivel_sem_provedor_configurado() -> None:
 
     resposta = cliente.get("/pronto")
 
@@ -44,30 +40,6 @@ def test_readiness_indisponivel_quando_stub_e_provedor_real_estao_desativados(
         "codigo": "provedor_indisponivel",
         "mensagem": "O provedor ativo não está disponível.",
     }
-
-
-def test_readiness_disponivel_com_provedor_real_configurado(monkeypatch) -> None:
-    config.configuracoes.usar_stub = False
-    monkeypatch.setattr(
-        config.configuracoes,
-        "chave_nvidia",
-        SecretStr("chave-nvidia-de-teste"),
-    )
-
-    resposta = cliente.get("/pronto")
-
-    assert resposta.status_code == 200
-    assert resposta.json() == {"situacao": "PRONTO"}
-    assert "chave-nvidia-de-teste" not in resposta.text
-
-
-def test_readiness_indisponivel_quando_falha_stub_configurada() -> None:
-    config.configuracoes.falha_stub = "indisponivel"
-
-    resposta = cliente.get("/pronto")
-
-    assert resposta.status_code == 503
-    assert resposta.json()["codigo"] == "provedor_indisponivel"
 
 
 def test_rota_protegida_rejeita_chave_ausente() -> None:
@@ -86,31 +58,6 @@ def test_rota_protegida_rejeita_chave_invalida() -> None:
 
     assert resposta.status_code == 401
     assert resposta.json()["codigo"] == "nao_autenticado"
-
-
-def test_gerar_pergunta_retorna_resposta_deterministica() -> None:
-    resposta = cliente.post(
-        "/v1/perguntas/gerar",
-        headers={"X-Chave-Servico": CHAVE_TESTE},
-        json={
-            "id_correlacao": "correlacao-123",
-            "tipo_contexto": "HABILIDADES",
-            "habilidades": [{"nome": "Python", "nivel": 4}],
-            "vaga": None,
-            "interacoes": [],
-            "numero_pergunta": 1,
-            "total_perguntas": 3,
-        },
-    )
-
-    assert resposta.status_code == 200
-    assert resposta.json() == {
-        "pergunta": {
-            "texto": "Como você aplicaria Python em um projeto real e quais decisões técnicas tomaria?"
-        },
-        "versao_modelo": "stub-1",
-        "versao_prompt": "perguntas-1",
-    }
 
 
 def test_rota_pergunta_usa_provedor_injetado(monkeypatch) -> None:
@@ -229,91 +176,7 @@ def test_rota_avaliacao_rejeita_saida_invalida_do_provedor(monkeypatch) -> None:
     }
 
 
-def test_gerar_pergunta_varia_com_numero_e_contexto() -> None:
-    payload = {
-        "id_correlacao": "correlacao-123",
-        "tipo_contexto": "VAGA",
-        "habilidades": None,
-        "vaga": {
-            "titulo": "Desenvolvedor",
-            "senioridade": "Pleno",
-            "requisitos": ["Python", "PostgreSQL"],
-        },
-        "interacoes": [],
-        "numero_pergunta": 2,
-        "total_perguntas": 3,
-    }
-
-    resposta = cliente.post(
-        "/v1/perguntas/gerar",
-        headers={"X-Chave-Servico": CHAVE_TESTE},
-        json=payload,
-    )
-
-    assert resposta.status_code == 200
-    assert resposta.json()["pergunta"]["texto"] == (
-        "Descreva um desafio envolvendo Python e como avaliaria as alternativas para resolvê-lo."
-    )
-
-
-def test_gerar_avaliacao_depende_do_tamanho_das_respostas() -> None:
-    payload = {
-        "id_correlacao": "correlacao-123",
-        "tipo_contexto": "HABILIDADES",
-        "habilidades": [{"nome": "Python", "nivel": 4}],
-        "vaga": None,
-        "interacoes": [
-            {"numero": 1, "pergunta": "Pergunta", "resposta": "x" * 250},
-            {"numero": 2, "pergunta": "Pergunta", "resposta": ""},
-        ],
-    }
-
-    resposta = cliente.post(
-        "/v1/avaliacoes/gerar",
-        headers={"X-Chave-Servico": CHAVE_TESTE},
-        json=payload,
-    )
-
-    assert resposta.status_code == 200
-    assert resposta.json() == {
-        "nota": 25,
-        "pontos_fortes": [
-            "Esta avaliação demonstrativa considera o volume de texto das respostas.",
-            "As respostas enviadas contêm texto para análise.",
-        ],
-        "pontos_melhoria": [
-            "A nota do stub não avalia a qualidade ou a correção técnica das respostas."
-        ],
-        "versao_modelo": "stub-1",
-        "versao_prompt": "avaliacao-1",
-    }
-
-
-def test_stub_mapeia_indisponibilidade_e_timeout() -> None:
-    payload = {
-        "id_correlacao": "correlacao-123",
-        "tipo_contexto": "HABILIDADES",
-        "habilidades": [{"nome": "Python", "nivel": 4}],
-        "vaga": None,
-        "interacoes": [],
-        "numero_pergunta": 1,
-        "total_perguntas": 3,
-    }
-    headers = {"X-Chave-Servico": CHAVE_TESTE}
-
-    config.configuracoes.falha_stub = "indisponivel"
-    indisponivel = cliente.post("/v1/perguntas/gerar", headers=headers, json=payload)
-    assert indisponivel.status_code == 503
-    assert indisponivel.json()["codigo"] == "provedor_indisponivel"
-
-    config.configuracoes.falha_stub = "tempo_esgotado"
-    timeout = cliente.post("/v1/perguntas/gerar", headers=headers, json=payload)
-    assert timeout.status_code == 504
-    assert timeout.json()["codigo"] == "tempo_esgotado"
-
-
-def test_operacao_indisponivel_quando_stub_desativado() -> None:
-    config.configuracoes.usar_stub = False
+def test_operacao_indisponivel_sem_chave_nvidia() -> None:
     resposta = cliente.post(
         "/v1/perguntas/gerar",
         headers={"X-Chave-Servico": CHAVE_TESTE},
