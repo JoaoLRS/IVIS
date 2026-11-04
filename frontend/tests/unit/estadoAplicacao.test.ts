@@ -128,4 +128,73 @@ describe("sessão de treino", () => {
     expect(estado.historico[0]).toMatchObject({ id: "treino-1", nota: 88 });
     expect(estado.treinoAtivo).toBe(false);
   });
+
+  it("cancela a sessão no servidor antes de limpar o treino local", async () => {
+    const estado = useEstadoAplicacao();
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
+    vi.mocked(cancelarTreinoRemoto).mockRejectedValueOnce(new Error("Falha de rede"));
+    await estado.iniciarTreino(undefined, ["Vue.js"]);
+
+    await expect(estado.cancelarTreino()).rejects.toThrow("Falha de rede");
+    expect(estado.treinoAtivo).toBe(true);
+
+    vi.mocked(cancelarTreinoRemoto).mockResolvedValueOnce(undefined);
+    await estado.cancelarTreino();
+    expect(cancelarTreinoRemoto).toHaveBeenLastCalledWith("treino-1");
+    expect(estado.treinoAtivo).toBe(false);
+    expect(estado.sessaoTreino).toBeNull();
+  });
+
+  it("não aplica dados carregados para outra conta após troca de usuário", async () => {
+    vi.mocked(listarHabilidades).mockResolvedValue([]);
+    vi.mocked(listarVagas).mockResolvedValue([]);
+    vi.mocked(listarHistorico).mockResolvedValue([]);
+    vi.mocked(consultarTreinoEmAndamento).mockResolvedValue(sessao());
+    const estado = useEstadoAplicacao();
+
+    await estado.carregarPerfil("token-antigo", "aluno-antigo", () => "aluno-novo");
+
+    expect(estado.treinoAtivo).toBe(false);
+    expect(estado.sessaoTreino).toBeNull();
+    expect(estado.historico).toEqual([]);
+  });
+
+  it("impede resposta sem sessão e conclusão antes das três respostas", async () => {
+    const estado = useEstadoAplicacao();
+    await expect(estado.responder("Resposta")).rejects.toThrow("Não há uma resposta pendente");
+    await expect(estado.concluirTreino()).rejects.toThrow("Responda a todas");
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
+    await estado.iniciarTreino(undefined, ["Vue.js"]);
+    await expect(estado.concluirTreino()).rejects.toThrow("Responda a todas");
+    expect(concluirTreinoRemoto).not.toHaveBeenCalled();
+  });
+
+  it("mantém o treino ativo quando a avaliação da IA falha", async () => {
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao(["R1", "R2", "R3"]));
+    vi.mocked(concluirTreinoRemoto).mockRejectedValue(new Error("IA indisponível"));
+    const estado = useEstadoAplicacao();
+    await estado.iniciarTreino(undefined, ["Vue.js"]);
+
+    await expect(estado.concluirTreino()).rejects.toThrow("IA indisponível");
+
+    expect(estado.treinoAtivo).toBe(true);
+    expect(estado.sessaoTreino?.id).toBe("treino-1");
+    expect(estado.historico).toEqual([]);
+  });
+
+  it("limpa treino e dados da conta ao trocar de usuário", async () => {
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
+    const estado = useEstadoAplicacao();
+    estado.atualizarDadosAluno({ nome: "  Ana  ", email: "  ana@ivis.test  " });
+    await estado.iniciarTreino(undefined, ["Vue.js"]);
+    expect(estado.nomeAluno).toBe("Ana");
+
+    estado.limparDadosDaConta();
+
+    expect(estado.emailAluno).toBe("");
+    expect(estado.treinoAtivo).toBe(false);
+    expect(estado.sessaoTreino).toBeNull();
+    expect(estado.perguntasDoTreino).toEqual([]);
+    expect(estado.respostas).toEqual([]);
+  });
 });

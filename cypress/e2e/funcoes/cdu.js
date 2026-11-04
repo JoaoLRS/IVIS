@@ -824,6 +824,39 @@ export function abrirTreinoPorHabilidades() {
   abrirComoAluno(rotas.treinos, { habilidades: [habilidadeTesteCdu] });
 }
 
+export function prepararRetomadaDaEntrevista() {
+  cy.intercept(metodosHttp.get, endpoints.treinoEmAndamento, {
+    statusCode: codigosHttp.sucesso,
+    body: {
+      id: valoresCdu.treinoCaminhoFeliz,
+      tipoContexto: valoresSistema.contexto.habilidades,
+      contexto: textos.historico.contextoHabilidades,
+      vagaId: null,
+      habilidades: [habilidadeTesteCdu.nome],
+      totalPerguntas: dadosCaminhoFeliz.totalPerguntas,
+      perguntas: [
+        {
+          id: "pergunta-1",
+          numero: 1,
+          texto: textos.treino.perguntaIa(1),
+          resposta: textos.treino.respostaDemonstracao(1),
+        },
+        { id: "pergunta-2", numero: 2, texto: textos.treino.perguntaIa(2), resposta: null },
+      ],
+    },
+  }).as(aliases.retomarTreino);
+}
+
+export function recarregarEntrevista() {
+  cy.reload();
+}
+
+export function conferirEntrevistaRetomada() {
+  cy.wait(aliases.aguardar(aliases.retomarTreino));
+  cy.contains(textos.treino.perguntaIa(2)).should("be.visible");
+  cy.contains(textos.treino.respostaDemonstracao(1)).should("be.visible");
+}
+
 export function digitarRespostaDaEntrevista(numero) {
   cy.get(seletores.treino.resposta)
     .clear()
@@ -857,6 +890,12 @@ export function conferirAvaliacaoDaEntrevista() {
   cy.contains(elementos.botao, textos.treino.finalizar).should("be.enabled");
 }
 
+export function conferirTerceiraRespostaRegistrada() {
+  cy.wait(aliases.aguardar(aliases.gerarPerguntaIA))
+    .its("request.body.perguntaId")
+    .should("eq", "pergunta-3");
+}
+
 export function finalizarEntrevista() {
   cy.contains(elementos.botao, textos.treino.finalizar).click();
 }
@@ -869,6 +908,12 @@ export function conferirFeedbackDaEntrevista() {
   );
   cy.contains(valoresCdu.pontosFortes[0]).should("be.visible");
   cy.contains(valoresCdu.pontosMelhoria[0]).should("be.visible");
+}
+
+export function conferirAvaliacaoPersistida() {
+  cy.wait(aliases.aguardar(aliases.avaliarTreinoIA))
+    .its("response.statusCode")
+    .should("eq", codigosHttp.sucesso);
 }
 
 export function conferirTreinoListadoNoHistorico() {

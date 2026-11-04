@@ -85,6 +85,8 @@ Para executar os testes como imagem nativa, use `./gradlew nativeTest`; essa tar
 
 ## Limpeza de dados em desenvolvimento e homologação
 
+Este fluxo operacional está especificado no [CDU-17](../etc/cdu/CDU-17-limpar-dados-de-teste.md).
+
 Com o perfil `dev`, `homolog` ou `homologacao` ativo, sem `prod`, e `IVIS_LIMPEZA_CHAVE` configurada, envie `POST /api/v1/ambiente/limpar-dados` com o cabeçalho `X-IVIS-Limpeza-Chave` e o JSON `{"documento":"123.456.789-01"}` ou `{"documento":"12.345.678/0001-95"}`. A resposta de sucesso é `204`, documento não encontrado retorna `404`, documento inválido retorna `400` e chave incorreta retorna `403`. A chave ausente ou curta deixa a operação indisponível (`503`).
 
 A operação apaga a conta identificada e seus dados vinculados em uma única transação, incluindo sessões, contratos, pagamentos, e-mails simulados, treinos e registros de auditoria. Ao apagar uma instituição, os alunos vinculados permanecem no banco, com o vínculo removido. Outras contas e os planos compartilhados permanecem. A rota não é registrada fora dos perfis permitidos.

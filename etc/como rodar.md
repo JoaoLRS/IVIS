@@ -1,328 +1,157 @@
 # Como rodar o IVIS
 
-Este guia cobre duas formas de executar o IVIS localmente: iniciar toda a stack em containers Docker ou rodar o frontend com o servidor de desenvolvimento do Vite. Os comandos pressupõem que o terminal está na raiz do repositório.
+Este guia parte da **raiz do repositório**. O caminho mais simples usa Docker para subir frontend, backend, API de IA, PostgreSQL e Mailpit. Para editar a interface com atualização automática, rode o frontend pelo Vite.
 
-## Requisitos
+## Antes de começar
 
-- Docker Desktop iniciado, com Docker Compose disponível.
-- Node.js 22 ou superior e npm para executar o frontend fora do Docker.
-- Bash e OpenSSL para usar `release.sh` (Linux, macOS ou Git Bash no Windows). No PowerShell, use `release.ps1`.
-- Acesso à internet na primeira execução para baixar imagens e dependências.
-
-O backend é compilado dentro da imagem Docker. Não é necessário instalar Java ou Gradle para executar o conjunto.
-
-## Subir o sistema completo com Docker
-
-Na raiz do repositório, execute um dos comandos:
-
-```bash
-bash release.sh up
-```
-
-No PowerShell:
-
-```powershell
-.\release.ps1 up
-```
-
-O comando prepara os arquivos locais `.env` e `api-ia/.env` a partir dos exemplos, compila e sobe PostgreSQL, Mailpit, API de IA, backend e frontend. Configure `NVIDIA_API_KEY` em `api-ia/.env` antes de iniciar. O script espera os serviços de IA, backend/banco e frontend responderem antes de encerrar.
-
-Endereços padrão:
-
-| Serviço | Endereço |
+| Para quê | Ferramentas necessárias |
 | --- | --- |
-| Frontend em container | `http://localhost:8080` |
-| Backend | `http://localhost:8081/api` |
-| API de IA | `http://localhost:8000` |
-| Mailpit (caixa de e-mail local) | `http://localhost:8025` |
-| PostgreSQL | `localhost:5433` |
+| Executar o sistema completo | Docker Desktop iniciado, com Docker Compose |
+| Desenvolver ou testar o frontend | Node.js 22 ou superior e npm |
+| Testar o backend fora do container | JDK 25 e Docker Desktop; o Gradle Wrapper já está no projeto |
+| Testar a API de IA fora do container | Python e `pip` |
 
-Os endpoints de prontidão são `http://localhost:8081/api/v1/pronto` para backend e banco e `http://localhost:8000/pronto` para a API de IA. O serviço de banco não é exposto fora da máquina local.
+Na primeira execução, o Docker e os gerenciadores de pacotes precisam baixar imagens e dependências. **Java e Gradle locais não são necessários para subir o sistema pelo Docker.**
 
-### Comandos para administrar os containers
+## 1. Subir o sistema completo
 
-```bash
-bash release.sh status
-bash release.sh logs
-bash release.sh restart
-bash release.sh down
+No **PowerShell**, na raiz do projeto:
+
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+if (-not (Test-Path api-ia/.env)) { Copy-Item api-ia/.env.example api-ia/.env }
 ```
 
-Os mesmos comandos podem ser usados com `.\release.ps1` no PowerShell. `down` remove os containers e preserva os dados do volume `ivis-banco-dados`. Para apagar os dados também, execute conscientemente `docker compose down -v`.
-
-Para acompanhar por mais tempo a inicialização no Bash, defina `IVIS_RELEASE_TIMEOUT_SECONDS` antes de usar `up` (padrão: 300 segundos).
-
-## Rodar o frontend com `npm run dev`
-
-Também é possível executar o frontend diretamente pelo Vite. Primeiro, inicie backend, banco e API de IA com Docker:
+Edite `api-ia/.env` e preencha `NVIDIA_API_KEY` para gerar perguntas e avaliações reais. O `.env` da raiz contém a configuração local dos demais serviços. Não envie esses arquivos ao Git. O script gera uma chave JWT local caso `IVIS_JWT_CHAVE_ASSINATURA` esteja vazia.
 
 ```powershell
 .\release.ps1 up
 ```
 
-Abra outro terminal na raiz do repositório e execute:
-
-```powershell
-Set-Location .\frontend
-npm ci
-npm run dev
-```
-
-No Bash, os comandos equivalentes são:
-
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-Abra `http://localhost:5173`. O frontend usa `http://localhost:8081/api` como URL padrão do backend. Para apontar a outro backend durante o desenvolvimento, crie `frontend/.env.local` com:
-
-```dotenv
-VITE_API_URL=http://localhost:8081/api
-```
-
-`VITE_API_URL` é incorporada ao código entregue ao navegador. Nunca coloque senhas, tokens ou chaves privadas em variáveis com prefixo `VITE_`.
-
-Para compilar o frontend localmente:
-
-```bash
-cd frontend
-npm ci
-npm run build
-```
-
-O resultado é gerado em `frontend/dist/`.
-
-## Instalar dependências para os testes
-
-Execute na raiz do repositório. Estes comandos instalam as dependências JavaScript e criam um ambiente Python isolado para os testes da API de IA:
-
-```powershell
-npm ci
-npm --prefix frontend ci
-npm --prefix cypress/e2e ci
-py -m venv api-ia/.venv
-& .\api-ia\.venv\Scripts\python.exe -m pip install -r api-ia/requirements.txt
-```
-
-Também é necessário ter Java 25, Gradle disponível no terminal e Docker Desktop ativo para os testes de integração do backend. Os testes Python e os testes de interface com mocks não precisam do banco; as jornadas reais Cypress usam a stack Docker.
-
-## Executar os testes e verificações
-
-Os comandos abaixo partem da raiz do repositório e usam PowerShell.
-
-### Testes da API de IA (Python/pytest)
-
-```powershell
-Push-Location .\api-ia
-& .\.venv\Scripts\python.exe -m pytest tests -q
-Pop-Location
-```
-
-Para executar um arquivo ou caso específico:
-
-```powershell
-Push-Location .\api-ia
-python -m pytest tests/test_api.py -q
-python -m pytest tests/test_provedor_nvidia.py -q
-python -m pytest tests/test_medicao.py -q
-python -m pytest tests/test_api.py::test_rota_pergunta_usa_provedor_injetado -q
-Pop-Location
-```
-
-Esses testes usam provedores HTTP falsos; não chamam a NVIDIA nem precisam de uma chave real.
-
-### Testes do backend (JUnit/Gradle)
-
-Com Docker Desktop iniciado, execute a suíte unitária e de integração:
-
-```powershell
-gradle -p backend test
-```
-
-Os testes de integração usam Testcontainers e iniciam PostgreSQL. Para filtrar uma classe ou um método JUnit:
-
-```powershell
-gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest"
-gradle -p backend test --tests "br.ivis.identity.PerfilAlunoServiceTest"
-gradle -p backend test --tests "br.ivis.EsqueletoIntegracaoTest.trocaDeSenhaExigeSenhaAtualERevogaRenovacoesAnteriores"
-```
-
-### Verificações do frontend
-
-```powershell
-npm --prefix frontend run test:unit
-npm --prefix frontend run build
-npm --prefix frontend run verificar-estilo
-```
-
-`build` também executa a verificação de tipos TypeScript/Vue. Para verificar dependências e arquivos JavaScript/TypeScript não utilizados pelo projeto:
-
-```powershell
-npm run deps:check
-npm run deps:audit
-```
-
-Os testes unitários usam Vitest e exercitam componentes Vue e o fluxo de treinamento com respostas da API simuladas. Para acompanhar os testes enquanto edita:
-
-```powershell
-npm --prefix frontend run test:unit:watch
-```
-
-### Testes Cypress de CDU com APIs simuladas
-
-Inicie o backend, o banco e a API de IA com a stack local:
-
-```powershell
-.\release.ps1 up
-```
-
-Em outro terminal, sirva o frontend atual pelo Vite em `http://localhost:5173`:
-
-```powershell
-npm --prefix frontend run dev
-```
-
-O Cypress usa `http://localhost:5173` por padrão. Use `localhost` exatamente; o backend permite essa origem CORS e não permite `127.0.0.1:5173`.
-
-Os CDUs 01–14, exceto o 15, usam respostas simuladas e não limpam o banco. Para executar todos esses cenários:
-
-```powershell
-npm run testar:e2e -- --spec "cdu/CDU-[0-1][0-4]-*.cy.js"
-```
-
-Para executar um CDU isolado ou o grupo inteiro, use o mesmo comando com outro padrão:
-
-```powershell
-npm run testar:e2e -- --spec "cdu/CDU-04-*.cy.js"
-npm run testar:e2e -- --spec "cdu/CDU-07-*.cy.js"
-npm run testar:e2e -- --spec "cdu/CDU-*.cy.js"
-```
-
-O último comando inclui o CDU-15 real. As jornadas de `caminho_feliz/` também usam backend e banco reais. **Atenção:** antes e depois de cada spec real, os hooks executam `TRUNCATE` nas tabelas transacionais do banco `ivis`. Rode esses cenários somente quando os dados do banco local puderem ser apagados; não use um banco compartilhado ou com dados que queira preservar.
-
-### Jornadas Cypress reais e CDU-15
-
-Confirme que a stack está ativa e que o banco local `ivis` contém apenas dados descartáveis. Os hooks limpam automaticamente as tabelas transacionais antes e depois das jornadas reais; não é necessária variável de ambiente:
-
-```powershell
-npm run testar:e2e -- --spec "caminho_feliz/*.cy.js"
-```
-
-Para testar a gravação da auditoria da contratação real:
-
-```powershell
-npm run testar:e2e -- --spec "cdu/CDU-15-*.cy.js"
-```
-
-Para executar a suíte Cypress completa, incluindo CDUs simulados, CDU-15 e jornadas reais:
-
-```powershell
-npm run testar:e2e
-```
-
-O Cypress recusa a limpeza se o nome do banco não for `ivis`, mas essa verificação não confirma se os dados são descartáveis. Execute as jornadas reais somente contra o banco local do Compose sem dados que queira preservar.
-
-Para abrir o Cypress em modo interativo, use a pasta do pacote:
-
-```powershell
-Set-Location .\cypress\e2e
-npx cypress open
-```
-
-No painel do Cypress, selecione o spec desejado. Para executar sem interface, os vídeos ficam em `cypress/downloads` e as capturas de falhas em `cypress/screenshots`.
-
-### Resumo para rodar todas as verificações automatizadas
-
-Depois de instalar as dependências, com Java 25 e Docker Desktop disponíveis e a stack IVIS iniciada, a sequência completa é:
-
-```powershell
-Push-Location .\api-ia
-python -m pytest tests -q
-Pop-Location
-gradle -p backend test
-npm --prefix frontend run test:unit
-npm --prefix frontend run build
-npm --prefix frontend run verificar-estilo
-npm run deps:check
-npm run deps:audit
-npm run testar:e2e
-```
-
-O último comando Cypress pode apagar os dados transacionais do banco local `ivis`; faça a execução completa somente com dados descartáveis.
-
-## Primeiro acesso e planos demonstrativos
-
-- A raiz do site abre a apresentação pública; o acesso à área do aluno/instituição exige sessão e plano individual ativo ou vínculo institucional ativo.
-- Cadastro e login são processados pelo backend. O access token fica em memória no frontend; a renovação usa cookie HttpOnly.
-- As migrations do Flyway criam e atualizam as tabelas e os planos demonstrativos.
-- Na página `/planos`, o aluno pode contratar o plano individual e uma instituição pode contratar o plano acadêmico.
-- O checkout usa cartões fictícios. Para aprovação use `4242 4242 4242 4242`, validade futura (por exemplo `12/30`) e CVV `123`. Para recusa use `4000 0000 0000 0002`, validade futura e CVV `123`.
-
-Os valores são ilustrativos para a atividade acadêmica. Não há cobrança financeira. O fluxo de compra não envia uma mensagem real: a confirmação simulada fica registrada no sistema e não armazena PAN ou CVV.
-
-## Configurar a NVIDIA
-
-Edite `api-ia/.env`, que é local e não deve ser enviado ao Git:
-
-```dotenv
-NVIDIA_API_KEY=sua-chave
-NVIDIA_MODEL=nvidia/nemotron-3.5-bolt-e4b
-```
-
-Recrie a API de IA:
-
-```bash
-docker compose up --build -d ivis-api-ia
-```
-
-Use a mesma `IVIS_IA_CHAVE_SERVICO` em `.env` e `api-ia/.env`. Se o provedor NVIDIA falhar, a API retorna um erro de integração.
-
-## Publicar o frontend na Vercel
-
-A Vercel publica o frontend Vue/Vite deste repositório. Ela não executa a stack Docker inteira: PostgreSQL, backend Spring Boot e API FastAPI precisam estar publicados em serviços próprios que aceitem esses componentes. Veja o guia [Como publicar o IVIS na Vercel](vercel.md) para os passos, configurações e variáveis necessárias.
-
-O script Bash também oferece `bash release.sh deploy-vercel` para iniciar uma implantação de produção do frontend já vinculado à Vercel. Esse comando não publica backend, API de IA nem banco.
-
-## Solução de problemas
-
-### Docker não está disponível
-
-Se aparecer erro sobre `docker_engine`, abra o Docker Desktop e aguarde o mecanismo ficar pronto. Depois, tente novamente:
-
-```powershell
-.\release.ps1 up
-```
-
-### Porta ocupada
-
-O PostgreSQL usa a porta local `5433`, configurável por `IVIS_BD_PORTA` no `.env`. Frontend, backend, API de IA e Mailpit usam as portas mostradas acima, definidas em `docker-compose.yml`. Libere a porta em uso ou altere o mapeamento correspondente.
-
-### Backend ou banco não ficam prontos
-
-Confira o estado e os logs:
+No **Bash, Git Bash ou WSL**, use `bash release.sh up` após preparar os mesmos arquivos. O script Bash precisa de `curl` e `openssl` disponíveis. Ambos os scripts constroem as imagens e aguardam a prontidão dos serviços.
+
+| Serviço | Endereço local |
+| --- | --- |
+| Aplicação | <http://localhost:8080> |
+| Backend | <http://localhost:8081/api> |
+| API de IA | <http://localhost:8000> |
+| Mailpit, para ver e-mails de recuperação | <http://localhost:8025> |
+| PostgreSQL | `localhost:5433`, banco `ivis` |
+
+O backend pode ser conferido em <http://localhost:8081/api/v1/pronto> e a API de IA em <http://localhost:8000/pronto>. Para abrir o banco em uma IDE, use o usuário e a senha de `IVIS_BD_USUARIO` e `IVIS_BD_SENHA` no `.env`. O exemplo usa `ivis` e `ivis_local`. A porta é definida por `IVIS_BD_PORTA` (padrão `5433`); `5432` é a porta **interna** do container.
+
+### Parar, consultar estado e acompanhar logs
 
 ```powershell
 .\release.ps1 status
 .\release.ps1 logs
+.\release.ps1 down
 ```
 
-Confira se `.env` contém `IVIS_JWT_CHAVE_ASSINATURA` Base64 válida com pelo menos 32 bytes e se `IVIS_IA_CHAVE_SERVICO` coincide com o valor de `api-ia/.env`.
+`logs` acompanha a saída até você pressionar `Ctrl+C`. `down` remove os containers e preserva o volume do banco. `restart` reinicia os serviços sem reconstruir as imagens; depois de alterar código ou variáveis de ambiente, use `up` novamente. No Bash, substitua `.\release.ps1` por `bash release.sh`.
 
-### Frontend não consegue acessar o backend
+## 2. Desenvolver o frontend com Vite
 
-Confirme que backend está pronto em `http://localhost:8081/api/v1/pronto`, que `VITE_API_URL` aponta para `http://localhost:8081/api` e que a origem do frontend (`http://localhost:5173` para Vite ou `http://localhost:8080` para o container) está em `IVIS_CORS_ORIGENS` no `.env`. Reinicie o backend após alterar o arquivo.
+Deixe a stack Docker ativa. Em **outro terminal**, na raiz do projeto:
 
-### Serviço de IA retorna indisponível
+```powershell
+npm --prefix frontend ci
+npm --prefix frontend run dev
+```
 
-Confira `NVIDIA_API_KEY` em `api-ia/.env` e o acesso ao provedor NVIDIA.
+Abra <http://localhost:5173>. O Vite encaminha `/api` ao backend em `localhost:8081`. Para usar outro backend, crie `frontend/.env.local` com `VITE_API_URL` apontando para a URL completa da API, por exemplo `http://localhost:8081/api`, e reinicie o Vite. Variáveis `VITE_` ficam visíveis no navegador; não coloque segredos nelas.
 
-## Estrutura dos módulos
+Para trabalhar também no backend fora do Docker, consulte [o guia do backend](../backend/LEIA-ME.md). Nesse caso, pare o container `ivis-backend` antes de iniciar o `bootRun` na mesma porta.
 
-- `frontend/`: Vue 3, TypeScript, Vite e Bootstrap.
-- `backend/`: API Spring Boot, autenticação, planos, perfis, habilidades, vagas e vínculos institucionais.
-- `api-ia/`: API FastAPI com adaptador NVIDIA.
-- `docker-compose.yml`: PostgreSQL, Mailpit, backend, API de IA e frontend.
-- `release.sh`: inicia e administra a stack local e pode publicar o frontend na Vercel.
-- `release.ps1`: inicia e administra a stack local no Windows/PowerShell.
+## 3. Primeiro acesso
+
+Abra a aplicação, crie uma conta de aluno ou instituição e consulte os planos. O checkout é **simulado**, sem cobrança real:
+
+| Resultado | Cartão de teste | Validade | CVV |
+| --- | --- | --- | --- |
+| Aprovado | `4242 4242 4242 4242` | `12/30` | `123` |
+| Recusado | `4000 0000 0000 0002` | `12/30` | `123` |
+
+Use uma validade futura quando executar o teste. Os e-mails de recuperação ficam no Mailpit; não são entregues a uma caixa externa. Sem `NVIDIA_API_KEY`, os treinos que precisam gerar perguntas ou avaliação não funcionam.
+
+## 4. Rodar os testes
+
+As verificações abaixo são independentes. Execute as que correspondem ao módulo alterado.
+
+### Frontend
+
+```powershell
+npm --prefix frontend ci
+npm --prefix frontend run test:unit
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+npm --prefix frontend run build
+```
+
+`build` também faz a verificação de tipos e grava o resultado em `frontend/dist/`. Os testes unitários usam Vitest e não precisam de Docker.
+
+### Backend
+
+Com **JDK 25** e Docker Desktop ativos, use o Gradle Wrapper do projeto. Não é preciso instalar Gradle globalmente:
+
+```powershell
+Push-Location backend
+.\gradlew.bat test
+Pop-Location
+```
+
+Os testes de integração usam Testcontainers para iniciar PostgreSQL. No Bash, execute `./gradlew test` dentro de `backend/`.
+
+### API de IA
+
+No PowerShell, crie o ambiente virtual e instale as dependências uma vez:
+
+```powershell
+py -m venv api-ia/.venv
+& .\api-ia\.venv\Scripts\python.exe -m pip install -r api-ia/requirements.txt
+Push-Location api-ia
+& .\.venv\Scripts\python.exe -m pytest tests -q
+Pop-Location
+```
+
+Esses testes usam provedores simulados e não exigem uma chave NVIDIA real.
+
+### Cypress: testes de interface
+
+Instale as dependências do pacote e inicie o Vite em outro terminal:
+
+```powershell
+npm --prefix cypress/e2e ci
+npm --prefix frontend run dev
+```
+
+Os cenários de CDU com `cy.intercept` usam respostas simuladas e podem rodar apenas com o Vite. Para executar um arquivo:
+
+```powershell
+npm --prefix cypress/e2e run testar:e2e -- --spec "cdu/CDU-16-*.cy.js"
+```
+
+**A suíte completa inclui jornadas reais** (`caminho_feliz/` e CDU-15). Elas precisam de backend, API de IA e um PostgreSQL **isolado e descartável** chamado `ivis_e2e`, no container `ivis-e2e-banco`. Os hooks limpam os dados transacionais desse banco antes e depois dessas jornadas. O banco normal do Compose, `ivis`, não participa dessa limpeza. Siga a [preparação do ambiente Cypress](../cypress/e2e/README.md) antes de executar `npm run testar:e2e` na raiz. As jornadas reais precisam da chave NVIDIA.
+
+### Dependências do projeto
+
+Para conferir ferramentas instaladas e dependências declaradas:
+
+```powershell
+npm ci
+npm run deps:check
+npm run deps:audit
+```
+
+## Problemas comuns
+
+| Sintoma | O que conferir |
+| --- | --- |
+| Docker Engine indisponível | Abra o Docker Desktop, espere o Engine iniciar e repita `.\release.ps1 up`. |
+| Porta ocupada | Verifique as portas `8080`, `8081`, `8000`, `8025` e `5433`. A porta do banco pode ser alterada em `IVIS_BD_PORTA` no `.env`. |
+| Banco recusa a senha | Confira a porta e as credenciais do `.env`. Se o volume já existia, mudar `IVIS_BD_SENHA` no arquivo não altera a senha gravada no PostgreSQL. |
+| Frontend não acessa o backend | Confira <http://localhost:8081/api/v1/pronto>, a URL de `VITE_API_URL` (se definida) e `IVIS_CORS_ORIGENS` no `.env`. |
+| IA indisponível no treino | Confira `NVIDIA_API_KEY` em `api-ia/.env` e os logs com `.\release.ps1 logs`. |
+| `java` não é reconhecido nos testes do backend | Instale/configure JDK 25 e `JAVA_HOME`; para apenas subir a stack Docker, Java local não é necessário. |
+
+Para detalhes de publicação, veja [Como publicar na Vercel](vercel.md). Para investigar cada módulo, consulte os guias do [frontend](../frontend/LEIA-ME.md), [backend](../backend/LEIA-ME.md) e [API de IA](../api-ia/LEIA-ME.md).

@@ -20,7 +20,7 @@
 3. O usuário altera os campos e solicita salvar.
 4. O sistema valida os dados e verifica a unicidade do novo e-mail.
 5. O sistema grava a alteração na conta da sessão e confirma a atualização.
-6. Na página Minha conta, o usuário escolhe a opção Alterar senha. Em uma página própria, informa a senha atual e uma nova senha válida; o sistema confere a senha atual, grava o novo hash e revoga as sessões de renovação existentes.
+6. Na página Minha conta, o usuário escolhe a opção Alterar senha. Em uma página própria, informa a senha atual e uma nova senha conforme CDU-16; o sistema confere a senha atual, grava o novo hash e revoga as sessões de renovação existentes.
 7. Os campos de texto e senha aparecem com fundo branco e borda visível; ao receber foco, a borda destaca a área interativa.
 
 ## Fluxos alternativos e exceções
@@ -28,7 +28,7 @@
 - **A1 — Dados inválidos:** o sistema informa os campos que precisam de correção e não grava a alteração.
 - **A2 — E-mail já utilizado:** o sistema rejeita a mudança e mantém o e-mail atual.
 - **A3 — Senha atual incorreta:** o sistema não altera a senha.
-- **A4 — Nova senha inválida:** o sistema informa os requisitos e não altera a credencial.
+- **A4 — Nova senha inválida:** o sistema aplica CDU-16 e não altera a credencial.
 - **E1 — Falha ao salvar:** o sistema informa que a alteração não foi concluída.
 
 ## Pós-condições

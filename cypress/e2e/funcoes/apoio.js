@@ -90,6 +90,7 @@ export function prepararSessao({
   });
   cy.intercept(metodosHttp.get, endpoints.vagas, { statusCode: codigosHttp.sucesso, body: vagas });
   cy.intercept(metodosHttp.get, endpoints.treinos, { statusCode: codigosHttp.sucesso, body: historico });
+  cy.intercept(metodosHttp.get, endpoints.treinoEmAndamento, { statusCode: codigosHttp.semConteudo });
   return contaSessao;
 }
 

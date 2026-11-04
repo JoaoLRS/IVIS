@@ -1,11 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
 
-const arquivoCompose = [
-  resolve(process.cwd(), "docker-compose.yml"),
-  resolve(process.cwd(), "../../docker-compose.yml"),
-].find(existsSync);
+const CONTAINER_E2E = "ivis-e2e-banco";
+const BANCO_E2E = "ivis_e2e";
 
 const tabelasTransacionais = `
   public.emails_simulados,
@@ -28,13 +24,9 @@ const tabelasTransacionais = `
   public.contas`;
 
 export function limparBancoDeDados() {
-  if (!arquivoCompose) {
-    throw new Error("Não foi possível localizar docker-compose.yml para limpar o banco de testes.");
-  }
-
   executarPsql(`DO $$ BEGIN
-    IF current_database() <> 'ivis' THEN
-      RAISE EXCEPTION 'A limpeza do Cypress só pode ser executada no banco local ivis.';
+    IF current_database() <> '${BANCO_E2E}' THEN
+      RAISE EXCEPTION 'A limpeza do Cypress exige o banco isolado ${BANCO_E2E}.';
     END IF;
   END $$;
   TRUNCATE TABLE ${tabelasTransacionais} RESTART IDENTITY CASCADE;\n`);
@@ -47,8 +39,8 @@ export function consultarAuditoriaPorContrato(contratoId) {
   }
 
   const resultado = executarPsql(`DO $$ BEGIN
-    IF current_database() <> 'ivis' THEN
-      RAISE EXCEPTION 'A consulta do Cypress só pode ser executada no banco local ivis.';
+    IF current_database() <> '${BANCO_E2E}' THEN
+      RAISE EXCEPTION 'A consulta do Cypress exige o banco isolado ${BANCO_E2E}.';
     END IF;
   END $$;
   SELECT COALESCE(json_agg(json_build_object(
@@ -66,27 +58,19 @@ export function consultarAuditoriaPorContrato(contratoId) {
 }
 
 function executarPsql(sql) {
-  if (!arquivoCompose) {
-    throw new Error("Não foi possível localizar docker-compose.yml para acessar o banco de testes.");
-  }
-
   const comandoPsql =
     'PGPASSWORD="$POSTGRES_PASSWORD" psql --quiet --set ON_ERROR_STOP=1 --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"';
   return execFileSync(
     "docker",
     [
-      "compose",
-      "--file",
-      arquivoCompose,
       "exec",
-      "--no-TTY",
-      "ivis-banco",
+      "--interactive",
+      CONTAINER_E2E,
       "sh",
       "-lc",
       comandoPsql,
     ],
     {
-      cwd: dirname(arquivoCompose),
       input: sql,
       encoding: "utf8",
       timeout: 30000,

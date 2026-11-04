@@ -416,7 +416,7 @@ export function prepararTreinoComIA(vaga = null, { falharUmaVez = false } = {}) 
       resposta: respostas[i] ?? null,
     })),
   });
-  cy.intercept(metodosHttp.get, "**/api/v1/treinos/em-andamento", {
+  cy.intercept(metodosHttp.get, endpoints.treinoEmAndamento, {
     statusCode: 204,
   });
   cy.intercept(metodosHttp.post, endpoints.iniciarTreino, (requisicao) => {

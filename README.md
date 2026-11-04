@@ -17,6 +17,10 @@ Além do módulo de treinamento, o IVIS contempla o **gerenciamento de contas, p
 
 O projeto está sendo desenvolvido e aprimorado no contexto da disciplina de **Engenharia de Software**, aplicando conceitos de levantamento e especificação de requisitos, casos de uso, histórias de usuário, arquitetura, desenvolvimento, testes, qualidade e evolução de software.
 
+## ▶️ Executar localmente
+
+Para preparar o ambiente, iniciar o sistema e rodar os testes, siga o guia [Como rodar o IVIS](etc/como%20rodar.md).
+
 ## 🌐 Acesso à produção
 
 A versão de produção do IVIS está disponível em: [https://ivis-ia.vercel.app/inicio](https://ivis-ia.vercel.app/inicio).
@@ -186,6 +190,8 @@ As especificações detalhadas, com fluxos principais, exceções, estado de imp
 | CDU-13 | Gerenciar alunos vinculados |
 | CDU-14 | Aplicar acesso conforme modalidade |
 | CDU-15 | Registrar auditoria de operações sensíveis |
+| CDU-16 | Validar requisitos de senha |
+| CDU-17 | Limpar dados de teste de uma conta (operacional) |
 
 ## 📖 Histórias de Usuário
 
@@ -331,7 +337,9 @@ pacotes declarados estão usados e se os imports estão declarados, use
 `npm run deps:audit`. A instalação inicial dos pacotes JavaScript roda com
 `npm run setup:inicial`; o Cypress pertence ao pacote `cypress/e2e`.
 Execute `npm run testar:e2e` para gerar os vídeos em `cypress/downloads`;
-o modo interativo `cypress open` não grava vídeos automaticamente.
+o modo interativo `cypress open` não grava vídeos automaticamente. As jornadas
+reais exigem o banco descartável `ivis_e2e`; siga a preparação em
+[cypress/e2e/README.md](cypress/e2e/README.md) antes de executar a suíte inteira.
 
 ## 🤖 API de IA
 
