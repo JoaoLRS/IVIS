@@ -65,7 +65,7 @@ function Invoke-Compose {
 
     & docker compose @Arguments
     if ($LASTEXITCODE -ne 0) {
-        throw "docker compose falhou (código $LASTEXITCODE)."
+        throw "docker compose $($Arguments -join ' ') falhou (código $LASTEXITCODE). Consulte o erro do Docker acima; para serviços que não iniciaram, execute: docker compose ps -a e docker compose logs --tail=80."
     }
 }
 
@@ -95,9 +95,15 @@ function Wait-ForUrl {
 }
 
 function Wait-ForStack {
-    Wait-ForUrl -Label "API de IA" -Url "http://127.0.0.1:8000/pronto"
+    Wait-ForUrl -Label "API de IA (processo)" -Url "http://127.0.0.1:8000/saude"
     Wait-ForUrl -Label "backend e banco" -Url "http://127.0.0.1:8081/api/v1/pronto"
     Wait-ForUrl -Label "frontend" -Url "http://127.0.0.1:8080/"
+    try {
+        $null = Invoke-RestMethod -Uri "http://127.0.0.1:8000/pronto" -TimeoutSec 3 -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "A API de IA iniciou, mas os treinos estão indisponíveis. Configure NVIDIA_API_KEY em api-ia/.env e execute .\release.ps1 up novamente. Consulte docker compose logs --tail=80 ivis-api-ia se a chave já estiver configurada."
+    }
     Write-Host ""
     Write-Host "Ambiente iniciado." -ForegroundColor Green
     Write-Host "Frontend: http://localhost:8080" -ForegroundColor Green

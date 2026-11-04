@@ -14,10 +14,10 @@
 ## Fluxo principal
 
 1. A instituição abre a área de gestão institucional.
-2. O sistema apresenta alunos vinculados e, por contrato, as Vadas de alunos , utilizadas e disponíveis.
+2. O sistema apresenta alunos vinculados e, por contrato, as vagas de alunos totais, utilizadas e disponíveis.
 3. Para adicionar, a instituição escolhe entre informar o e-mail de uma conta de aluno existente ou preencher o cadastro de um novo aluno.
 4. O sistema verifica titularidade do contrato, vaga disponível e ausência de outro vínculo institucional ativo para o aluno.
-5. Se for um novo aluno, o sistema cria a conta e o perfil com a senha protegida por hash; se for existente, localiza a conta pelo e-mail.
+5. Se for um novo aluno, o sistema exige a política de senha do CDU-16 e cria a conta e o perfil com a senha protegida por hash; se for existente, localiza a conta pelo e-mail.
 6. O sistema cria o vínculo e grava no perfil do aluno o código do objeto da instituição em `codigo_objeto_perfis_instituicao`, exposto como `objetoInstituicao` na conta. A conta e o vínculo são persistidos na mesma transação.
 7. O sistema atualiza lista e capacidade.
 8. Para remover, a instituição seleciona um vínculo e aciona Remover.
@@ -41,7 +41,7 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno existentes, cadastra e vincula novos alunos e remove vínculos. O backend verifica capacidade e titularidade e mantém o objeto institucional atual no perfil do aluno. Inclusão e remoção ainda não geram eventos de auditoria (CDU-15).
+Implementado no frontend e backend. A instituição lista, vincula por e-mail contas de aluno existentes, cadastra e vincula novos alunos e remove vínculos. O backend verifica capacidade e titularidade e mantém o objeto institucional atual no perfil do aluno. Inclusão e remoção geram eventos de auditoria na mesma transação (CDU-15).
 
 ## Diagrama de ações do ator
 

@@ -33,7 +33,7 @@
 
 ## Situação atual no sistema
 
-Implementado. A API retorna contratos próprios ou por vínculo. A página `/meu-plano`, disponível no menu para aluno e instituição mesmo sem plano ativo, apresenta plano, origem, validade, benefícios e capacidade quando o usuário é titular. Essas informações ficam em um card com status vigente, blocos de validade/modalidade/capacidade e benefícios. A aplicação usa Roboto Mono em todas as páginas. Falhas permitem repetir a consulta; ausência de plano oferece acesso ao catálogo.
+Implementado. A API retorna contratos próprios ou por vínculo. A página `/meu-plano`, disponível no menu para aluno e instituição mesmo sem plano ativo, apresenta plano, origem, validade, benefícios e capacidade quando o usuário é titular. Essas informações ficam em um card com status vigente, blocos de validade/modalidade/capacidade e benefícios. A base global usa Roboto Mono, com fontes próprias em algumas páginas. Falhas permitem repetir a consulta; ausência de plano oferece acesso ao catálogo.
 
 ## Cobertura automatizada
 

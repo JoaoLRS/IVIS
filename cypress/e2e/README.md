@@ -4,11 +4,11 @@ Estas convenções registram o padrão encontrado na suíte e a organização da
 
 - Escrever nomes de cenários e funções em português, descrevendo ações e resultados observáveis.
 - Centralizar dados, rotas, seletores e textos em `funcoes/constantes.js`; reutilizar funções de apoio em `funcoes/`.
-- Organizar os testes de aceitação por caso de uso em `cdu/`, conforme `etc/cdu/`. Em geral, esses cenários usam `cy.intercept` para controlar respostas e verificar o comportamento do frontend e os dados enviados. Respostas simuladas não comprovam persistência, auditoria ou regras do backend. O CDU-15 é uma exceção: percorre cadastro e contratação reais e consulta o evento persistido no banco local.
+- Organizar os testes de aceitação de interface por caso de uso em `cdu/`, conforme `etc/cdu/`, inclusive o CDU-16 de requisitos de senha. A API técnica de limpeza de dados é verificada no backend e não pertence aos casos de uso do usuário final. Em geral, os cenários de interface usam `cy.intercept` para controlar respostas e verificar o comportamento do frontend e os dados enviados. Respostas simuladas não comprovam persistência, auditoria ou regras do backend. O CDU-15 é uma exceção: percorre cadastro e contratação reais e consulta o evento persistido no banco `ivis` do Compose.
 - Executar as jornadas em `caminho_feliz/` com frontend, backend, banco e API de IA reais, sem interceptações que substituam respostas. Essas jornadas exigem acesso ao provedor NVIDIA.
 - As jornadas sequenciais usam `testIsolation: false` e `retries: 0`: as etapas compartilham a sessão e dependem das anteriores. Os cenários de CDU mantêm o isolamento padrão.
 - Verificar resultados visíveis e, nas jornadas reais, recarregar a página quando necessário para comprovar persistência. Evitar esperas fixas; usar asserções com repetição automática ou aliases de requisições.
-- Os hooks em `../support/e2e.js` limpam as tabelas transacionais antes e depois apenas das jornadas reais em `caminho_feliz/` e do CDU-15; os cenários com mocks não alteram o banco. A limpeza ocorre automaticamente, sem variável de confirmação, e a tarefa recusa bancos cujo nome não seja `ivis`. Usar somente o banco local descartável do Compose e executar uma suíte por vez: a limpeza apaga contas, contratos e demais dados transacionais.
+- Os hooks em `../support/e2e.js` limpam apenas as contas das fixtures reais e seus dados vinculados, antes e depois das jornadas em `caminho_feliz/` e do CDU-15. A tarefa usa `docker compose exec -T ivis-banco` no mesmo banco da aplicação, sem TRUNCATE. Os e-mails `dadosTeste.aluno.email`, `alunoAtualizadoCaminhoFeliz.email` e `dadosTeste.instituicao.email` são reservados para esses testes. Execute uma suíte por vez; outras contas e o catálogo de planos são preservados.
 
 ## Estrutura dos cenários de CDU
 
@@ -39,20 +39,26 @@ continuam isolados e usam respostas simuladas.
 
 ## Executar a suíte
 
-O Cypress usa `http://localhost:5173`, origem permitida pelo backend e servida pelo Vite com o código-fonte atual. Inicie o frontend e mantenha os serviços reais ativos quando executar jornadas reais:
+O Cypress usa `http://localhost:5173`. Use a mesma stack e o mesmo banco da aplicação. Não é necessário outro PostgreSQL nem outro backend.
 
 ```powershell
+# Subir os serviços:
 .\release.ps1 up
+
+# Em outro terminal, iniciar o frontend com o proxy padrão para localhost:8081:
 npm --prefix frontend run dev
-```
 
-Para executar todos os specs no PowerShell da raiz:
-
-```powershell
+# Executar a suíte:
 npm run testar:e2e
 ```
 
-Use `localhost` exatamente como configurado. O backend tem CORS restrito a `http://localhost:5173`; acessar o Vite por `127.0.0.1` ou em outra porta faz as jornadas reais falharem na criação de sessão/conta.
+Remova do terminal eventuais sobrescritas antigas de `VITE_API_URL` para outro backend. As jornadas de treino exigem a chave NVIDIA configurada em `api-ia/.env`. Use `localhost` como configurado e mantenha os serviços ativos durante toda a execução.
+
+Para validar a limpeza seletiva no mesmo banco, sem deixar dados de verificação (a transação é revertida):
+
+```powershell
+node --test cypress/tasks/limpar-banco.integracao.test.mjs
+```
 
 Para repassar opções do Cypress, executar diretamente no pacote:
 

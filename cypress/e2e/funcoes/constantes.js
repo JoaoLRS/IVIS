@@ -22,6 +22,14 @@ export const rotas = {
     `/cadastro?tipo=instituicao&redirect=/checkout/${planoId}`,
 };
 
+export const senhasRequisitosCdu = {
+  maiuscula: "A",
+  maiusculaEMinuscula: "Aa",
+  categoriasCompletas: "Aa1!",
+  valida: "Aa1!abcd",
+  semMaiuscula: "a1!abcd",
+};
+
 export const parametrosUrl = {
   busca: "search",
   caminho: "pathname",
@@ -89,6 +97,10 @@ export const seletores = {
     senha: "#senha-cadastro",
     confirmarSenha: "#confirmar-senha",
     perfil: '[role="radio"]',
+  },
+  requisitosSenha: {
+    lista: "#requisitos-senha-cadastro",
+    atendidos: "li.password-requirement-met",
   },
   login: {
     email: "#login-email",
@@ -173,6 +185,13 @@ export const classes = {
 };
 
 export const textos = {
+  requisitosSenha: {
+    maiuscula: "Uma letra maiúscula",
+    minuscula: "Uma letra minúscula",
+    numero: "Um número",
+    especial: "Um caractere especial",
+    tamanho: "Pelo menos 8 caracteres",
+  },
   aluno: "Sou aluno",
   perfilInstituicao: "Sou instituição",
   criarConta: "Criar conta",
@@ -329,6 +348,7 @@ export const endpoints = {
   habilidades: "**/api/v1/habilidades",
   vagas: "**/api/v1/vagas",
   treinos: "**/api/v1/treinos",
+  treinoEmAndamento: "**/api/v1/treinos/em-andamento",
   alunosInstituicao: "**/api/v1/instituicao/alunos",
   capacidadeInstituicao: "**/api/v1/instituicao/resumo-vagas",
   recuperacaoSenha: "**/api/v1/senhas/recuperacao",
@@ -379,6 +399,7 @@ export const aliases = {
   consultarPlanoSemAtivo: "consultarPlanoSemAtivo",
   consultarPlanoAposCompra: "consultarPlanoAposCompra",
   gerarPerguntaIA: "gerarPerguntaIA",
+  retomarTreino: "retomarTreino",
   avaliarTreinoIA: "avaliarTreinoIA",
   salvarTreinoConcluido: "salvarTreinoConcluido",
   aguardar: (nome) => `@${nome}`,

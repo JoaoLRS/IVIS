@@ -85,6 +85,8 @@ Para executar os testes como imagem nativa, use `./gradlew nativeTest`; essa tar
 
 ## Limpeza de dados em desenvolvimento e homologação
 
+Esta é uma operação técnica de teste, sem tela e fora dos casos de uso do usuário final. Sua proteção e o isolamento por conta são verificados em [`LimpezaDadosIntegracaoTest.java`](src/test/java/br/ivis/LimpezaDadosIntegracaoTest.java).
+
 Com o perfil `dev`, `homolog` ou `homologacao` ativo, sem `prod`, e `IVIS_LIMPEZA_CHAVE` configurada, envie `POST /api/v1/ambiente/limpar-dados` com o cabeçalho `X-IVIS-Limpeza-Chave` e o JSON `{"documento":"123.456.789-01"}` ou `{"documento":"12.345.678/0001-95"}`. A resposta de sucesso é `204`, documento não encontrado retorna `404`, documento inválido retorna `400` e chave incorreta retorna `403`. A chave ausente ou curta deixa a operação indisponível (`503`).
 
 A operação apaga a conta identificada e seus dados vinculados em uma única transação, incluindo sessões, contratos, pagamentos, e-mails simulados, treinos e registros de auditoria. Ao apagar uma instituição, os alunos vinculados permanecem no banco, com o vínculo removido. Outras contas e os planos compartilhados permanecem. A rota não é registrada fora dos perfis permitidos.

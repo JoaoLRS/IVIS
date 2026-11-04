@@ -23,7 +23,7 @@
 
 - **A1 — Operação recusada:** quando coberto pela política, o sistema registra o resultado como recusado, distinguindo-o de uma alteração concluída.
 - **A2 — Operação repetida:** a chave de idempotência evita eventos de sucesso duplicados para a mesma contratação.
-- **E1 — Falha ao registrar auditoria:** a política transacional de auditoria deve definir se a operação é interrompida ou encaminhada para recuperação; a regra completa está pendente.
+- **E1 — Falha ao registrar auditoria:** a operação coberta falha na mesma transação, sem confirmar uma contratação ou alteração de vínculo sem o evento correspondente.
 - **A3 — Ação automatizada:** o sistema identifica a origem técnica e preserva o ator que iniciou a operação quando disponível.
 
 ## Pós-condições
@@ -33,7 +33,7 @@
 
 ## Situação atual no sistema
 
-O backend registra aprovações e recusas de contratação/pagamento simulados e inclusões/remoções de vínculos na mesma transação da operação. Os eventos incluem ator, contrato, resultado, horário e identificadores do vínculo/aluno, sem senha ou dados de cartão. A migration V8 impede UPDATE e DELETE dos eventos por comandos comuns; administradores do banco ainda precisam de controles operacionais próprios. Não há visualizador. O prazo de retenção do RNF09 permanece pendente de definição da equipe.
+O backend registra aprovações e recusas de contratação/pagamento simulados e inclusões/remoções de vínculos na mesma transação da operação. Os eventos incluem ator, contrato, resultado, horário e identificadores do vínculo/aluno, sem senha ou dados de cartão. A migration V8 impede UPDATE e DELETE dos eventos por comandos comuns; a V10 permite DELETE quando a transação define o sinalizador de limpeza controlada. A API que define esse sinalizador está disponível somente em desenvolvimento ou homologação. Administradores do banco ainda precisam de controles operacionais próprios. Não há visualizador. O prazo de retenção do RNF09 permanece pendente de definição da equipe.
 
 ## Diagrama de ações do ator
 

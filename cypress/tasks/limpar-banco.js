@@ -1,43 +1,19 @@
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+import { dadosTeste, alunoAtualizadoCaminhoFeliz } from "../e2e/funcoes/constantes.js";
 
-const arquivoCompose = [
-  resolve(process.cwd(), "docker-compose.yml"),
-  resolve(process.cwd(), "../../docker-compose.yml"),
-].find(existsSync);
-
-const tabelasTransacionais = `
-  public.emails_simulados,
-  public.eventos_auditoria,
-  public.pagamentos,
-  public.vinculos_institucionais,
-  public.contratos,
-  public.sessoes_autenticacao,
-  public.tokens_recuperacao_senha,
-  public.itens_feedback_treinamento,
-  public.avaliacoes_treinamento,
-  public.respostas_entrevista,
-  public.perguntas_entrevista,
-  public.treinamentos,
-  public.requisitos_vaga,
-  public.vagas_interesse,
-  public.habilidades,
-  public.perfis_instituicao,
-  public.perfis_aluno,
-  public.contas`;
+const raizProjeto = fileURLToPath(new URL("../../", import.meta.url));
 
 export function limparBancoDeDados() {
-  if (!arquivoCompose) {
-    throw new Error("Não foi possível localizar docker-compose.yml para limpar o banco de testes.");
-  }
-
-  executarPsql(`DO $$ BEGIN
-    IF current_database() <> 'ivis' THEN
-      RAISE EXCEPTION 'A limpeza do Cypress só pode ser executada no banco local ivis.';
-    END IF;
-  END $$;
-  TRUNCATE TABLE ${tabelasTransacionais} RESTART IDENTITY CASCADE;\n`);
+  const emails = [dadosTeste.aluno.email, alunoAtualizadoCaminhoFeliz.email, dadosTeste.instituicao.email];
+  const valores = emails.map((email) => `'${email.replaceAll("'", "''")}'`).join(",");
+  const limpeza = readFileSync(new URL("./limpar-dados-cypress.sql", import.meta.url), "utf8");
+  executarPsql(`BEGIN;
+    CREATE TEMP TABLE contas_cypress ON COMMIT DROP AS
+      SELECT objeto FROM contas WHERE email_normalizado IN (${valores});
+    ${limpeza}
+    COMMIT;`);
   return null;
 }
 
@@ -46,12 +22,7 @@ export function consultarAuditoriaPorContrato(contratoId) {
     throw new Error("Identificador de contrato inválido para consulta de auditoria.");
   }
 
-  const resultado = executarPsql(`DO $$ BEGIN
-    IF current_database() <> 'ivis' THEN
-      RAISE EXCEPTION 'A consulta do Cypress só pode ser executada no banco local ivis.';
-    END IF;
-  END $$;
-  SELECT COALESCE(json_agg(json_build_object(
+  const resultado = executarPsql(`SELECT COALESCE(json_agg(json_build_object(
     'atorContaId', codigo_objeto_contas,
     'acao', acao,
     'resultado', resultado,
@@ -66,28 +37,22 @@ export function consultarAuditoriaPorContrato(contratoId) {
 }
 
 function executarPsql(sql) {
-  if (!arquivoCompose) {
-    throw new Error("Não foi possível localizar docker-compose.yml para acessar o banco de testes.");
-  }
-
   const comandoPsql =
     'PGPASSWORD="$POSTGRES_PASSWORD" psql --quiet --set ON_ERROR_STOP=1 --tuples-only --no-align --username="$POSTGRES_USER" --dbname="$POSTGRES_DB"';
   return execFileSync(
     "docker",
     [
       "compose",
-      "--file",
-      arquivoCompose,
       "exec",
-      "--no-TTY",
+      "-T",
       "ivis-banco",
       "sh",
       "-lc",
       comandoPsql,
     ],
     {
-      cwd: dirname(arquivoCompose),
       input: sql,
+      cwd: raizProjeto,
       encoding: "utf8",
       timeout: 30000,
     },

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, type RouteLocationNormalized } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 
 declare module "vue-router" {
@@ -115,7 +115,7 @@ const roteador = createRouter({
 
 export default roteador;
 
-roteador.beforeEach(async (to) => {
+export async function verificarAcesso(to: RouteLocationNormalized) {
   const sessao = useEstadoSessao();
   const autenticado = await sessao.restaurar();
 
@@ -143,4 +143,6 @@ roteador.beforeEach(async (to) => {
     return { name: "planos", query: { acesso: "necessario" } };
   }
   return true;
-});
+}
+
+roteador.beforeEach(verificarAcesso);
