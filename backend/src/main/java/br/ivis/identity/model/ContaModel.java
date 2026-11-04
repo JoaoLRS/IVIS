@@ -1,7 +1,5 @@
 package br.ivis.identity.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity(name = "Conta")
 @Table(name = "contas")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ContaModel {
+
+    protected ContaModel() {
+    }
 
     @Id
     @Column(name = "objeto")
@@ -61,8 +61,20 @@ public ContaModel(UUID id, String tipoConta, String email, String emailNormaliza
         return email;
     }
 
+    public String getEmailNormalizado() {
+        return emailNormalizado;
+    }
+
     public String getHashSenha() {
         return hashSenha;
+    }
+
+    public Instant getCriadoEm() {
+        return criadoEm;
+    }
+
+    public Instant getAtualizadoEm() {
+        return atualizadoEm;
     }
 
     public void atualizarEmail(String email, String emailNormalizado, Instant agora) {

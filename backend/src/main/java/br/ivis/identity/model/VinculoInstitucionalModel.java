@@ -1,7 +1,5 @@
 package br.ivis.identity.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity(name = "VinculoInstitucional")
 @Table(name = "vinculos_institucionais")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class VinculoInstitucionalModel {
+
+    protected VinculoInstitucionalModel() {
+    }
 
     @Id
     @Column(name = "objeto")
@@ -55,6 +55,10 @@ public VinculoInstitucionalModel(
 
     public UUID getContaAlunoId() {
         return contaAlunoId;
+    }
+
+    public UUID getCriadoPorContaId() {
+        return criadoPorContaId;
     }
 
     public String getSituacao() {

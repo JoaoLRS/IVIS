@@ -12,7 +12,6 @@ import jakarta.validation.Validator;
 import java.net.SocketTimeoutException;
 import java.net.http.HttpTimeoutException;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,12 +20,15 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import br.ivis.ai.config.IaClientConfig;
 
 @Service
-@Slf4j
 public class IaClient {
+
+    private static final Logger log = LoggerFactory.getLogger(IaClient.class);
 
     private final RestClient clientePerguntas;
     private final RestClient clienteAvaliacoes;
@@ -69,7 +71,7 @@ public class IaClient {
     }
 
     private <T> T executar(RestClient cliente, String caminho, Object entrada, Class<T> tipoResposta) {
-        T resposta;
+        T resposta = null;
         try {
             resposta = cliente.post()
                     .uri(caminho)
@@ -79,7 +81,30 @@ public class IaClient {
                     .retrieve()
                     .body(tipoResposta);
         } catch (RestClientResponseException excecao) {
-            throw traduzirRespostaHttp(excecao);
+            switch (excecao.getStatusCode().value()) {
+                case 401, 422 -> {
+                    log.error("A API de IA rejeitou uma chamada de serviço; verifique a configuração.");
+                    throw new ExcecaoNegocio(
+                            HttpStatus.BAD_GATEWAY, "falha_integracao",
+                            "Não foi possível concluir a solicitação ao serviço de IA.");
+                }
+                case 502 -> {
+                    log.warn("A API de IA informou que a saída do provedor é inválida.");
+                    throw saidaInvalida();
+                }
+                case 503 -> throw new ExcecaoNegocio(
+                        HttpStatus.SERVICE_UNAVAILABLE, "provedor_indisponivel",
+                        "O serviço de IA está temporariamente indisponível.");
+                case 504 -> throw new ExcecaoNegocio(
+                        HttpStatus.GATEWAY_TIMEOUT, "tempo_esgotado",
+                        "A geração de conteúdo demorou mais que o limite permitido.");
+                default -> {
+                    log.warn("API de IA respondeu com status HTTP {}.", excecao.getStatusCode().value());
+                    throw new ExcecaoNegocio(
+                            HttpStatus.BAD_GATEWAY, "falha_integracao",
+                            "Não foi possível concluir a solicitação ao serviço de IA.");
+                }
+            }
         } catch (ResourceAccessException excecao) {
             log.warn(
                     "Falha de comunicação com a API de IA: endpoint={}, tipo={}, mensagem={}",
@@ -105,33 +130,6 @@ public class IaClient {
             throw saidaInvalida();
         }
         return resposta;
-    }
-
-    private RuntimeException traduzirRespostaHttp(RestClientResponseException excecao) {
-        return switch (excecao.getStatusCode().value()) {
-            case 401, 422 -> {
-                log.error("A API de IA rejeitou uma chamada de serviço; verifique a configuração.");
-                yield new ExcecaoNegocio(
-                        HttpStatus.BAD_GATEWAY, "falha_integracao",
-                        "Não foi possível concluir a solicitação ao serviço de IA.");
-            }
-            case 502 -> {
-                log.warn("A API de IA informou que a saída do provedor é inválida.");
-                yield saidaInvalida();
-            }
-            case 503 -> new ExcecaoNegocio(
-                    HttpStatus.SERVICE_UNAVAILABLE, "provedor_indisponivel",
-                    "O serviço de IA está temporariamente indisponível.");
-            case 504 -> new ExcecaoNegocio(
-                    HttpStatus.GATEWAY_TIMEOUT, "tempo_esgotado",
-                    "A geração de conteúdo demorou mais que o limite permitido.");
-            default -> {
-                log.warn("API de IA respondeu com status HTTP {}.", excecao.getStatusCode().value());
-                yield new ExcecaoNegocio(
-                        HttpStatus.BAD_GATEWAY, "falha_integracao",
-                        "Não foi possível concluir a solicitação ao serviço de IA.");
-            }
-        };
     }
 
     private static ExcecaoNegocio saidaInvalida() {

@@ -1,7 +1,5 @@
 package br.ivis.identity.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity(name = "HabilidadePerfil")
 @Table(name = "habilidades")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class HabilidadePerfilModel {
+
+    protected HabilidadePerfilModel() {
+    }
 
     @Id
     @Column(name = "objeto")
@@ -61,6 +61,10 @@ public HabilidadePerfilModel(
 
     public String getNome() {
         return nome;
+    }
+
+    public String getNomeNormalizado() {
+        return nomeNormalizado;
     }
 
     public String getCategoria() {

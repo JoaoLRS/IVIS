@@ -1,7 +1,5 @@
 package br.ivis.plans.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,8 +13,11 @@ import org.hibernate.type.SqlTypes;
 @Entity(name = "Plano")
 @Immutable
 @Table(name = "planos")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PlanoModel {
+
+    protected PlanoModel() {
+    }
+
     @Id
     @Column(name = "objeto")
     private UUID id;

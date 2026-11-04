@@ -7,13 +7,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -254,7 +252,7 @@ public class TreinoController {
         Treino treino = treino(treinoId, contaId);
         List<Pergunta> perguntas = perguntas(treinoId);
         List<String> nomes = treino.tipo() == TipoContexto.HABILIDADES
-                ? habilidades(treino).stream().map(Habilidade::nome).toList()
+                ? habilidades(treino).stream().map(habilidade -> habilidade.nome()).toList()
                 : vaga(treino).requisitos();
         return new SessaoTreino(treinoId, treino.tipo().name(), treino.descricao(),
                 treino.vagaId(), nomes, perguntas, TOTAL_PERGUNTAS);
