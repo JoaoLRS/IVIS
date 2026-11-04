@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.boot:spring-boot-jpa:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.boot" artifactId="spring-boot-jpa" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-jpa/4.1.0/bf645cdf194c71f829225793a5d6545d9dfe96ae/spring-boot-jpa-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-jpa/4.1.0/b20edeebdfe18d7415bfe6f95d8021277f23b3f2/spring-boot-jpa-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-jpa/4.1.0/94042af5f29865288ba12cd06fd80a84a6fdcd2e/spring-boot-jpa-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

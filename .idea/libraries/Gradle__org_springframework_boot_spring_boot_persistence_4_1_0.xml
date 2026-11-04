@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.boot:spring-boot-persistence:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.boot" artifactId="spring-boot-persistence" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-persistence/4.1.0/12b6d5aa8a97c458a5c8eba8e8cb0e38e326d9d8/spring-boot-persistence-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-persistence/4.1.0/bd71d6856f4db75046b28b56f9389e93e402b1e9/spring-boot-persistence-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-persistence/4.1.0/ec02883dafb9733a9b2e1bdd16bd3f02db71ae34/spring-boot-persistence-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -426,7 +426,7 @@ async def _executar(argumentos: argparse.Namespace) -> int:
         },
         "nota": (
             "Medição técnica da camada indicada. Os alvos p95 são propostas; "
-            "o stub não mede qualidade semântica."
+            "a medição não avalia qualidade semântica."
         ),
         "operacoes": series,
     }

@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.eclipse.angus:angus-mail:2.0.5" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.eclipse.angus" artifactId="angus-mail" version="2.0.5" baseVersion="2.0.5" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.angus/angus-mail/2.0.5/427f6d52ec0782f7efaca0c0732042e347a6cb4f/angus-mail-2.0.5.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.angus/angus-mail/2.0.5/f1c8357a39a5a915005ebc48f21a7ec59845ad77/angus-mail-2.0.5-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.eclipse.angus/angus-mail/2.0.5/44544d7ff45359cf1f6ba6de2a9be91fb705d24f/angus-mail-2.0.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

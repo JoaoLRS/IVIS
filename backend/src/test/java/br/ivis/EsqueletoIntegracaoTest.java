@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -27,6 +29,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import br.ivis.ai.service.IaClient;
+import br.ivis.ai.dto.ContratoIa.*;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -54,6 +59,9 @@ class EsqueletoIntegracaoTest {
 
     @Autowired
     DataSource fonteDeDados;
+
+    @MockitoBean
+    IaClient clienteIa;
 
     private final HttpClient cliente = HttpClient.newHttpClient();
 
@@ -590,10 +598,84 @@ class EsqueletoIntegracaoTest {
         cadastrarInstituicao(email, csrf);
         String token = autenticar(email, csrf);
         assertEquals(403, obterAutenticado("/v1/treinos", token).statusCode());
-        assertEquals(403, postarAutenticado("/v1/treinos/concluidos", """
-                {"tipoContexto":"HABILIDADES","contexto":"Java","habilidades":["Java"],
-                 "interacoes":[{"numero":1,"pergunta":"Explique Java","resposta":"Resposta sintética"}]}
+        assertEquals(403, postarAutenticado("/v1/treinos", """
+                {"tipoContexto":"HABILIDADES","habilidades":["Java"]}
                 """, csrf, token).statusCode());
+    }
+
+    @Test
+    void sessaoTreinoPersistePerguntasRespostasERetomaAposNovaConsulta() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "sessao-treino-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        UUID aluno = idConta(email);
+        String token = autenticar(email, csrf);
+        try (var conexao = fonteDeDados.getConnection();
+                var contrato = conexao.prepareStatement("""
+                    INSERT INTO contratos (codigo_objeto_contas,codigo_objeto_planos,situacao,preco_centavos_contratado,iniciado_em)
+                    SELECT ?,objeto,'ATIVO',preco_centavos,now() FROM planos WHERE codigo='IVIS-DEMO-INDIVIDUAL'
+                    """)) {
+            contrato.setObject(1, aluno);
+            contrato.executeUpdate();
+        }
+        assertEquals(201, postarAutenticado("/v1/habilidades",
+                "{\"nome\":\"Java\",\"nivel\":3}", csrf, token).statusCode());
+        when(clienteIa.gerarPergunta(any())).thenAnswer(invocacao -> {
+            GerarPerguntaEntrada entrada = invocacao.getArgument(0);
+            return new GerarPerguntaResposta(new PerguntaGerada("Pergunta " + entrada.numeroPergunta()),
+                    "modelo-teste", "perguntas-v2");
+        });
+        when(clienteIa.gerarAvaliacao(any())).thenReturn(new GerarAvaliacaoResposta(
+                82, List.of("Exemplo concreto"), List.of("Detalhar resultados"), "modelo-teste", "avaliacao-v2"));
+
+        var inicio = postarAutenticado("/v1/treinos",
+                "{\"tipoContexto\":\"HABILIDADES\",\"habilidades\":[\"Java\"]}", csrf, token);
+        assertEquals(201, inicio.statusCode(), inicio.body());
+        var sessao = json().readTree(inicio.body());
+        String treinoId = sessao.get("id").asString();
+        assertEquals("Pergunta 1", sessao.get("perguntas").get(0).get("texto").asString());
+        assertEquals(treinoId, json().readTree(obterAutenticado(
+                "/v1/treinos/em-andamento", token).body()).get("id").asString());
+
+        for (int numero = 1; numero <= 3; numero++) {
+            String perguntaId = sessao.get("perguntas").get(numero - 1).get("id").asString();
+            String corpo = "{\"perguntaId\":\"%s\",\"resposta\":\"Resposta %d\"}"
+                    .formatted(perguntaId, numero);
+            var resposta = postarAutenticado("/v1/treinos/" + treinoId + "/respostas", corpo, csrf, token);
+            assertEquals(200, resposta.statusCode(), resposta.body());
+            sessao = json().readTree(resposta.body());
+            assertEquals(numero, sessao.get("perguntas").get(numero - 1).get("numero").asInt());
+            assertEquals(200, postarAutenticado("/v1/treinos/" + treinoId + "/respostas",
+                    corpo, csrf, token).statusCode());
+        }
+        var conclusao = postarAutenticado("/v1/treinos/" + treinoId + "/concluir", "{}", csrf, token);
+        assertEquals(200, conclusao.statusCode(), conclusao.body());
+        assertEquals(82, json().readTree(conclusao.body()).get("nota").asInt());
+        assertEquals(200, postarAutenticado("/v1/treinos/" + treinoId + "/concluir",
+                "{}", csrf, token).statusCode());
+        assertEquals(204, obterAutenticado("/v1/treinos/em-andamento", token).statusCode());
+        try (var conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement("""
+                    SELECT count(*), count(*) FILTER (WHERE origem='IA' AND versao_modelo='modelo-teste')
+                    FROM perguntas_entrevista WHERE codigo_objeto_treinamentos=?
+                    """)) {
+            comando.setObject(1, UUID.fromString(treinoId));
+            try (var linhas = comando.executeQuery()) {
+                assertTrue(linhas.next());
+                assertEquals(3, linhas.getInt(1));
+                assertEquals(3, linhas.getInt(2));
+            }
+        }
+        var vagaCriada = postarAutenticado("/v1/vagas", """
+                {"titulo":"Desenvolvedor Java","senioridade":"Pleno", "requisitos":["Spring"]}
+                """, csrf, token);
+        assertEquals(201, vagaCriada.statusCode(), vagaCriada.body());
+        String vagaId = json().readTree(vagaCriada.body()).get("id").asString();
+        var treinoVaga = postarAutenticado("/v1/treinos", """
+                {"tipoContexto":"VAGA","vagaId":"%s","habilidades":[]}
+                """.formatted(vagaId), csrf, token);
+        assertEquals(201, treinoVaga.statusCode(), treinoVaga.body());
+        assertEquals(vagaId, json().readTree(treinoVaga.body()).get("vagaId").asString());
     }
 
     @Test

@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.data:spring-data-commons:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.data" artifactId="spring-data-commons" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.data/spring-data-commons/4.1.0/e8d1077d09c20e9ecf3574a72ce5cc90a29b902a/spring-data-commons-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.data/spring-data-commons/4.1.0/b8429f2565a5c4b5ab57e898396936fb904db3b0/spring-data-commons-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.data/spring-data-commons/4.1.0/a7a2a21da001d5e1e7e6145c8937e5f1305883cd/spring-data-commons-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

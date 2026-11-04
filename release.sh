@@ -49,7 +49,7 @@ prepare_environment() {
 
   if [[ ! -f api-ia/.env ]]; then
     cp api-ia/.env.example api-ia/.env
-    printf 'Criei api-ia/.env a partir de api-ia/.env.example. O stub fica ativo por padrão.\n'
+    printf 'Criei api-ia/.env a partir de api-ia/.env.example. Configure NVIDIA_API_KEY antes de iniciar.\n'
   fi
 
   if ! grep -Eq '^IVIS_JWT_CHAVE_ASSINATURA=[^[:space:]]+' .env; then

@@ -4,7 +4,6 @@ from pydantic import ValidationError
 from app.config import configuracoes
 from app.provedor import ProvedorIA
 from app.provedor_nvidia import ProvedorNvidia
-from app.provedor_stub import ProvedorStub
 from app.schemas import (
     GerarAvaliacaoEntrada,
     GerarAvaliacaoResposta,
@@ -84,13 +83,10 @@ class ServicoIA:
             ) from erro
 
 
-_servico_stub = ServicoIA(ProvedorStub())
 _servico_nvidia = ServicoIA(ProvedorNvidia())
 
 
 def obter_servico_ativo() -> ServicoIA:
-    if configuracoes.usar_stub:
-        return _servico_stub
     if configuracoes.chave_nvidia is None:
         raise HTTPException(
             status_code=503,

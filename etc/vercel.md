@@ -1,18 +1,19 @@
 # Como publicar o IVIS na Vercel
 
-Este guia publica o frontend Vue/Vite e o backend Spring Boot em um projeto Vercel. A API FastAPI de IA é publicada em um projeto Vercel separado, com URL própria. O PostgreSQL é gerenciado separadamente; este guia usa Neon como exemplo.
+Este guia publica o frontend Vue/Vite, o backend Spring Boot e a API FastAPI de IA como serviços do mesmo projeto Vercel. O PostgreSQL é gerenciado separadamente; este guia usa Neon como exemplo.
 
 ## Arquitetura de publicação
 
 ```text
 Navegador
-  └── Projeto Vercel do IVIS (domínio único)
-        ├── /api/* → Backend Spring Boot ──> Neon PostgreSQL
+  └── Projeto Vercel (domínio único)
+        ├── /api/* → Backend Spring Boot
+        │             ├── Neon PostgreSQL
+        │             └── API FastAPI de IA (binding interno)
         └── demais caminhos → Frontend Vue/Vite
-                              Backend ── HTTPS + X-Chave-Servico ──> Projeto Vercel da API de IA
 ```
 
-O navegador chama somente o backend para operações da API. A API de IA tem uma URL pública, mas as rotas de negócio exigem `X-Chave-Servico`; não exponha essa chave no frontend. Como os serviços estão em projetos separados, configure `IVIS_IA_URL` manualmente no projeto do backend. Cadastre a mesma chave de serviço nos dois projetos.
+O navegador chama somente o backend para operações da API. A API de IA não tem rota pública: o binding do backend injeta sua URL em `IVIS_IA_URL`. As credenciais ficam em variáveis de ambiente do projeto e são consumidas pelo backend, nunca pelo frontend.
 
 ## 1. Prepare o banco Neon
 
@@ -22,26 +23,25 @@ O Flyway executa as migrations do backend ao iniciar. Use um banco de produção
 
 ## 2. Configure as variáveis de ambiente na Vercel
 
-Configure as variáveis do ambiente **Production** nos projetos indicados abaixo. Variáveis de um projeto Vercel não são compartilhadas com outro; cadastre a chave de serviço em ambos. Copie os valores do Neon Console; não inclua credenciais em arquivos versionados nem em variáveis `VITE_*`.
+No projeto Vercel, configure as variáveis do ambiente **Production**. As variáveis são configuradas no projeto e compartilhadas pelos serviços; os itens marcados como backend são consumidos pelo Spring Boot. Copie os valores do Neon Console; não inclua credenciais em arquivos versionados nem em variáveis `VITE_*`.
 
 | Variável | Onde | Valor/observação |
 | --- | --- | --- |
-| `IVIS_BD_URL` | Projeto do IVIS (backend) | URL JDBC com o host, a porta e o banco do Neon, por exemplo `jdbc:postgresql://HOST.neon.tech/neondb?sslmode=require`. Não use a URI `postgresql://` do driver Node sem convertê-la para o formato JDBC. |
-| `IVIS_BD_USUARIO` | Projeto do IVIS (backend) | Usuário/role de banco do Neon. |
-| `IVIS_BD_SENHA` | Projeto do IVIS (backend) | Senha do usuário/role; cadastrar como secret. |
-| `IVIS_JWT_CHAVE_ASSINATURA` | Projeto do IVIS (backend) | Chave exclusiva de produção, Base64 e com ao menos 32 bytes aleatórios. Não reutilize a chave local. |
-| `IVIS_COOKIE_SEGURO` | Projeto do IVIS (backend) | `true` em HTTPS. |
-| `IVIS_CORS_ORIGENS` | Projeto do IVIS (backend) | Origens exatas dos frontends autorizados, separadas por vírgula e sem barra final. Para Production, use `https://ivis-ia.vercel.app`; para um deployment Preview, inclua a origem exata do Preview, como `https://ivis-b4s65t63k-lucifer-son.vercel.app`, no ambiente correspondente. |
-| `IVIS_URL_REDEFINICAO_SENHA` | Projeto do IVIS (backend) | URL completa da página do frontend, por exemplo `https://ivis-ia.vercel.app/redefinir-senha`. |
-| `IVIS_IA_URL` | Projeto do IVIS (backend) | URL base HTTPS pública do projeto da API de IA, sem `/v1/...`, por exemplo `https://ivis-api-ia.vercel.app`. |
-| `IVIS_IA_CHAVE_SERVICO` | Projetos do IVIS (backend) e da API de IA | Mesmo segredo aleatório, forte e exclusivo nos dois projetos. Use ao menos 32 caracteres e cadastre-o como secret. |
-| `IVIS_IA_USAR_STUB` | Projeto da API de IA | `true` para a demonstração acadêmica sem chave de modelo; `false` somente se configurar um provedor de IA real. |
+| `IVIS_BD_URL` | Serviço `backend` | URL JDBC com o host, a porta e o banco do Neon, por exemplo `jdbc:postgresql://HOST.neon.tech/neondb?sslmode=require`. Não use a URI `postgresql://` do driver Node sem convertê-la para o formato JDBC. |
+| `IVIS_BD_USUARIO` | Serviço `backend` | Usuário/role de banco do Neon. |
+| `IVIS_BD_SENHA` | Serviço `backend` | Senha do usuário/role; cadastrar como secret. |
+| `IVIS_JWT_CHAVE_ASSINATURA` | Serviço `backend` | Chave exclusiva de produção, Base64 e com ao menos 32 bytes aleatórios. Não reutilize a chave local. |
+| `IVIS_COOKIE_SEGURO` | Serviço `backend` | `true` em HTTPS. |
+| `IVIS_CORS_ORIGENS` | Serviço `backend` | Origens exatas dos frontends autorizados, separadas por vírgula e sem barra final. Para Production, use `https://ivis-ia.vercel.app`; para um deployment Preview, inclua a origem exata do Preview, como `https://ivis-b4s65t63k-lucifer-son.vercel.app`, no ambiente correspondente. |
+| `IVIS_URL_REDEFINICAO_SENHA` | Serviço `backend` | URL completa da página do frontend, por exemplo `https://ivis-ia.vercel.app/redefinir-senha`. |
+| `IVIS_IA_CHAVE_SERVICO` | Serviços `backend` e `api-ia` | Mesmo segredo forte e exclusivo nos dois serviços. |
+| `NVIDIA_API_KEY` | Serviço `api-ia` | Chave do provedor NVIDIA, obrigatória para gerar perguntas e avaliações. |
 
 Se instalar a integração Neon na Vercel, ela pode fornecer uma `DATABASE_URL` no formato URI padrão `postgresql://`. O backend Spring não consome essa variável diretamente: configure `IVIS_BD_URL`, `IVIS_BD_USUARIO` e `IVIS_BD_SENHA` separadamente com host, banco e credenciais do Neon. Prefira o endpoint com pooler mostrado no Neon Console para a aplicação hospedada.
 
-Para habilitar NVIDIA, configure também `NVIDIA_API_KEY` e `NVIDIA_MODEL` como secrets no projeto da API de IA. Não use a chave em uma variável `VITE_*`.
+Para habilitar NVIDIA, configure também `NVIDIA_API_KEY` e `NVIDIA_MODEL` como secrets da API de IA. Não use a chave em uma variável `VITE_*`.
 
-A chave de serviço é obrigatória ao iniciar a API de IA. Configure-a no ambiente **Production** (e **Preview**, se usado) do projeto da API de IA e no ambiente correspondente do projeto do IVIS. Depois de alterar variáveis, faça novo deploy dos projetos afetados; os deployments existentes não recebem as alterações retroativamente.
+Não defina `IVIS_IA_URL` manualmente na Vercel: o binding declarado no serviço `backend` injeta essa variável com a URL interna de `api-ia`. A variável não está disponível durante o build do frontend.
 
 O fluxo de checkout é acadêmico e simulado: não integra uma adquirente nem movimenta dinheiro; o cartão fictício não deve ser tratado como um pagamento real. A confirmação da contratação é registrada pelo sistema. O envio de e-mail para recuperação de senha é separado do e-mail simulado de contratação. Hoje o backend permite configurar `IVIS_SMTP_HOST`, `IVIS_SMTP_PORTA` e `IVIS_EMAIL_REMETENTE`; autenticação SMTP e TLS não estão expostas como variáveis de configuração, então valide a compatibilidade do provedor antes de depender do envio real em produção.
 
@@ -51,11 +51,11 @@ O backend define o cookie de renovação como `HttpOnly`, `Secure` em produção
 
 ## 4. Publique
 
-Conecte o repositório Git ao projeto do IVIS e mantenha o Root Directory na raiz do repositório. A configuração [vercel.json](../vercel.json) publica `backend` em `/api/*` e direciona os demais caminhos para o frontend; ela não declara nem publica a API de IA. Configure o projeto da API de IA separadamente para implantar o serviço Python e disponibilizar sua URL HTTPS.
+Conecte o repositório Git à Vercel e mantenha o Root Directory na raiz do repositório para que a configuração [vercel.json](../vercel.json) descubra os três serviços. O modelo de serviços e os rewrites já estão declarados nesse arquivo; não é necessário inferir um preset específico do painel apenas pelo fato de o frontend usar Vite. A configuração publica `backend` em `/api/*`, direciona os demais caminhos para o frontend e mantém `api-ia` interna.
 
 O container do backend usa `PORT` e define `80` como padrão na imagem, conforme o [contrato do runtime de container da Vercel](https://vercel.com/docs/functions/runtimes/container). Se configurar `PORT` nas variáveis do projeto, use a porta em que o serviço deve escutar. No Docker Compose local, essa variável é sobrescrita para `8081`, preservando o mapeamento usado pelo frontend e pelos testes locais.
 
-Cadastre as variáveis de Production nos projetos correspondentes e faça o deploy de ambos. Para testar com segurança, configure também as variáveis de Preview e use um banco Neon de teste separado; não use o banco de produção em previews.
+Cadastre as demais variáveis de Production descritas acima e faça o deploy. Para testar com segurança, configure também as variáveis de Preview para um banco Neon de teste separado; não use o banco de produção em previews.
 
 ## 5. Verifique a aplicação publicada
 
@@ -64,9 +64,7 @@ Cadastre as variáveis de Production nos projetos correspondentes e faça o depl
 3. No navegador, confirme que as chamadas usam o mesmo domínio em `/api` e não `localhost`.
 4. Cadastre uma conta de teste e confira login, renovação da sessão, logout e acesso aos planos.
 5. Faça um checkout com os dados fictícios aprovados e recusados descritos em [como rodar](como%20rodar.md). Nenhuma transação real deve ocorrer.
-6. Abra `https://<URL-DA-IA>/pronto` e confirme que a API de IA está pronta.
-7. Envie `POST https://<URL-DA-IA>/v1/perguntas/gerar` com `X-Chave-Servico` e corpo `{}`: `422` indica que a aplicação respondeu e a chave passou, enquanto `401` indica chave ausente ou diferente. Não coloque a chave em logs, no frontend ou em chamados públicos.
-8. Confira os logs do backend na Vercel e valide que o Flyway aplicou as migrations no banco Neon correto. Se a chamada do backend à IA falhar, confirme se `IVIS_IA_URL` aponta para a URL base correta e se `IVIS_IA_CHAVE_SERVICO` coincide nos dois projetos.
+6. Confira os logs do serviço `backend` na Vercel e valide que o Flyway aplicou as migrations no banco Neon correto.
 
 ## Problemas comuns
 
@@ -84,7 +82,7 @@ Confirme HTTPS, `IVIS_COOKIE_SEGURO=true` e que frontend e backend usam o mesmo 
 
 ### Backend falha ao iniciar
 
-Confira os logs do backend, `IVIS_BD_URL`, `IVIS_BD_USUARIO`, `IVIS_BD_SENHA`, a chave JWT e a configuração da API de IA. Para Neon, confirme o host e nome do banco, que `IVIS_BD_URL` começa com `jdbc:postgresql://` e inclui `?sslmode=require`, e que as conexões do ambiente Vercel são aceitas. Para a IA, confirme que `IVIS_IA_URL` está definido no projeto do IVIS e que a chave de serviço obrigatória é igual nos dois projetos. O health check do backend é `/api/v1/pronto`.
+Confira os logs do serviço `backend`, `IVIS_BD_URL`, `IVIS_BD_USUARIO`, `IVIS_BD_SENHA`, a chave JWT e as secrets compartilhadas com a API de IA. Para Neon, confirme o host e nome do banco, que `IVIS_BD_URL` começa com `jdbc:postgresql://` e inclui `?sslmode=require`, e que as conexões do ambiente Vercel são aceitas. O health check do backend é `/api/v1/pronto`.
 
 ## Referências oficiais
 

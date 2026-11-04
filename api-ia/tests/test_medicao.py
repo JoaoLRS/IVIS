@@ -32,7 +32,7 @@ def test_resumo_inclui_versoes_e_marca_aquecimento_com_falha() -> None:
                 "duracao_ms": 12.5,
                 "status_http": 200,
                 "erro": None,
-                "versao_modelo": "stub-1",
+                "versao_modelo": "modelo-teste",
                 "versao_prompt": "perguntas-1",
             }
         ],
@@ -40,7 +40,7 @@ def test_resumo_inclui_versoes_e_marca_aquecimento_com_falha() -> None:
         operacao="perguntas",
     )
 
-    assert resumo["versoes_modelo"] == ["stub-1"]
+    assert resumo["versoes_modelo"] == ["modelo-teste"]
     assert resumo["versoes_prompt"] == ["perguntas-1"]
     assert resumo["situacao"] == "INCOMPLETO"
 
@@ -50,7 +50,7 @@ def test_validar_resposta_de_pergunta_confere_contrato() -> None:
         "perguntas",
         {
             "pergunta": {"texto": "Pergunta sintética"},
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "perguntas-1",
         },
     )
@@ -58,7 +58,7 @@ def test_validar_resposta_de_pergunta_confere_contrato() -> None:
         "perguntas",
         {
             "pergunta": {"texto": ""},
-            "versao_modelo": "stub-1",
+            "versao_modelo": "modelo-teste",
             "versao_prompt": "perguntas-1",
         },
     )
@@ -68,62 +68,20 @@ def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
     assert validar_resposta(
         "avaliacoes",
         {
-            "nota": None,
-            "pontos_fortes": [],
-            "pontos_melhoria": [],
-            "avaliacoes_por_pergunta": [],
-            "avaliacao_qualitativa": False,
-            "nivel_confianca": "BAIXA",
-            "limitacoes": "Modo demonstrativo.",
-            "versao_modelo": "stub-1",
-            "versao_prompt": "avaliacao-3",
+            "nota": 80,
+            "pontos_fortes": ["Ponto forte"],
+            "pontos_melhoria": ["Ponto de melhoria"],
+            "versao_modelo": "modelo-teste",
+            "versao_prompt": "avaliacao-1",
         },
     )
     assert not validar_resposta(
         "avaliacoes",
         {
-            "nota": 80,
-            "pontos_fortes": [],
-            "pontos_melhoria": [],
-            "avaliacoes_por_pergunta": [],
-            "avaliacao_qualitativa": False,
-            "nivel_confianca": "BAIXA",
-            "limitacoes": "Modo demonstrativo.",
-            "versao_modelo": "stub-1",
-            "versao_prompt": "avaliacao-3",
-        },
-    )
-    assert validar_resposta(
-        "avaliacoes",
-        {
-            "nota": 78,
-            "pontos_fortes": ["Resposta tecnicamente fundamentada."],
-            "pontos_melhoria": ["Detalhar alternativas."],
-            "avaliacoes_por_pergunta": [
-                {
-                    "numero": 1,
-                    "pergunta": "Como tratar falhas?",
-                    "criterios": [
-                        {
-                            "criterio": criterio,
-                            "nota": nota,
-                            "justificativa": "Justificativa.",
-                            "trecho_resposta": "Trecho literal.",
-                        }
-                        for criterio, nota in (
-                            ("CORRECAO_TECNICA", 4),
-                            ("COMPLETUDE", 3),
-                            ("CLAREZA", 5),
-                        )
-                    ],
-                    "nivel_confianca": "MEDIA",
-                    "limitacao": "Contexto limitado.",
-                }
-            ],
-            "avaliacao_qualitativa": True,
-            "nivel_confianca": "MEDIA",
-            "limitacoes": "Contexto limitado.",
-            "versao_modelo": "nvidia/fake",
-            "versao_prompt": "avaliacao-3",
+            "nota": True,
+            "pontos_fortes": ["Ponto forte"],
+            "pontos_melhoria": ["Ponto de melhoria"],
+            "versao_modelo": "modelo-teste",
+            "versao_prompt": "avaliacao-1",
         },
     )

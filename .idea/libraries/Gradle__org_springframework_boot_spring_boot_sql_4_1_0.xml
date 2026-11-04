@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="Gradle: org.springframework.boot:spring-boot-sql:4.1.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.springframework.boot" artifactId="spring-boot-sql" version="4.1.0" baseVersion="4.1.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-sql/4.1.0/7a5ef86020d10e926b2e98e1d7b4b79258fb2f38/spring-boot-sql-4.1.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-sql/4.1.0/ba2bc07d4a4e583fbf21553828f70e463cce1512/spring-boot-sql-4.1.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-sql/4.1.0/ddae630555148bf7f8a5ee6c9faa4fee9cd98334/spring-boot-sql-4.1.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

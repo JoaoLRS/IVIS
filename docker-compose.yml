@@ -11,6 +11,7 @@ services:
       - "127.0.0.1:${IVIS_BD_PORTA:-5433}:5432"
     networks:
       - rede-banco
+      - rede-local
     volumes:
       - ivis-banco-dados:/var/lib/postgresql/data
     healthcheck:
@@ -80,7 +81,6 @@ services:
         required: false
     environment:
       IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO no arquivo .env}
-      IVIS_IA_USAR_STUB: ${IVIS_IA_USAR_STUB:-true}
     ports:
       - "127.0.0.1:8000:8000"
     networks:
@@ -108,4 +108,5 @@ volumes:
 networks:
   rede-banco:
     internal: true
+  rede-local:
   rede-ia:

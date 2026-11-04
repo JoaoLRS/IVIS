@@ -3,12 +3,8 @@
 ## Escopo e estado
 
 Este roteiro prepara a demonstração da integração do fluxo de treino com a API
-de IA. O stub atual permite demonstrar chamadas, validação de contrato e
-comportamento de falhas, mas **não avalia qualidade semântica**. A avaliação do
-stub não calcula nota nem produz feedback. Para uma avaliação qualitativa,
-configure o provedor NVIDIA conforme o LEIA-ME; ela usa uma rubrica ponderada,
-mas ainda requer validação humana para medir se as notas são confiáveis.
-Qualidade do modelo e latência NIM permanecem pendentes.
+de IA com o provedor NVIDIA. A validação do contrato e as medições de latência
+não substituem uma avaliação humana da qualidade das perguntas e do feedback.
 
 Os alvos p95 de 10 s para pergunta e 20 s para avaliação são propostas a medir,
 não SLAs aprovados. A execução integrada de Compose requer Docker e as medições
@@ -20,7 +16,7 @@ concorrência e resultado. Não usar respostas ou dados pessoais reais.
 1. Instale Docker Desktop e confirme que o daemon está ativo.
 2. Na raiz do repositório, crie `.env` a partir de `.env.example` e configure
    `IVIS_IA_CHAVE_SERVICO` com uma chave local de pelo menos 32 caracteres.
-   Não use nem adicione uma chave NVIDIA para demonstrar o stub.
+   Configure `NVIDIA_API_KEY` em `api-ia/.env`.
 3. Inicie a pilha:
 
    ```powershell
@@ -83,10 +79,10 @@ Registre junto ao JSON, sem segredos:
 - provedor/modelo e versão de prompt (quando disponíveis);
 - amostras, aquecimento, concorrência e demais condições da carga;
 - p50, p95, máximo, falhas e comparação com os alvos propostos;
-- limitações, incluindo se o resultado é do stub ou de NIM.
+- limitações da amostra e do modelo medido.
 
 Não compare medições de ambientes, modelos ou cargas diferentes como se fossem
-equivalentes. Um resultado do stub não demonstra latência nem qualidade do NIM.
+equivalentes. A medição de latência não demonstra qualidade semântica.
 
 ## Protocolo proposto para avaliação humana
 
@@ -112,8 +108,7 @@ adequado. Registre exemplos e justificativa, sem inferir atributos pessoais.
 
 Anote também: código do caso sintético, versão de modelo/prompt, notas por
 critério, saída estruturalmente válida (sim/não), erro crítico (sim/não) e
-comentários sem copiar dados reais. Não use a nota heurística do stub como
-resultado de qualidade, nem transforme uma média pequena de casos em aprovação
+comentários sem copiar dados reais. Não transforme uma média pequena de casos em aprovação
 de produção.
 
 ## Critérios de conclusão e pendências
@@ -122,6 +117,6 @@ de produção.
 - [x] Roteiro de demonstração do fluxo, privacidade e falhas.
 - [ ] Demonstração ponta a ponta executada em Compose.
 - [ ] Aprovar rubrica, conjunto de casos e carga representativa com a equipe.
-- [ ] Confirmar um modelo NIM inferível e o adaptador do Marco 5.
+- [x] Integrar o modelo Nemotron pelo adaptador NVIDIA e validar uma chamada local.
 - [ ] Medir p95 integrado e qualidade humana com resultados registrados; não
       declarar SLA até a equipe aprovar os alvos.

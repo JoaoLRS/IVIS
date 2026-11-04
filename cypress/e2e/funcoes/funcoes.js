@@ -393,6 +393,8 @@ export function selecionarVagaParaTreino(vaga) {
 export function prepararTreinoComIA(vaga = null, { falharUmaVez = false } = {}) {
   let perguntaFalhou = false;
   let avaliacaoFalhou = false;
+  const treinoId = valoresCdu.treinoCaminhoFeliz;
+  const respostas = [];
   const tituloTreino = vaga
     ? textos.historico.tituloEntrevistaVaga(vaga.titulo)
     : textos.historico.tituloEntrevistaHabilidades;
@@ -400,56 +402,50 @@ export function prepararTreinoComIA(vaga = null, { falharUmaVez = false } = {}) 
     ? textos.historico.contextoVaga(vaga.titulo, vaga.empresa)
     : textos.historico.contextoHabilidades;
 
-  cy.intercept(metodosHttp.post, endpoints.iaPerguntas, (requisicao) => {
-    expect(requisicao.body.tipo_contexto).to.eq(
+  const sessao = () => ({
+    id: treinoId,
+    tipoContexto: vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
+    contexto: contextoTreino,
+    vagaId: vaga?.id ?? null,
+    habilidades: vaga ? vaga.requisitos : ["React"],
+    totalPerguntas: dadosCaminhoFeliz.totalPerguntas,
+    perguntas: Array.from({ length: Math.min(respostas.length + 1, 3) }, (_, i) => ({
+      id: `pergunta-${i + 1}`,
+      numero: i + 1,
+      texto: textos.treino.perguntaIa(i + 1),
+      resposta: respostas[i] ?? null,
+    })),
+  });
+  cy.intercept(metodosHttp.get, "**/api/v1/treinos/em-andamento", {
+    statusCode: 204,
+  });
+  cy.intercept(metodosHttp.post, endpoints.iniciarTreino, (requisicao) => {
+    expect(requisicao.body.tipoContexto).to.eq(
       vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
     );
-    if (vaga) {
-      expect(requisicao.body.vaga).to.deep.equal({
-        titulo: vaga.titulo,
-        senioridade: vaga.senioridade,
-        requisitos: vaga.requisitos,
-      });
-    }
-    const numero = requisicao.body[camposApi.treino.numeroPergunta];
-    if (falharUmaVez && numero === 2 && !perguntaFalhou) {
+    if (vaga) expect(requisicao.body.vagaId).to.eq(vaga.id);
+    requisicao.reply({ statusCode: codigosHttp.criado, body: sessao() });
+  }).as(aliases.gerarPerguntaIA);
+  cy.intercept(metodosHttp.post, endpoints.responderTreino, (requisicao) => {
+    const numero = respostas.length + 1;
+    expect(requisicao.body.perguntaId).to.eq(`pergunta-${numero}`);
+    if (falharUmaVez && numero === 1 && !perguntaFalhou) {
       perguntaFalhou = true;
       requisicao.reply({ statusCode: 504, body: { codigo: "tempo_esgotado", mensagem: "Tempo esgotado." } });
       return;
     }
-    requisicao.reply({
-      statusCode: codigosHttp.sucesso,
-      body: {
-        pergunta: { texto: textos.treino.perguntaIa(numero) },
-        versao_modelo: valoresCdu.versaoIa,
-        versao_prompt: valoresCdu.versaoPrompt,
-      },
-    });
+    respostas.push(requisicao.body.resposta);
+    requisicao.reply({ statusCode: codigosHttp.sucesso, body: sessao() });
   }).as(aliases.gerarPerguntaIA);
-  cy.intercept(metodosHttp.post, endpoints.iaAvaliacoes, (requisicao) => {
+  cy.intercept(metodosHttp.post, endpoints.concluirTreino, (requisicao) => {
+    expect(requisicao.body).to.deep.equal({});
     if (falharUmaVez && !avaliacaoFalhou) {
       avaliacaoFalhou = true;
       requisicao.reply({ statusCode: 503, body: { codigo: "provedor_indisponivel", mensagem: "Indisponível." } });
       return;
     }
-    requisicao.reply({ statusCode: codigosHttp.sucesso, body: {
-      nota: valoresCdu.pontuacao,
-      pontos_fortes: valoresCdu.pontosFortes,
-      pontos_melhoria: valoresCdu.pontosMelhoria,
-      versao_modelo: valoresCdu.versaoIa,
-      versao_prompt: valoresCdu.versaoPrompt,
-    }});
-  }).as(aliases.avaliarTreinoIA);
-  cy.intercept(metodosHttp.post, endpoints.treinosConcluidos, (requisicao) => {
-    expect(requisicao.body.tipoContexto).to.eq(
-      vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
-    );
-    if (vaga) {
-      expect(requisicao.body.vagaId).to.eq(vaga.id);
-      expect(requisicao.body.contexto).to.eq(contextoTreino);
-    }
     requisicao.reply({
-      statusCode: codigosHttp.criado,
+      statusCode: codigosHttp.sucesso,
       body: {
         id: valoresCdu.treinoCaminhoFeliz,
         titulo: tituloTreino,
@@ -460,14 +456,13 @@ export function prepararTreinoComIA(vaga = null, { falharUmaVez = false } = {}) 
         pontosMelhoria: valoresCdu.pontosMelhoria,
       },
     });
-  }).as(aliases.salvarTreinoConcluido);
+  }).as(aliases.avaliarTreinoIA);
 }
 
 export function iniciarEntrevistaComIA(vaga = null) {
   cy.contains(elementos.botao, textos.treino.iniciarEntrevista).click();
   cy.wait(aliases.aguardar(aliases.gerarPerguntaIA)).then(({ request }) => {
-    expect(request.body[camposApi.treino.numeroPergunta]).to.eq(1);
-    expect(request.body.tipo_contexto).to.eq(
+    expect(request.body.tipoContexto).to.eq(
       vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
     );
   });
@@ -478,31 +473,19 @@ export function responderEntrevistaComIA(vaga = null) {
   Array.from({ length: dadosCaminhoFeliz.totalPerguntas }, (_, i) => i + 1).forEach((numero) => {
     cy.get(seletores.treino.resposta).clear().type(textos.treino.respostaDemonstracao(numero));
     cy.contains(elementos.botao, textos.treino.enviarResposta).click();
+    cy.wait(aliases.aguardar(aliases.gerarPerguntaIA))
+      .its("request.body.perguntaId").should("eq", `pergunta-${numero}`);
     if (numero < dadosCaminhoFeliz.totalPerguntas) {
-      cy.wait(aliases.aguardar(aliases.gerarPerguntaIA))
-        .its(`request.body.${camposApi.treino.numeroPergunta}`)
-        .should("eq", numero + 1);
       cy.contains(textos.treino.perguntaIa(numero + 1)).should("be.visible");
     }
-  });
-  cy.wait(aliases.aguardar(aliases.avaliarTreinoIA)).then(({ request }) => {
-    expect(request.body.interacoes).to.have.length(dadosCaminhoFeliz.totalPerguntas);
-    expect(request.body.tipo_contexto).to.eq(
-      vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
-    );
   });
   cy.contains(elementos.botao, textos.treino.finalizar).should("be.enabled");
 }
 
 export function concluirTreinoEConferirFeedback(vaga = null) {
   cy.contains(elementos.botao, textos.treino.finalizar).click();
-  cy.wait(aliases.aguardar(aliases.salvarTreinoConcluido)).then(({ request }) => {
-    expect(request.body.interacoes).to.have.length(dadosCaminhoFeliz.totalPerguntas);
-    expect(request.body.tipoContexto).to.eq(
-      vaga ? valoresSistema.contexto.vaga : valoresSistema.contexto.habilidades,
-    );
-    if (vaga) expect(request.body.vagaId).to.eq(vaga.id);
-  });
+  cy.wait(aliases.aguardar(aliases.avaliarTreinoIA)).its("request.body")
+    .should("deep.equal", {});
   cy.location(parametrosUrl.caminho).should("eq", rotas.feedback);
   cy.get(seletores.treino.nota).should("have.text", String(valoresCdu.pontuacao));
   cy.contains(valoresCdu.pontosFortes[0]).should("be.visible");

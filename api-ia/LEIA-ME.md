@@ -1,16 +1,15 @@
 # API de IA do IVIS
 
 Serviço Python interno do IVIS. Implementa o contrato v1 com uma interface de
-provedor, um stub determinístico para gerar perguntas e avaliações, validação
-das saídas antes de responder, autenticação entre serviços, liveness e readiness.
-O stub não usa nem exige credenciais NVIDIA.
+provedor NVIDIA para gerar perguntas e avaliações, validação das saídas antes
+de responder, autenticação entre serviços, liveness e readiness.
 
 ## Executar localmente
 
 Requer Python 3.12 ou 3.13. Copie `.env.example` para `.env` dentro de `api-ia/`
 e preencha as configurações locais. O arquivo `.env` é carregado automaticamente
 e não deve ser enviado ao Git. Para usar o Nemotron pela NVIDIA, configure
-`IVIS_IA_USAR_STUB=false` e preencha `NVIDIA_API_KEY` com uma chave válida. O
+preencha `NVIDIA_API_KEY` com uma chave válida. O
 modelo padrão é `nvidia/nemotron-3.5-bolt-e4b`.
 
 Crie um ambiente virtual e instale as versões fixadas:
@@ -34,25 +33,16 @@ não imprime a chave nem os prompts/respostas nos logs.
 
 As rotas de negócio exigem `X-Chave-Servico`. A variável
 `IVIS_IA_CHAVE_SERVICO` é obrigatória e deve ser diferente da chave NVIDIA.
-O stub não avalia as respostas: devolve nota nula e nenhum ponto forte ou
-melhoria inventados. Para receber feedback qualitativo, configure NVIDIA com
-`IVIS_IA_USAR_STUB=false` e `NVIDIA_API_KEY`. Cada resposta então é avaliada em
-correção técnica (60%), completude (25%) e clareza (15%), com justificativa
-ancorada em trecho literal. A nota é calculada a partir desses critérios, não
-do tamanho do texto. A confiança é qualitativa, não calibrada, e a IA ainda
-pode errar; confira conceitos técnicos em fontes confiáveis.
-
-As rotas delegam a geração ao contrato interno `ProvedorIA`. Com
-`IVIS_IA_USAR_STUB=true`, usa o stub local sem chamadas externas. Com
-`IVIS_IA_USAR_STUB=false`, usa o endpoint NVIDIA compatível com OpenAI. As
+As rotas delegam a geração ao contrato interno `ProvedorIA` e usam o endpoint
+NVIDIA compatível com OpenAI. As
 respostas estruturadas do modelo são validadas contra os schemas v1; uma saída
 incompatível resulta em `502/saida_invalida`. Falhas de rede retornam
 `503/provedor_indisponivel` e timeout retorna `504/tempo_esgotado`.
 
 O backend acessa estas rotas pela rede interna do Compose (`http://ivis-api-ia:8000`).
-O frontend não deve chamar este serviço diretamente; para iniciar e conduzir um
-treino, use as rotas do backend `/api/v1/ia/perguntas/gerar` e
-`/api/v1/ia/avaliacoes/gerar`.
+O frontend não chama este serviço diretamente. Para conduzir um treino, usa as
+rotas de sessão do backend: `POST /api/v1/treinos`,
+`POST /api/v1/treinos/{id}/respostas` e `POST /api/v1/treinos/{id}/concluir`.
 
 ## Testes
 
@@ -76,24 +66,20 @@ $env:IVIS_IA_CHAVE_SERVICO = "chave-local-com-pelo-menos-32-caracteres"
 
 O script mede a API de IA por padrão. Use `--camada backend
 --base-url http://127.0.0.1:8081/api` para medir a rota integrada. A medição
-não avalia qualidade semântica; o stub não representa desempenho ou qualidade
-do NIM. Os alvos p95 do relatório são propostas, não um SLA aprovado.
+não avalia qualidade semântica. Os alvos p95 do relatório são propostas, não um SLA aprovado.
 
 ## Configuração
 
 | Variável | Obrigatória | Uso |
 |---|---|---|
 | `IVIS_IA_CHAVE_SERVICO` | Sim | Chave interna do backend, com no mínimo 32 caracteres. |
-| `IVIS_IA_USAR_STUB` | Não (`true`) | `true` usa o stub local; `false` seleciona NVIDIA. |
-| `IVIS_IA_STUB_FALHA` | Não (`nenhuma`) | Simula falha do stub: `nenhuma`, `indisponivel` (`503`) ou `tempo_esgotado` (`504`). Não é um parâmetro das requisições. |
-| `NVIDIA_API_KEY` | Para NVIDIA | Chave privada do NVIDIA API Catalog. Se uma chave real foi exposta, revogue-a e gere outra; nunca reutilize uma chave exposta. |
+| `NVIDIA_API_KEY` | Sim | Chave privada do NVIDIA API Catalog. |
 | `NVIDIA_MODEL` | Não (`nvidia/nemotron-3.5-bolt-e4b`) | Modelo NVIDIA selecionado. |
 | `NVIDIA_BASE_URL` | Não (`https://integrate.api.nvidia.com/v1`) | URL base do endpoint NVIDIA. |
 | `NVIDIA_TIMEOUT_SEGUNDOS` | Não (`90`) | Timeout total da chamada externa, incluindo eventual consulta de operação assíncrona. |
 
 As respostas de saúde não incluem configuração, credenciais ou detalhes internos.
-Com `IVIS_IA_STUB_FALHA` diferente de `nenhuma`, `/pronto` retorna
-`503/provedor_indisponivel` para indicar que o stub configurado não está pronto.
+Sem `NVIDIA_API_KEY`, `/pronto` retorna `503/provedor_indisponivel`.
 Em ambientes implantados, a comunicação deve usar TLS.
 
 O endpoint do Nemotron pode responder `202` enquanto processa uma chamada; o

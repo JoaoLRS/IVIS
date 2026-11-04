@@ -32,7 +32,7 @@ function Ensure-EnvironmentFiles {
 
     if (-not (Test-Path -LiteralPath "api-ia\.env" -PathType Leaf)) {
         Copy-Item -LiteralPath "api-ia\.env.example" -Destination "api-ia\.env"
-        Write-Host "Criei api-ia/.env a partir do exemplo. O stub fica ativo por padrão."
+        Write-Host "Criei api-ia/.env a partir do exemplo. Configure NVIDIA_API_KEY antes de iniciar."
     }
 
     $environmentPath = Join-Path $PSScriptRoot ".env"

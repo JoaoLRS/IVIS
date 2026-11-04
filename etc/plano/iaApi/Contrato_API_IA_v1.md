@@ -1,6 +1,6 @@
 # Contrato da API de IA — versão 1 (proposta)
 
-Este documento define o contrato v1 entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). O contrato foi aprovado para orientar o stub e a integração posterior com NVIDIA NGC, sem mudança das rotas ou dos formatos HTTP.
+Este documento define o contrato v1 entre o backend e a API de IA para o [RF07](../IVIS_Requisitos.md) e o [RF08](../IVIS_Requisitos.md). A integração usa o provedor NVIDIA sem mudança das rotas ou dos formatos HTTP.
 
 Identificadores em português brasileiro, sem acentos, conforme o [glossário](../Glossario_IVIS.md).
 
@@ -47,7 +47,7 @@ Resposta `200`:
 ```json
 {
   "pergunta": { "texto": "…" },
-  "versao_modelo": "nvidia/modelo-configurado",
+  "versao_modelo": "nvidia/nemotron-3.5-bolt-e4b",
   "versao_prompt": "perguntas-1"
 }
 ```
@@ -74,50 +74,16 @@ Resposta `200`:
 
 ```json
 {
-  "nota": 80,
+  "nota": 78,
   "pontos_fortes": ["…"],
   "pontos_melhoria": ["…"],
-  "avaliacoes_por_pergunta": [
-    {
-      "numero": 1,
-      "pergunta": "…",
-      "criterios": [
-        {
-          "criterio": "CORRECAO_TECNICA",
-          "nota": 4,
-          "justificativa": "…",
-          "trecho_resposta": "trecho literal da resposta"
-        },
-        {
-          "criterio": "COMPLETUDE",
-          "nota": 4,
-          "justificativa": "…",
-          "trecho_resposta": "trecho literal da resposta"
-        },
-        {
-          "criterio": "CLAREZA",
-          "nota": 4,
-          "justificativa": "…",
-          "trecho_resposta": "trecho literal da resposta"
-        }
-      ],
-      "nivel_confianca": "MEDIA",
-      "limitacao": "…"
-    }
-  ],
-  "avaliacao_qualitativa": true,
-  "nivel_confianca": "MEDIA",
-  "limitacoes": "…",
-  "versao_modelo": "nvidia/modelo-configurado",
-  "versao_prompt": "avaliacao-3"
+  "versao_modelo": "nvidia/nemotron-3.5-bolt-e4b",
+  "versao_prompt": "avaliacao-1"
 }
 ```
 
-- `nota`: inteiro de **0 a 100**, calculado a partir da rubrica ponderada (correção técnica 60%, completude 25% e clareza 15%). O tamanho da resposta não é critério; respostas concisas podem receber nota alta se forem corretas e completas. A nota não é garantia de acerto.
-- `pontos_fortes` e `pontos_melhoria`: de 1 a 5 itens de texto na avaliação qualitativa; ficam vazios no stub.
-- `avaliacoes_por_pergunta`: uma avaliação por interação; a rubrica usa `CORRECAO_TECNICA`, `COMPLETUDE` e `CLAREZA`, cada uma de 0 a 5. `trecho_resposta` deve ser uma citação literal da resposta e é validado pela API.
-- `nivel_confianca`: estimativa qualitativa (`BAIXA`, `MEDIA` ou `ALTA`), não calibrada. `limitacao` e `limitacoes` registram ressalvas específicas e gerais.
-- `avaliacao_qualitativa`: informa se os critérios realmente foram avaliados. É `false` no stub; nesse caso, `nota` é `null`, listas de pontos fortes e melhorias ficam vazias e os critérios por pergunta não contêm notas.
+- `nota`: inteiro de **0 a 100** (proposta; o protótipo do frontend já usa essa escala).
+- `pontos_fortes` e `pontos_melhoria`: de 1 a 5 itens de texto cada.
 
 ### `GET /saude` e `GET /pronto`
 
@@ -150,16 +116,15 @@ Formato: `{ "codigo": "…", "mensagem": "…" }`.
 
 Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação em até 20 s** no percentil 95. O backend usa timeout um pouco acima desses valores. Os números só podem ser confirmados com medições na Etapa 6 da [ordem de entrega](../Ordem_de_Entrega_MVP.md).
 
-## Comportamento do stub
+## Provedor ativo
 
-- Gera perguntas a partir de um conjunto fixo, variando pelo tema (habilidade ou requisito) e pelo `numero_pergunta`.
-- Não avalia o conteúdo e não produz nota nem feedback resumido. A resposta declara `avaliacao_qualitativa: false`, confiança baixa e orienta configurar um provedor real.
-- Devolve `versao_modelo: "stub-1"` e `versao_prompt: "avaliacao-3"`. Um treino sem avaliação qualitativa é identificável pela versão persistida em `avaliacoes_treinamento`.
-- Permite simular `503` e `504` por configuração do serviço (não por parâmetro da requisição); a readiness fica indisponível quando a simulação de falha está ativa.
+A API usa o provedor NVIDIA. A resposta informa o modelo em `versao_modelo`,
+que também é persistido em `avaliacoes_treinamento`. Sem chave configurada, a
+API responde `503/provedor_indisponivel`.
 
 ## Pendências
 
 - Modelo e endpoint específicos da NVIDIA NGC e limites de uso.
-- Validar a rubrica e a calibração da confiança com especialistas e respostas de referência.
+- Escala final e critérios de avaliação (rubrica).
 - Política de retenção e diagnóstico de prompts e respostas (LGPD, RNF09).
 - Mecanismo definitivo de autenticação serviço a serviço.
