@@ -832,8 +832,16 @@ class FluxosAplicacaoIntegracaoTest {
         when(clienteIa.gerarAvaliacao(any()))
                 .thenThrow(new ExcecaoNegocio(HttpStatus.SERVICE_UNAVAILABLE,
                         "ia_indisponivel", "IA indisponível."))
-                .thenReturn(new GerarAvaliacaoResposta(82, List.of("Exemplo concreto"),
-                        List.of("Detalhar resultados"), "modelo-teste", "avaliacao-v2"));
+                .thenReturn(new GerarAvaliacaoResposta(
+                        82,
+                        List.of("Exemplo concreto"),
+                        List.of("Detalhar resultados"),
+                        List.of(avaliacaoPergunta(1, 4), avaliacaoPergunta(2, 5)),
+                        true,
+                        NivelConfianca.ALTA,
+                        "Sem limitacoes.",
+                        "modelo-teste",
+                        "avaliacao-v2"));
 
         String caminho = "/v1/treinos/" + treinoId + "/concluir";
         var falha = postarAutenticado(caminho, "{}", csrf, token);
