@@ -118,20 +118,20 @@ Esses testes usam provedores simulados e não exigem uma chave NVIDIA real.
 
 ### Cypress: testes de interface
 
-Instale as dependências do pacote e inicie o Vite em outro terminal:
+Instale as dependências do pacote e suba a stack Docker, que inclui o frontend:
 
 ```powershell
 npm --prefix cypress/e2e ci
-npm --prefix frontend run dev
+.\release.ps1 up
 ```
 
-Os cenários de CDU com `cy.intercept` usam respostas simuladas e podem rodar apenas com o Vite. Para executar um arquivo:
+Os cenários de CDU com `cy.intercept` usam respostas simuladas. Para executar um arquivo:
 
 ```powershell
 npm --prefix cypress/e2e run testar:e2e -- --spec "cdu/CDU-16-*.cy.js"
 ```
 
-**A suíte completa inclui jornadas reais** (`caminho_feliz/` e CDU-15). Elas usam o mesmo backend, API de IA e banco `ivis` do Compose. Os hooks removem apenas as contas das fixtures reais e seus dados vinculados, preservando outras contas e o catálogo. Siga a [preparação do Cypress](../cypress/e2e/README.md) antes de executar `npm run testar:e2e`. As jornadas de treino precisam da chave NVIDIA.
+**A suíte completa inclui jornadas reais** (`caminho_feliz/` e CDU-15). Elas usam o mesmo frontend, backend, API de IA e banco `ivis` do Compose. Os hooks removem apenas as contas das fixtures reais e seus dados vinculados, preservando outras contas e o catálogo. Com a stack ativa, execute `npm run testar:e2e` da raiz. As jornadas de treino precisam da chave NVIDIA.
 
 ### Dependências do projeto
 

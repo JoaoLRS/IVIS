@@ -103,5 +103,6 @@ npm run verificar-estilo
 ```
 
 Os testes de integração que usam Testcontainers precisam de um daemon Docker
-ativo. Para os cenários Cypress, mantenha o frontend acessível em
-`http://localhost:5173` antes de executar `npm run testar:e2e`.
+ativo. Para os cenários Cypress, execute `.\release.ps1 up` na raiz do
+repositório e depois `npm run testar:e2e`; o Cypress acessa o frontend em
+`http://localhost:8080`.

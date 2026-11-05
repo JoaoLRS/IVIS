@@ -39,16 +39,13 @@ continuam isolados e usam respostas simuladas.
 
 ## Executar a suíte
 
-O Cypress usa `http://localhost:5173`. Use a mesma stack e o mesmo banco da aplicação. Não é necessário outro PostgreSQL nem outro backend.
+O Cypress usa `http://localhost:8080`, servido pelo container do frontend. Use a mesma stack e o mesmo banco da aplicação. Não é necessário iniciar o Vite nem outro PostgreSQL ou backend.
 
 ```powershell
-# Subir os serviços:
+# Subir os serviços (incluindo o frontend):
 .\release.ps1 up
 
-# Em outro terminal, iniciar o frontend com o proxy padrão para localhost:8081:
-npm --prefix frontend run dev
-
-# Executar a suíte:
+# Executar a suíte da raiz do repositório:
 npm run testar:e2e
 ```
 
