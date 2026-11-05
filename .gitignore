@@ -17,6 +17,7 @@ frontend/.vercel/
 # Backend build output
 backend/build/
 backend/build-diagnostic/
+backend/bin/
 backend/.gradle/
 backend/out/
 

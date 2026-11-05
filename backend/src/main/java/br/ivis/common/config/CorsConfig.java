@@ -1,5 +1,6 @@
 package br.ivis.common.config;
 
+import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,14 +22,18 @@ public class CorsConfig {
     private final String[] origensPermitidas;
 
     public CorsConfig(@Value("${ivis.cors.origens-permitidas}") String[] origensPermitidas) {
-        this.origensPermitidas = origensPermitidas.clone();
+        this.origensPermitidas = Arrays.stream(origensPermitidas == null ? new String[0] : origensPermitidas)
+                .map(origem -> origem.trim())
+                .filter(origem -> !origem.isEmpty())
+                .distinct()
+                .toArray(String[]::new);
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuracao = new CorsConfiguration();
         configuracao.setAllowedOrigins(List.of(origensPermitidas));
-        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuracao.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         configuracao.setAllowedHeaders(
                 List.of("Authorization", "Content-Type", "Idempotency-Key",
                         "X-Id-Requisicao", "X-XSRF-TOKEN"));

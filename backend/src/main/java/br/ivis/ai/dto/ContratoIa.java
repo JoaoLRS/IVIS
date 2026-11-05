@@ -125,22 +125,27 @@ public final class ContratoIa {
                     List<@NotBlank String> pontosFortes,
             @NotNull @Size(max = 5) @JsonProperty("pontos_melhoria")
                     List<@NotBlank String> pontosMelhoria,
-            @NotNull @Size(max = 10) @JsonProperty("avaliacoes_por_pergunta")
+            @Size(max = 10) @JsonProperty("avaliacoes_por_pergunta")
                     List<@Valid AvaliacaoPergunta> avaliacoesPorPergunta,
-            @NotNull @JsonProperty("avaliacao_qualitativa") Boolean avaliacaoQualitativa,
-            @NotNull @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
-            @NotBlank @Size(max = 1000) String limitacoes,
+            @JsonProperty("avaliacao_qualitativa") Boolean avaliacaoQualitativa,
+            @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
+            @Size(max = 1000) String limitacoes,
             @NotBlank @JsonProperty("versao_modelo") String versaoModelo,
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
+
+        public GerarAvaliacaoResposta {
+            pontosFortes = pontosFortes == null ? List.of() : List.copyOf(pontosFortes);
+            pontosMelhoria = pontosMelhoria == null ? List.of() : List.copyOf(pontosMelhoria);
+            avaliacoesPorPergunta = avaliacoesPorPergunta == null ? List.of() : List.copyOf(avaliacoesPorPergunta);
+            avaliacaoQualitativa = Boolean.TRUE.equals(avaliacaoQualitativa);
+            nivelConfianca = nivelConfianca == null ? NivelConfianca.BAIXA : nivelConfianca;
+            limitacoes = limitacoes == null ? "" : limitacoes;
+        }
 
         @AssertTrue(message = "A rubrica não corresponde ao indicador qualitativo.")
         @SuppressWarnings("null")
         public boolean isRubricaConsistente() {
-            if (avaliacaoQualitativa == null || avaliacoesPorPergunta == null
-                    || pontosFortes == null || pontosMelhoria == null) {
-                return false;
-            }
-            if (avaliacaoQualitativa) {
+            if (Boolean.TRUE.equals(avaliacaoQualitativa)) {
                 boolean criteriosValidos = !avaliacoesPorPergunta.isEmpty()
                         && !pontosFortes.isEmpty() && !pontosMelhoria.isEmpty()
                         && avaliacoesPorPergunta.stream().allMatch(item -> {
@@ -170,10 +175,7 @@ public final class ContratoIa {
                 int divisor = avaliacoesPorPergunta.size() * 5;
                 return nota.equals((total + divisor / 2) / divisor);
             }
-            return nota == null && pontosFortes.isEmpty() && pontosMelhoria.isEmpty()
-                    && avaliacoesPorPergunta.stream()
-                    .allMatch(item -> item != null && item.criterios() != null
-                            && item.criterios().isEmpty());
+            return nota != null && pontosFortes != null && pontosMelhoria != null;
         }
     }
 
