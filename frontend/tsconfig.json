@@ -19,7 +19,6 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "configuracao.vite.ts",
-    "configuracao.vitest.ts",
-    "../cypress/e2e/cypress.config.ts"
+    "configuracao.vitest.ts"
   ]
 }

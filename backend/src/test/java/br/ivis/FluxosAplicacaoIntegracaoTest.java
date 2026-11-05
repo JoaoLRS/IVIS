@@ -48,7 +48,7 @@ class FluxosAplicacaoIntegracaoTest {
     static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
     @DynamicPropertySource
-    static void propriedades(DynamicPropertyRegistry registro) {
+    public static void propriedades(DynamicPropertyRegistry registro) {
         registro.add("spring.datasource.url", postgres::getJdbcUrl);
         registro.add("spring.datasource.username", postgres::getUsername);
         registro.add("spring.datasource.password", postgres::getPassword);
@@ -729,8 +729,7 @@ class FluxosAplicacaoIntegracaoTest {
             return new GerarPerguntaResposta(new PerguntaGerada("Pergunta " + entrada.numeroPergunta()),
                     "modelo-teste", "perguntas-v2");
         });
-        when(clienteIa.gerarAvaliacao(any())).thenReturn(new GerarAvaliacaoResposta(
-                82, List.of("Exemplo concreto"), List.of("Detalhar resultados"), "modelo-teste", "avaliacao-v2"));
+        when(clienteIa.gerarAvaliacao(any())).thenReturn(avaliacaoDeTeste());
 
         var inicio = postarAutenticado("/v1/treinos",
                 "{\"tipoContexto\":\"HABILIDADES\",\"habilidades\":[\"Java\"]}", csrf, token);
@@ -782,6 +781,37 @@ class FluxosAplicacaoIntegracaoTest {
         assertEquals(vagaId, json().readTree(treinoVaga.body()).get("vagaId").asString());
     }
 
+    private static GerarAvaliacaoResposta avaliacaoDeTeste() {
+        return new GerarAvaliacaoResposta(
+                82,
+                List.of("Exemplo concreto"),
+                List.of("Detalhar resultados"),
+                List.of(
+                        avaliacaoPergunta(1, 4),
+                        avaliacaoPergunta(2, 5),
+                        avaliacaoPergunta(3, 5)),
+                true,
+                NivelConfianca.ALTA,
+                "Sem limitacoes.",
+                "modelo-teste",
+                "avaliacao-v2");
+    }
+
+    private static AvaliacaoPergunta avaliacaoPergunta(int numero, int notaClareza) {
+        return new AvaliacaoPergunta(
+                numero,
+                "Pergunta " + numero,
+                List.of(
+                        new CriterioAvaliacao(CriterioRubrica.CORRECAO_TECNICA, 4,
+                                "Resposta correta.", "Resposta " + numero),
+                        new CriterioAvaliacao(CriterioRubrica.COMPLETUDE, 4,
+                                "Resposta completa.", "Resposta " + numero),
+                        new CriterioAvaliacao(CriterioRubrica.CLAREZA, notaClareza,
+                                "Resposta clara.", "Resposta " + numero)),
+                NivelConfianca.ALTA,
+                "Sem limitacoes.");
+    }
+
     @Test
     void falhaNaAvaliacaoFinalPreservaRespostasERetentativaConcluiUmaUnicaVez() throws Exception {
         var csrf = obterProtecaoCsrf();
@@ -802,8 +832,16 @@ class FluxosAplicacaoIntegracaoTest {
         when(clienteIa.gerarAvaliacao(any()))
                 .thenThrow(new ExcecaoNegocio(HttpStatus.SERVICE_UNAVAILABLE,
                         "ia_indisponivel", "IA indisponível."))
-                .thenReturn(new GerarAvaliacaoResposta(82, List.of("Exemplo concreto"),
-                        List.of("Detalhar resultados"), "modelo-teste", "avaliacao-v2"));
+                .thenReturn(new GerarAvaliacaoResposta(
+                        82,
+                        List.of("Exemplo concreto"),
+                        List.of("Detalhar resultados"),
+                        List.of(avaliacaoPergunta(1, 4), avaliacaoPergunta(2, 5)),
+                        true,
+                        NivelConfianca.ALTA,
+                        "Sem limitacoes.",
+                        "modelo-teste",
+                        "avaliacao-v2"));
 
         String caminho = "/v1/treinos/" + treinoId + "/concluir";
         var falha = postarAutenticado(caminho, "{}", csrf, token);

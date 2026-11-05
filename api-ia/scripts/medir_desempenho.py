@@ -47,16 +47,77 @@ def validar_resposta(operacao: str, corpo: object) -> bool:
             and bool(corpo["versao_prompt"].strip())
         )
 
+    avaliacao_qualitativa = corpo.get("avaliacao_qualitativa")
+    avaliacoes = corpo.get("avaliacoes_por_pergunta")
+    if avaliacao_qualitativa is True:
+        nota_valida = type(corpo.get("nota")) is int and 0 <= corpo["nota"] <= 100
+        feedback_valido = (
+            _lista_de_textos_valida(corpo.get("pontos_fortes"))
+            and _lista_de_textos_valida(corpo.get("pontos_melhoria"))
+        )
+    else:
+        nota_valida = corpo.get("nota") is None
+        feedback_valido = (
+            corpo.get("pontos_fortes") == []
+            and corpo.get("pontos_melhoria") == []
+        )
     return (
-        type(corpo.get("nota")) is int
-        and 0 <= corpo["nota"] <= 100
-        and _lista_de_textos_valida(corpo.get("pontos_fortes"))
-        and _lista_de_textos_valida(corpo.get("pontos_melhoria"))
+        nota_valida
+        and feedback_valido
+        and type(avaliacao_qualitativa) is bool
+        and _avaliacoes_por_pergunta_validas(avaliacoes, avaliacao_qualitativa)
+        and corpo.get("nivel_confianca") in {"BAIXA", "MEDIA", "ALTA"}
+        and isinstance(corpo.get("limitacoes"), str)
+        and bool(corpo["limitacoes"].strip())
         and isinstance(corpo.get("versao_modelo"), str)
         and bool(corpo["versao_modelo"].strip())
         and isinstance(corpo.get("versao_prompt"), str)
         and bool(corpo["versao_prompt"].strip())
     )
+
+
+def _avaliacoes_por_pergunta_validas(valor: object, qualitativa: bool) -> bool:
+    if not isinstance(valor, list) or len(valor) > 10:
+        return False
+    if qualitativa and not valor:
+        return False
+    criterios_esperados = {"CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA"}
+    for avaliacao in valor:
+        if not isinstance(avaliacao, dict):
+            return False
+        criterios = avaliacao.get("criterios")
+        if (
+            type(avaliacao.get("numero")) is not int
+            or avaliacao["numero"] < 1
+            or not isinstance(avaliacao.get("pergunta"), str)
+            or not avaliacao["pergunta"].strip()
+            or avaliacao.get("nivel_confianca") not in {"BAIXA", "MEDIA", "ALTA"}
+            or not isinstance(avaliacao.get("limitacao"), str)
+            or not avaliacao["limitacao"].strip()
+            or not isinstance(criterios, list)
+        ):
+            return False
+        if qualitativa:
+            if len(criterios) != 3:
+                return False
+            nomes = set()
+            for criterio in criterios:
+                if not isinstance(criterio, dict):
+                    return False
+                nomes.add(criterio.get("criterio"))
+                if (
+                    type(criterio.get("nota")) is not int
+                    or not 0 <= criterio["nota"] <= 5
+                    or not isinstance(criterio.get("justificativa"), str)
+                    or not criterio["justificativa"].strip()
+                    or not isinstance(criterio.get("trecho_resposta"), str)
+                ):
+                    return False
+            if nomes != criterios_esperados:
+                return False
+        elif criterios:
+            return False
+    return True
 
 
 def _lista_de_textos_valida(valor: object) -> bool:

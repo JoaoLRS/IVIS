@@ -1,7 +1,5 @@
 package br.ivis.identity.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity(name = "ContratoInstitucional")
 @Table(name = "contratos")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ContratoInstitucionalModel {
+
+    protected ContratoInstitucionalModel() {
+    }
 
     @Id
     @Column(name = "objeto")
@@ -68,6 +68,10 @@ public ContratoInstitucionalModel(
 
     public int getQuantidadeVagas() {
         return quantidadeVagas;
+    }
+
+    public Instant getIniciadoEm() {
+        return iniciadoEm;
     }
 
     public boolean estaAtivo() {

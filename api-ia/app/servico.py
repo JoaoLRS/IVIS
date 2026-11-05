@@ -9,6 +9,7 @@ from app.schemas import (
     GerarAvaliacaoResposta,
     GerarPerguntaEntrada,
     GerarPerguntaResposta,
+    calcular_nota_rubrica,
 )
 
 
@@ -38,8 +39,41 @@ class ServicoIA:
     ) -> GerarAvaliacaoResposta:
         try:
             resultado = await self._provedor.gerar_avaliacao(entrada)
-            return GerarAvaliacaoResposta.model_validate(resultado)
+            avaliacao = GerarAvaliacaoResposta.model_validate(resultado)
+            if len(avaliacao.avaliacoes_por_pergunta) != len(entrada.interacoes):
+                raise ValueError("A avaliação não corresponde às perguntas enviadas.")
+            for item, interacao in zip(
+                avaliacao.avaliacoes_por_pergunta, entrada.interacoes
+            ):
+                if item.numero != interacao.numero or item.pergunta != interacao.pergunta:
+                    raise ValueError("A avaliação não corresponde às perguntas enviadas.")
+                if any(
+                    (
+                        bool(interacao.resposta.strip())
+                        and not criterio.trecho_resposta
+                    )
+                    or criterio.trecho_resposta not in interacao.resposta
+                    for criterio in item.criterios
+                ):
+                    raise ValueError("A evidência não corresponde à resposta enviada.")
+            if avaliacao.avaliacao_qualitativa:
+                avaliacao = avaliacao.model_copy(
+                    update={
+                        "nota": calcular_nota_rubrica(
+                            avaliacao.avaliacoes_por_pergunta
+                        )
+                    }
+                )
+            return avaliacao
         except ValidationError as erro:
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "codigo": "saida_invalida",
+                    "mensagem": "O provedor retornou uma resposta inválida.",
+                },
+            ) from erro
+        except ValueError as erro:
             raise HTTPException(
                 status_code=502,
                 detail={

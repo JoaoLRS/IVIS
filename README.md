@@ -374,6 +374,12 @@ usam o provedor NVIDIA. Para testar a API de IA no módulo Python, configure
 `api-ia/.env` conforme [`api-ia/LEIA-ME.md`](api-ia/LEIA-ME.md). O navegador
 continua chamando somente o backend.
 
+No modo NVIDIA, o feedback apresenta critérios por pergunta, justificativas
+ancoradas em trechos literais da resposta e uma indicação qualitativa de
+confiança e limitações. Essa confiança não é calibrada e a IA pode errar. O stub
+padrão não avalia qualidade e não atribui nota. Configure `IVIS_IA_USAR_STUB=false`
+e `NVIDIA_API_KEY` na API de IA para receber avaliação por critérios.
+
 ---
 
 ## 📌 Status do Projeto

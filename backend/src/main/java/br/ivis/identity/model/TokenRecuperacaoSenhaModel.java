@@ -1,7 +1,5 @@
 package br.ivis.identity.model;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -11,8 +9,10 @@ import java.util.UUID;
 
 @Entity(name = "TokenRecuperacaoSenha")
 @Table(name = "tokens_recuperacao_senha")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TokenRecuperacaoSenhaModel {
+
+    protected TokenRecuperacaoSenhaModel() {
+    }
 
     @Id
     @Column(name = "objeto")
@@ -44,12 +44,20 @@ public TokenRecuperacaoSenhaModel(UUID id, UUID contaId, String hashToken, Insta
         return contaId;
     }
 
+    public UUID getId() {
+        return id;
+    }
+
     public String getHashToken() {
         return hashToken;
     }
 
     public Instant getExpiraEm() {
         return expiraEm;
+    }
+
+    public Instant getCriadoEm() {
+        return criadoEm;
     }
 
     public boolean estaValidoEm(Instant agora) {

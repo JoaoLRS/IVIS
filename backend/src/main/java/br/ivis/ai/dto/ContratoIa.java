@@ -21,6 +21,18 @@ public final class ContratoIa {
         VAGA
     }
 
+    public enum CriterioRubrica {
+        CORRECAO_TECNICA,
+        COMPLETUDE,
+        CLAREZA
+    }
+
+    public enum NivelConfianca {
+        BAIXA,
+        MEDIA,
+        ALTA
+    }
+
     public record Habilidade(
             @NotBlank String nome,
             @NotNull @Min(1) @Max(5) Integer nivel) {
@@ -92,14 +104,79 @@ public final class ContratoIa {
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
     }
 
+    public record CriterioAvaliacao(
+            @NotNull CriterioRubrica criterio,
+            @NotNull @Min(0) @Max(5) Integer nota,
+            @NotBlank @Size(max = 500) String justificativa,
+            @NotNull @Size(max = 500) @JsonProperty("trecho_resposta") String trechoResposta) {
+    }
+
+    public record AvaliacaoPergunta(
+            @NotNull @Min(1) Integer numero,
+            @NotBlank @Size(max = 1000) String pergunta,
+            @NotNull @Size(max = 3) List<@Valid CriterioAvaliacao> criterios,
+            @NotNull @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
+            @NotBlank @Size(max = 500) String limitacao) {
+    }
+
     public record GerarAvaliacaoResposta(
-            @NotNull @Min(0) @Max(100) Integer nota,
-            @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_fortes")
+            @Min(0) @Max(100) Integer nota,
+            @NotNull @Size(max = 5) @JsonProperty("pontos_fortes")
                     List<@NotBlank String> pontosFortes,
-            @NotNull @Size(min = 1, max = 5) @JsonProperty("pontos_melhoria")
+            @NotNull @Size(max = 5) @JsonProperty("pontos_melhoria")
                     List<@NotBlank String> pontosMelhoria,
+            @Size(max = 10) @JsonProperty("avaliacoes_por_pergunta")
+                    List<@Valid AvaliacaoPergunta> avaliacoesPorPergunta,
+            @JsonProperty("avaliacao_qualitativa") Boolean avaliacaoQualitativa,
+            @JsonProperty("nivel_confianca") NivelConfianca nivelConfianca,
+            @Size(max = 1000) String limitacoes,
             @NotBlank @JsonProperty("versao_modelo") String versaoModelo,
             @NotBlank @JsonProperty("versao_prompt") String versaoPrompt) {
+
+        public GerarAvaliacaoResposta {
+            pontosFortes = pontosFortes == null ? List.of() : List.copyOf(pontosFortes);
+            pontosMelhoria = pontosMelhoria == null ? List.of() : List.copyOf(pontosMelhoria);
+            avaliacoesPorPergunta = avaliacoesPorPergunta == null ? List.of() : List.copyOf(avaliacoesPorPergunta);
+            avaliacaoQualitativa = Boolean.TRUE.equals(avaliacaoQualitativa);
+            nivelConfianca = nivelConfianca == null ? NivelConfianca.BAIXA : nivelConfianca;
+            limitacoes = limitacoes == null ? "" : limitacoes;
+        }
+
+        @AssertTrue(message = "A rubrica não corresponde ao indicador qualitativo.")
+        @SuppressWarnings("null")
+        public boolean isRubricaConsistente() {
+            if (Boolean.TRUE.equals(avaliacaoQualitativa)) {
+                boolean criteriosValidos = !avaliacoesPorPergunta.isEmpty()
+                        && !pontosFortes.isEmpty() && !pontosMelhoria.isEmpty()
+                        && avaliacoesPorPergunta.stream().allMatch(item -> {
+                            if (item == null) {
+                                return false;
+                            }
+                            var criterios = item.criterios();
+                            return criterios != null && criterios.size() == 3
+                                    && criterios.stream().allMatch(criterio ->
+                                            criterio != null && criterio.criterio() != null
+                                                    && criterio.nota() != null)
+                                    && criterios.stream().map(CriterioAvaliacao::criterio)
+                                            .distinct().count() == 3;
+                        });
+                if (!criteriosValidos || nota == null) {
+                    return false;
+                }
+                int total = avaliacoesPorPergunta.stream()
+                        .flatMap(item -> item.criterios().stream())
+                        .mapToInt(criterio -> criterio.nota()
+                                * switch (criterio.criterio()) {
+                                    case CORRECAO_TECNICA -> 60;
+                                    case COMPLETUDE -> 25;
+                                    case CLAREZA -> 15;
+                                })
+                        .sum();
+                int divisor = avaliacoesPorPergunta.size() * 5;
+                return nota.equals((total + divisor / 2) / divisor);
+            }
+            return nota != null && pontosFortes != null && pontosMelhoria != null;
+        }
     }
 
     private static boolean contextoValido(

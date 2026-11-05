@@ -13,7 +13,8 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Locale;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
@@ -31,8 +32,9 @@ import br.ivis.identity.repository.SessaoRepository;
 import br.ivis.identity.repository.TokenRecuperacaoSenhaRepository;
 
 @Service
-@Slf4j
 public class RecuperacaoSenhaService {
+
+    private static final Logger log = LoggerFactory.getLogger(RecuperacaoSenhaService.class);
 
     private static final Duration DURACAO_TOKEN_MINIMA = Duration.ofMinutes(5);
     private static final Duration DURACAO_TOKEN_MAXIMA = Duration.ofHours(2);
@@ -128,9 +130,14 @@ public class RecuperacaoSenhaService {
         mensagem.setFrom(emailRemetente);
         mensagem.setTo(destino);
         mensagem.setSubject("Redefinição de senha — IVIS");
-        mensagem.setText("Recebemos uma solicitação para redefinir a senha da sua conta IVIS.\n\n"
-                + "Use o link a seguir em até " + validadeToken.toMinutes() + " minutos:\n"
-                + url + "\n\nSe você não solicitou a redefinição, ignore esta mensagem.");
+        mensagem.setText("""
+                Recebemos uma solicitação para redefinir a senha da sua conta IVIS.
+
+                Use o link a seguir em até %d minutos:
+                %s
+
+                Se você não solicitou a redefinição, ignore esta mensagem.""".formatted(
+                validadeToken.toMinutes(), url).stripTrailing());
         remetente.send(mensagem);
     }
 
