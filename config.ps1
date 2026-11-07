@@ -18,6 +18,7 @@ Uso: .\config.ps1 [install|update|help] [-BuildDocker]
                 as imagens-base mais recentes. Nao inicia os containers.
 
 Requisitos locais: Node.js 22+, Python 3.12 ou 3.13 e JDK 25.
+O JDK 25 é localizado por JAVA_HOME, PATH ou pastas padrão de instalação.
 Para iniciar o sistema completo depois, execute .\release.ps1 up.
 '@
 }
@@ -117,27 +118,56 @@ function Install-PythonPackages {
     Invoke-Checked -Label 'Dependencias da API de IA' -Command $venvPython -Arguments $arguments
 }
 
-function Assert-BackendJdk {
-    Require-Command -Name 'java' -Hint 'Instale e configure o JDK 25.'
-    $javaVersion = (& java --version | Select-Object -First 1).ToString()
-    if ($javaVersion -notmatch '^(?:openjdk|java)(?: version)? "?25(?:\.|\s|"|$)') {
-        throw "O backend requer JDK 25 (encontrado: $javaVersion)."
+function Get-BackendJdkHome {
+    $candidates = [System.Collections.Generic.List[string]]::new()
+    if ($env:JAVA_HOME) { $candidates.Add($env:JAVA_HOME) }
+
+    $javac = Get-Command javac -ErrorAction SilentlyContinue
+    if ($javac -and $javac.Source) {
+        $candidates.Add((Split-Path -Parent (Split-Path -Parent $javac.Source)))
     }
+
+    foreach ($directory in @('C:\Program Files\OpenJDK', 'C:\Program Files\Java', 'C:\Program Files\Eclipse Adoptium')) {
+        if (Test-Path -LiteralPath $directory -PathType Container) {
+            Get-ChildItem -LiteralPath $directory -Directory -Filter '*25*' -ErrorAction SilentlyContinue |
+                ForEach-Object { $candidates.Add($_.FullName) }
+        }
+    }
+
+    foreach ($candidate in $candidates) {
+        $jdkCandidatePath = $candidate.Trim().Trim('"')
+        $java = Join-Path $jdkCandidatePath 'bin\java.exe'
+        $compiler = Join-Path $jdkCandidatePath 'bin\javac.exe'
+        if (-not (Test-Path -LiteralPath $java -PathType Leaf) -or -not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+            continue
+        }
+        $versionOutput = & $java --version
+        $version = $versionOutput | Select-Object -First 1
+        if ($LASTEXITCODE -eq 0 -and $version -match '^(?:openjdk|java)(?: version)? "?25(?:\.|\s|"|$)') {
+            return $jdkCandidatePath
+        }
+    }
+
+    throw 'O backend requer JDK 25. Configure JAVA_HOME para a pasta do JDK 25; para compilar apenas com Docker, use .\release.ps1 up.'
 }
 
 function Install-BackendDependencies {
+    param([Parameter(Mandatory)][string]$JdkHome)
     $backendDirectory = Join-Path $root 'backend'
     $wrapper = Join-Path $backendDirectory 'gradlew.bat'
     if (-not (Test-Path -LiteralPath $wrapper -PathType Leaf)) {
         throw "Gradle Wrapper ausente: $wrapper"
     }
     Push-Location -LiteralPath $backendDirectory
+    $previousJavaHome = $env:JAVA_HOME
     try {
+        $env:JAVA_HOME = $JdkHome
         $arguments = @('bootJar', '--no-daemon', '--console=plain')
         if ($Action -eq 'update') { $arguments += '--refresh-dependencies' }
         Invoke-Checked -Label 'Dependencias e build do backend' -Command $wrapper -Arguments $arguments
     }
     finally {
+        $env:JAVA_HOME = $previousJavaHome
         Pop-Location
     }
 }
@@ -210,13 +240,14 @@ try {
     if ($LASTEXITCODE -ne 0 -or $nodeVersion -notmatch '^v(\d+)\.' -or [int]$Matches[1] -lt 22) {
         throw "Node.js 22 ou superior e necessario (encontrado: $nodeVersion)."
     }
-    Assert-BackendJdk
+    $jdkHome = Get-BackendJdkHome
+    Write-Host "JDK 25 do backend: $jdkHome"
 
     Install-NpmPackage -Directory $root
     Install-NpmPackage -Directory (Join-Path $root 'frontend')
     Install-NpmPackage -Directory (Join-Path $root 'cypress\e2e')
     Install-PythonPackages
-    Install-BackendDependencies
+    Install-BackendDependencies -JdkHome $jdkHome
     Invoke-Checked -Label 'Build do frontend' -Command 'npm' -Arguments @('--prefix', (Join-Path $root 'frontend'), 'run', 'build')
     if ($BuildDocker) { Build-DockerImages }
 

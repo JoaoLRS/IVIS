@@ -2,6 +2,12 @@
 
 Etapa 1 da [Ordem de Entrega do MVP](../etc/plano/Ordem_de_Entrega_MVP.md): esqueleto executável com primeira integração da IA e identidade/sessão. Java 25 LTS, Spring Boot, Gradle, PostgreSQL e Flyway. O schema de identidade e domínio está nas migrations V2 e V3; controllers de conta, login e sessão estão disponíveis, enquanto os demais domínios continuam em implementação.
 
+As migrations Flyway já aplicadas em um banco persistente devem manter nome,
+versão e conteúdo. A sequência V7–V10 corresponde à padronização de objetos,
+proteção da auditoria, origem das perguntas e limpeza controlada; V11–V12
+acrescentam o detalhamento da avaliação de IA. Para evoluir o esquema, crie
+uma nova migration com a próxima versão, preservando o histórico anterior.
+
 ## Rodar com Docker (backend + banco + frontend)
 
 Na raiz do repositório:

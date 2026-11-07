@@ -19,6 +19,8 @@ dependências e atualiza os pacotes npm dentro das faixas declaradas. O script
 requer Node.js 22+, Python 3.12 ou 3.13 e JDK 25, compila backend e frontend e
 inclui as dependências dos testes E2E. Use `-BuildDocker` para reconstruir também
 as imagens Docker. Para iniciar os serviços, continue com `.\release.ps1 up`.
+Se `java` no `PATH` for outra versão, o script usa o JDK 25 de `JAVA_HOME`
+ou de uma pasta padrão de instalação somente durante o build do backend.
 
 ## 1. Subir o sistema completo
 

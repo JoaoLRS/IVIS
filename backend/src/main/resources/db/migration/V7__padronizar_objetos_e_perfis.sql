@@ -1,3 +1,6 @@
+-- Padroniza as chaves primarias e os nomes das relacoes sem descartar dados.
+-- Os perfis compartilham o objeto da conta para manter a relacao 1:1 existente.
+
 ALTER TABLE contas RENAME COLUMN id TO objeto;
 
 ALTER TABLE perfis_aluno RENAME COLUMN conta_id TO objeto;
@@ -35,7 +38,8 @@ ALTER TABLE perfis_instituicao
     ADD CONSTRAINT fk_perfis_instituicao_conta FOREIGN KEY (codigo_objeto_contas)
         REFERENCES contas (objeto) ON DELETE RESTRICT;
 
-
+-- Normaliza documentos legados. Valores incompletos/duplicados não podem ser
+-- tratados como documentos válidos; ficam nulos para atualização pelo usuário.
 UPDATE perfis_instituicao
 SET cnpj = CASE
     WHEN length(regexp_replace(coalesce(cnpj, ''), '[^0-9]', '', 'g')) = 14
@@ -116,7 +120,7 @@ BEGIN
         WHERE codigo_objeto_recurso_legado IS NOT NULL
           AND tipo_recurso <> 'CONTRATO'
     ) THEN
-        RAISE EXCEPTION 'A V9 requer mapear os recursos de auditoria legados que não sejam CONTRATO.';
+        RAISE EXCEPTION 'A V7 requer mapear os recursos de auditoria legados que não sejam CONTRATO.';
     END IF;
 END;
 $$;
