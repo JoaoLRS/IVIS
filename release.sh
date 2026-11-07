@@ -72,6 +72,30 @@ prepare_environment() {
     mv "$temporary_file" .env
     printf 'Gerei uma chave JWT local em .env. O valor não será exibido.\n'
   fi
+
+  local service_key
+  service_key="$(sed -n 's/^IVIS_IA_CHAVE_SERVICO=//p' .env | head -n 1)"
+  service_key="${service_key%$'\r'}"
+  if [[ -z "${service_key//[[:space:]]/}" || "$service_key" == 'chave-local-ficticia-substituir-antes-de-usar-123456789' ]]; then
+    require_command openssl
+    local ia_key temporary_file line found=false
+    ia_key="$(openssl rand -base64 32 | tr -d '\r\n')"
+    temporary_file="$(mktemp)"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      line="${line%$'\r'}"
+      if [[ "$line" == IVIS_IA_CHAVE_SERVICO=* ]]; then
+        printf 'IVIS_IA_CHAVE_SERVICO=%s\n' "$ia_key" >> "$temporary_file"
+        found=true
+      else
+        printf '%s\n' "$line" >> "$temporary_file"
+      fi
+    done < .env
+    if [[ "$found" == false ]]; then
+      printf 'IVIS_IA_CHAVE_SERVICO=%s\n' "$ia_key" >> "$temporary_file"
+    fi
+    mv "$temporary_file" .env
+    printf 'Gerei uma chave local para backend e API de IA em .env. O valor não será exibido.\n'
+  fi
 }
 
 wait_for_url() {

@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1
 FROM gradle:9.1.0-jdk25 AS build
 WORKDIR /app
 COPY settings.gradle.kts build.gradle.kts ./
 COPY src ./src
-RUN gradle bootJar --no-daemon -x test
+RUN --mount=type=cache,target=/home/gradle/.gradle,sharing=locked,uid=1000,gid=1000 \
+    gradle bootJar --no-daemon -x test
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app

@@ -3,8 +3,12 @@
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../backend/build/classes/java/aot" />
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../backend/build/generated/aotResources" />
-    <content url="file://$MODULE_DIR$/../../backend/build/generated/aotSources" />
+    <content url="file://$MODULE_DIR$/../../backend/build/generated/aotResources">
+      <sourceFolder url="file://$MODULE_DIR$/../../backend/build/generated/aotResources" type="java-resource" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../backend/build/generated/aotSources">
+      <sourceFolder url="file://$MODULE_DIR$/../../backend/build/generated/aotSources" isTestSource="false" />
+    </content>
     <content url="file://$MODULE_DIR$/../../backend/src/aot" />
     <orderEntry type="jdk" jdkName="25" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />

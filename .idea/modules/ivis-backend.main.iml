@@ -3,16 +3,12 @@
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/../../backend/build/classes/java/main" />
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../backend/build/generated/sources/annotationProcessor/java/main">
-      <sourceFolder url="file://$MODULE_DIR$/../../backend/build/generated/sources/annotationProcessor/java/main" isTestSource="false" generated="true" />
-    </content>
     <content url="file://$MODULE_DIR$/../../backend/src/main">
       <sourceFolder url="file://$MODULE_DIR$/../../backend/src/main/java" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/../../backend/src/main/resources" type="java-resource" />
     </content>
     <orderEntry type="jdk" jdkName="25" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="PROVIDED" name="Gradle: org.projectlombok:lombok:1.18.42" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-webmvc:4.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-mail:4.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-validation:4.1.0" level="project" />

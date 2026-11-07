@@ -324,6 +324,21 @@ A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10)
 
 ## Verificação de dependências
 
+No PowerShell do Windows, instale ou sincronize as dependências locais de todos os
+módulos com:
+
+```powershell
+.\config.ps1 install
+.\config.ps1 update
+```
+
+O script prepara os pacotes npm da raiz, do frontend e dos testes E2E, cria/atualiza
+`api-ia/.venv`, resolve as dependências do backend pelo Gradle Wrapper e compila
+backend e frontend. `install` respeita os lockfiles; `update` atualiza os pacotes npm
+dentro das faixas declaradas em `package.json` e sincroniza Python/Gradle com os
+arquivos do projeto. Para reconstruir também as imagens Docker, adicione
+`-BuildDocker`. O script não inicia containers; para isso, use `release.ps1 up`.
+
 Para conferir as ferramentas e dependências locais do frontend, backend e API de IA,
 execute na raiz do repositório:
 
@@ -363,6 +378,13 @@ volume `ivis-banco-dados`. Também aceita `bash release.sh status`,
 `bash release.sh logs`, `bash release.sh restart` e `bash release.sh down`.
 O `release.ps1` aceita as mesmas ações (`.\release.ps1 status`, `logs`,
 `restart` e `down`).
+No PowerShell, `.\release.ps1 up -NoBuild` reutiliza imagens já construídas e
+`.\release.ps1 up -RefreshImages` atualiza as imagens-base antes do build.
+O build comum usa cache de downloads do Gradle, npm e pip, mesmo quando o código
+muda. Na primeira execução, o script gera chaves locais aleatórias para JWT e
+para a comunicação backend/API de IA no `.env` da raiz; valores personalizados
+válidos são preservados. O Compose passa a chave de serviço da raiz para ambos
+os containers.
 Configure `NVIDIA_API_KEY` em `api-ia/.env` para gerar perguntas e avaliações.
 O PostgreSQL fica acessível apenas na máquina local pela porta `5433` por padrão
 (configurável em `IVIS_BD_PORTA` no `.env` da raiz); dentro do Docker, o backend

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -5,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt \
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install -r requirements.txt \
     && useradd --system --no-create-home --shell /usr/sbin/nologin ivis
 
 COPY app ./app

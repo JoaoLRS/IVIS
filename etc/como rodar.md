@@ -13,6 +13,13 @@ Este guia parte da **raiz do repositório**. O caminho mais simples usa Docker p
 
 Na primeira execução, o Docker e os gerenciadores de pacotes precisam baixar imagens e dependências. **Java e Gradle locais não são necessários para subir o sistema pelo Docker.**
 
+Para preparar todos os módulos para desenvolvimento local no Windows, execute
+`.\config.ps1 install` na raiz. Depois, `.\config.ps1 update` sincroniza as
+dependências e atualiza os pacotes npm dentro das faixas declaradas. O script
+requer Node.js 22+, Python 3.12 ou 3.13 e JDK 25, compila backend e frontend e
+inclui as dependências dos testes E2E. Use `-BuildDocker` para reconstruir também
+as imagens Docker. Para iniciar os serviços, continue com `.\release.ps1 up`.
+
 ## 1. Subir o sistema completo
 
 No **PowerShell**, na raiz do projeto:
@@ -22,7 +29,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 if (-not (Test-Path api-ia/.env)) { Copy-Item api-ia/.env.example api-ia/.env }
 ```
 
-Edite `api-ia/.env` e preencha `NVIDIA_API_KEY` para gerar perguntas e avaliações reais. Sem a chave, o sistema inicia com um aviso e os treinos ficam indisponíveis; cadastro, planos e os demais módulos podem ser utilizados. O healthcheck do Compose verifica `/saude` (processo ativo), enquanto `/pronto` continua retornando 503 sem o provedor configurado. O `.env` da raiz contém a configuração local dos demais serviços. Não envie esses arquivos ao Git. O script gera uma chave JWT local caso `IVIS_JWT_CHAVE_ASSINATURA` esteja vazia.
+Edite `api-ia/.env` e preencha `NVIDIA_API_KEY` para gerar perguntas e avaliações reais. Sem a chave, o sistema inicia com um aviso e os treinos ficam indisponíveis; cadastro, planos e os demais módulos podem ser utilizados. O healthcheck do Compose verifica `/saude` (processo ativo), enquanto `/pronto` continua retornando 503 sem o provedor configurado. O `.env` da raiz contém a configuração local dos demais serviços. Não envie esses arquivos ao Git. O script gera chaves locais aleatórias para JWT e para a comunicação backend/API de IA quando elas estiverem vazias. O Compose usa a chave de serviço da raiz nos dois containers.
 
 ```powershell
 .\release.ps1 up
@@ -49,6 +56,11 @@ O backend pode ser conferido em <http://localhost:8081/api/v1/pronto> e a API de
 ```
 
 `logs` acompanha a saída até você pressionar `Ctrl+C`. `down` remove os containers e preserva o volume do banco. `restart` reinicia os serviços sem reconstruir as imagens; depois de alterar código ou variáveis de ambiente, use `up` novamente. No Bash, substitua `.\release.ps1` por `bash release.sh`.
+
+O `up` normal reutiliza o cache do Docker e os caches de downloads do Gradle,
+npm e pip. Para iniciar com imagens já construídas, use `.\release.ps1 up -NoBuild`.
+Para atualizar imagens-base antes de reconstruir, use
+`.\release.ps1 up -RefreshImages`.
 
 ## 2. Desenvolver o frontend com Vite
 
