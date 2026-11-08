@@ -306,8 +306,6 @@ export const textos = {
     titulo: "Feedback da entrevista",
     pontoForte: "Seus pontos fortes",
     melhoria: "Para continuar evoluindo",
-    resultadoDemonstrativo: "RESULTADO DEMONSTRATIVO",
-    semAvaliacaoQualitativa: "A avaliação qualitativa não está disponível neste modo.",
   },
   areaAluno: {
     saudacao: (nome) => `Olá, ${nome}!`,

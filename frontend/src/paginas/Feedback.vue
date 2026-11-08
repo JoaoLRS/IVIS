@@ -17,6 +17,7 @@ const treino = computed(() => {
 const avaliacoesPorPergunta = computed(
   () => treino.value?.avaliacoesPorPergunta ?? [],
 );
+const temResumo = computed(() => Boolean(treino.value?.pontosFortes && treino.value?.melhorias));
 const nomesCriterios = {
   CORRECAO_TECNICA: "Correção técnica",
   COMPLETUDE: "Completude",
@@ -73,7 +74,9 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
                 ? "Nenhum treino selecionado"
                 : treino.avaliacaoQualitativa
                   ? "Rubrica aplicada"
-                  : "Sem avaliação qualitativa"
+                    : temResumo
+                      ? "Feedback resumido"
+                      : "Sem avaliação qualitativa"
             }}
           </Etiqueta>
           <p>
@@ -93,7 +96,7 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
         <div class="card-body feedback-body">
           <div class="eyebrow">ANÁLISE DA ENTREVISTA</div>
           <h2>Resumo da sua entrevista</h2>
-          <div v-if="treino?.avaliacaoQualitativa" class="feedback-point">
+          <div v-if="temResumo" class="feedback-point">
             <span class="point-icon"><Check :size="15" /></span>
             <div>
               <strong>Seus pontos fortes</strong>
@@ -106,7 +109,7 @@ function confiancaEmPortugues(nivel?: "BAIXA" | "MEDIA" | "ALTA") {
             </div>
           </div>
           <div
-            v-if="treino?.avaliacaoQualitativa"
+            v-if="temResumo"
             class="feedback-point improvement"
           >
             <span class="point-icon"><ArrowUpRight :size="15" /></span>

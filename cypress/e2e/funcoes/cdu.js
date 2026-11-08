@@ -981,8 +981,8 @@ export function conferirFeedbackDaEntrevista() {
     "have.text",
     String(valoresCdu.pontuacao),
   );
-  cy.contains(textos.feedback.resultadoDemonstrativo).should("be.visible");
-  cy.contains(textos.feedback.semAvaliacaoQualitativa).should("be.visible");
+  cy.contains(valoresCdu.pontosFortes[0]).should("be.visible");
+  cy.contains(valoresCdu.pontosMelhoria[0]).should("be.visible");
 }
 
 export function conferirAvaliacaoPersistida() {

@@ -14,7 +14,7 @@ import {
   removerAlunoDaInstituicao,
 } from "../funcoes/instituicao.js";
 
-describe("caminho feliz do perfil instituição", { testIsolation: false, retries: 0 }, () => {
+describe("jornada da instituição e do aluno vinculado", { testIsolation: false, retries: 0 }, () => {
   it("cadastra a conta real da instituição e segue para as ofertas", () => {
     cy.visit(rotas.cadastroInstituicao);
     preencherCadastroInstituicao({ ...dadosTeste.instituicao, senha: dadosTeste.senha });
@@ -55,7 +55,7 @@ describe("caminho feliz do perfil instituição", { testIsolation: false, retrie
     cy.contains(textos.areaAluno.saudacao(dadosTeste.aluno.nome)).should("be.visible");
   });
 
-  it("retorna à instituição, remove o vínculo e libera a vaga", () => {
+  it("no fluxo complementar, retorna à instituição, remove o vínculo e libera a vaga", () => {
     cy.get(seletores.navegacao.sairDaConta).click();
     cy.location("pathname").should("eq", rotas.login);
     cy.get(seletores.login.email).type(dadosTeste.instituicao.email);
