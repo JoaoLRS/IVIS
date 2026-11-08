@@ -30,6 +30,16 @@ function prepararCsrfEPlano(situacao = "COM_PLANO_VIGENTE", plano = "ATIVO") {
 describe("estado da sessão", () => {
   afterEach(() => vi.useRealTimers());
   beforeEach(() => {
+    const itens = new Map<string, string>();
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        getItem: (chave: string) => itens.get(chave) ?? null,
+        setItem: (chave: string, valor: string) => { itens.set(chave, valor); },
+        removeItem: (chave: string) => { itens.delete(chave); },
+        clear: () => { itens.clear(); },
+      },
+    });
     setActivePinia(createPinia());
     vi.useRealTimers();
     vi.mocked(clienteHttp.get).mockReset();
