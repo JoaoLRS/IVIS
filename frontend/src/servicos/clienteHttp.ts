@@ -14,6 +14,7 @@ clienteHttp.interceptors.request.use((config) => {
     caminho === "/v1/sessoes" ||
     caminho === "/v1/sessoes/csrf" ||
     caminho === "/v1/sessoes/renovacao" ||
+    caminho === "/v1/sessoes/atividade" ||
     caminho === "/v1/contas/alunos" ||
     caminho === "/v1/contas/instituicoes";
 

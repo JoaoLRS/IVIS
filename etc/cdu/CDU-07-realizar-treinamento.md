@@ -29,7 +29,7 @@
 - **A2 — Sem contexto válido:** o sistema orienta cadastrar habilidades ou vaga.
 - **A3 — Falha ao gerar pergunta ou avaliação:** o sistema preserva a resposta pendente para nova tentativa e não apresenta resultado inexistente.
 - **A4 — Treino cancelado antes de finalizar:** o backend marca a sessão como cancelada e ela não aparece no histórico de treinos concluídos.
-- **A5 — Página recarregada:** o sistema recupera a sessão em andamento do backend e permite continuar com as perguntas e respostas já registradas.
+- **A5 — Página recarregada ou nova sessão de acesso:** o sistema recupera a sessão em andamento do backend e permite continuar com as perguntas e respostas já registradas, conforme CDU-19.
 - **E1 — Falha ao salvar:** o sistema informa que o resultado não foi registrado.
 
 ## Pós-condições

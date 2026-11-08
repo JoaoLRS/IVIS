@@ -18,6 +18,7 @@ public class OpenApiConfig {
     private static final Set<String> OPERACOES_PUBLICAS = Set.of(
             "POST /v1/sessoes",
             "POST /v1/sessoes/renovacao",
+            "POST /v1/sessoes/atividade",
             "POST /v1/contas/instituicoes",
             "POST /v1/contas/alunos",
             "POST /v1/senhas/recuperacao",

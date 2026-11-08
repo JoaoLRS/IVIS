@@ -47,6 +47,7 @@ public class IdentidadeService {
 
     public static final long DURACAO_ACCESS_TOKEN_SEGUNDOS = 15 * 60;
     public static final long DURACAO_REFRESH_TOKEN_DIAS = 7;
+    public static final long LIMITE_INATIVIDADE_MINUTOS = 20;
     private static final Pattern FORMATO_TOKEN_REFRESH = Pattern.compile("^[A-Za-z0-9_-]{43}$");
 
     private final ContaRepository contas;
@@ -237,7 +238,7 @@ public class IdentidadeService {
         }
         Instant agora = Instant.now();
         SessaoAutenticacaoModel anterior = sessoes.buscarPorHashParaAtualizacao(hashToken(tokenRenovacao))
-                .filter(sessao -> sessao.estaAtivaEm(agora))
+                .filter(sessao -> sessao.estaAtivaAposInatividade(agora, LIMITE_INATIVIDADE_MINUTOS))
                 .orElseThrow(IdentidadeService::sessaoInvalida);
         ContaModel conta = contas.findById(anterior.getContaId())
                 .filter(contaEncontrada -> contaEncontrada.estaAtiva())
@@ -247,6 +248,17 @@ public class IdentidadeService {
         anterior.revogar(agora, nova.sessao().getId());
         sessoes.save(anterior);
         return nova;
+    }
+
+    @Transactional
+    public void registrarAtividade(String tokenRenovacao) {
+        if (!tokenRefreshValido(tokenRenovacao)) throw sessaoInvalida();
+        Instant agora = Instant.now();
+        SessaoAutenticacaoModel sessao = sessoes.buscarPorHashParaAtualizacao(hashToken(tokenRenovacao))
+                .filter(item -> item.estaAtivaAposInatividade(agora, LIMITE_INATIVIDADE_MINUTOS))
+                .orElseThrow(IdentidadeService::sessaoInvalida);
+        sessao.registrarAtividade(agora);
+        sessoes.save(sessao);
     }
 
     @Transactional

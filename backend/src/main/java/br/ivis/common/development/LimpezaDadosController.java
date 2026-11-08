@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/ambiente/limpar-dados")
-@Profile({"dev & !prod", "homolog & !prod", "homologacao & !prod"})
+@Profile({"dev & !prod", "homologacao & !prod"})
 public class LimpezaDadosController {
     private final LimpezaDadosService servico;
     private final String chave;

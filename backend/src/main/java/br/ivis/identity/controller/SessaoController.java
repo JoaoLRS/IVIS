@@ -67,6 +67,12 @@ public class SessaoController {
         return emissao.resposta();
     }
 
+    @PostMapping("/atividade")
+    @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.NO_CONTENT)
+    public void registrarAtividade(@CookieValue(name = COOKIE_REFRESH, required = false) String token) {
+        servico.registrarAtividade(token);
+    }
+
     @DeleteMapping("/atual")
     public void sair(
             @AuthenticationPrincipal Jwt jwt,

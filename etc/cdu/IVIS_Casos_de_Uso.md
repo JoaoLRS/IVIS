@@ -1,10 +1,10 @@
 # Casos de uso do IVIS
 
-Este diretório reúne 16 casos de uso ligados aos requisitos funcionais do IVIS. Os fluxos foram revisados contra o frontend Vue, o backend Spring Boot, a API de IA e as migrations presentes no repositório. Cada CDU termina com um diagrama Mermaid das ações do ator.
+Este diretório reúne 20 casos de uso: 16 especificações funcionais originais, duas jornadas ponta a ponta e dois fluxos complementares. Os fluxos foram revisados contra o frontend Vue, o backend Spring Boot, a API de IA e as migrations presentes no repositório. Os CDU-17 e CDU-18 documentam os dois caminhos felizes automatizados em Cypress; os CDU-19 e CDU-20 detalham operações reais ainda descritas apenas dentro dos CDU-07 e CDU-13. Cada CDU termina com um diagrama Mermaid das ações dos atores.
 
 ## Parecer sobre a pertinência
 
-Os 16 temas cobrem identidade e acesso, política de senha, preparação para entrevistas, planos individuais e institucionais, controle de acesso e rastreabilidade. Cadastro e login estão no CDU-01; a validação visual e a política de nova senha têm fluxo próprio no CDU-16, reutilizado por cadastro, alteração, recuperação e cadastro institucional de aluno. As especificações indicam os estados parciais para distinguir comportamento descrito do que está disponível no código.
+Os 16 temas originais cobrem identidade e acesso, política de senha, preparação para entrevistas, planos individuais e institucionais, controle de acesso e rastreabilidade. Cadastro e login estão no CDU-01; a validação visual e a política de nova senha têm fluxo próprio no CDU-16, reutilizado por cadastro, alteração, recuperação e cadastro institucional de aluno. Os CDU-17 e CDU-18 encadeiam essas operações nas jornadas do aluno pagante e da instituição com aluno vinculado. A análise das telas e endpoints mostrou dois objetivos de usuário sem especificação própria: retomar um treino persistido e vincular uma conta de aluno já existente. Os CDU-19 e CDU-20 detalham esses fluxos sem acrescentar RF. As especificações indicam os estados parciais para distinguir comportamento descrito do que está disponível no código.
 
 Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVIS_Requisitos.md). O estado de implementação não representa validação de produção nem aceite do requisito.
 
@@ -28,6 +28,10 @@ Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVI
 | CDU-14 | Aplicar acesso conforme modalidade | RF17 | Implementado nas rotas; APIs validam plano, perfil ou titularidade conforme operação | [CDU-14-aplicar-modalidade-de-acesso.md](CDU-14-aplicar-modalidade-de-acesso.md) | [CDU-14-aplicar-modalidade-de-acesso.cy.js](../../cypress/e2e/cdu/CDU-14-aplicar-modalidade-de-acesso.cy.js) |
 | CDU-15 | Registrar auditoria de operações sensíveis | RF20 | Contratação, pagamento e vínculos auditados; retenção pendente | [CDU-15-registrar-auditoria.md](CDU-15-registrar-auditoria.md) | [CDU-15-registrar-auditoria.cy.js](../../cypress/e2e/cdu/CDU-15-registrar-auditoria.cy.js) |
 | CDU-16 | Validar requisitos de senha | RF01, RF02, RF04, RF16 | Implementado nas quatro entradas de nova senha | [CDU-16-validar-requisitos-senha.md](CDU-16-validar-requisitos-senha.md) | [CDU-16-validar-requisitos-senha.cy.js](../../cypress/e2e/cdu/CDU-16-validar-requisitos-senha.cy.js) |
+| CDU-17 | Jornada feliz do aluno pagante | RF01–RF03, RF06–RF11, RF13, RF15, RF17 | Jornada real de cadastro, contratação simulada, perfil, treino com IA e histórico | [CDU-17-jornada-feliz-do-aluno.md](CDU-17-jornada-feliz-do-aluno.md) | [perfil_aluno.cy.js](../../cypress/e2e/caminho_feliz/perfil_aluno.cy.js) |
+| CDU-18 | Jornada feliz da instituição e do aluno vinculado | RF01, RF11, RF14–RF18 | Jornada real de contratação simulada, vínculo, acesso do aluno e liberação de vaga; capacidade fixa | [CDU-18-jornada-feliz-da-instituicao.md](CDU-18-jornada-feliz-da-instituicao.md) | [perfil_instituicao.cy.js](../../cypress/e2e/caminho_feliz/perfil_instituicao.cy.js) |
+| CDU-19 | Retomar treinamento em andamento | RF07–RF10 | Implementado; retomada após recarga coberta por teste de interface com API simulada e por teste de integração do backend | [CDU-19-retomar-treinamento.md](CDU-19-retomar-treinamento.md) | [CDU-07-realizar-treinamento.cy.js](../../cypress/e2e/cdu/CDU-07-realizar-treinamento.cy.js) |
+| CDU-20 | Vincular aluno com conta existente | RF16–RF18, RF20 | Implementado; vínculo por e-mail coberto por teste de interface com API simulada e testes do serviço | [CDU-20-vincular-aluno-existente.md](CDU-20-vincular-aluno-existente.md) | [CDU-13-gerenciar-alunos-vinculados.cy.js](../../cypress/e2e/cdu/CDU-13-gerenciar-alunos-vinculados.cy.js) |
 
 
 ## Relações entre casos de uso
@@ -39,6 +43,10 @@ Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVI
 - CDU-13 depende de contrato institucional com capacidade; os vínculos ativos dão acesso ao aluno segundo CDU-14.
 - CDU-15 é transversal. A auditoria cobre contratação e pagamento simulados e criação/remoção de vínculos institucionais.
 - CDU-16 é transversal aos CDUs 01, 02, 04 e 13. Ele especifica a indicação visual e a validação da nova senha, sem duplicar as operações de conta desses casos.
+- CDU-17 encadeia cadastro, contratação individual, edição de conta, cadastro de habilidade e vaga, treino por vaga e consulta do feedback pelo histórico.
+- CDU-18 encadeia cadastro e contratação institucional, gestão de vagas e vínculo, acesso do aluno e remoção do vínculo.
+- CDU-19 detalha a retomada do treino em andamento prevista no CDU-07. Não há necessidade de iniciar outro treino para recuperar perguntas e respostas já registradas.
+- CDU-20 detalha o vínculo por e-mail de uma conta existente previsto no CDU-13. O cadastro de um novo aluno permanece no CDU-13 e na jornada CDU-18.
 
 ## Critérios usados na revisão
 

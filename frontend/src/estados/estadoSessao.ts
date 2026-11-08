@@ -38,21 +38,83 @@ async function tokenCsrf(): Promise<string> {
 }
 
 export const useEstadoSessao = defineStore("sessao", () => {
+  const marcadorInatividade = "ivis_sessao_expirada_inatividade";
+  const limiteInatividadeMs = 20 * 60 * 1000;
+  const intervaloRegistroMs = 30 * 1000;
   const accessToken = ref<string | null>(null);
   const conta = ref<ContaAutenticada | null>(null);
   const temPlano = ref<boolean | null>(null);
   const restaurada = ref(false);
   const expiraEm = ref(0);
   let restauracaoPendente: Promise<boolean> | null = null;
+  let ultimaAtividade = 0;
+  let ultimoRegistro = 0;
+  let temporizadorInatividade: ReturnType<typeof setTimeout> | null = null;
+  let registroPendente = false;
+
+  function expirarPorInatividade() {
+    window.localStorage.setItem(marcadorInatividade, "1");
+    limparSessao();
+    restaurada.value = true;
+    window.location.replace("/login");
+  }
+
+  function agendarExpiracao() {
+    if (temporizadorInatividade) clearTimeout(temporizadorInatividade);
+    temporizadorInatividade = setTimeout(() => {
+      if (accessToken.value && Date.now() - ultimaAtividade >= limiteInatividadeMs) {
+        expirarPorInatividade();
+      }
+    }, limiteInatividadeMs + 100);
+  }
+
+  async function registrarAtividade() {
+    if (registroPendente || Date.now() - ultimoRegistro < intervaloRegistroMs) return;
+    registroPendente = true;
+    try {
+      const csrf = await tokenCsrf();
+      await clienteHttp.post("/v1/sessoes/atividade", {}, {
+        withCredentials: true,
+        headers: { "X-XSRF-TOKEN": csrf },
+      });
+      ultimoRegistro = Date.now();
+    } catch {
+      // A renovação no backend decide se a sessão ainda pode ser recuperada.
+    } finally {
+      registroPendente = false;
+    }
+  }
+
+  function observarInteracao() {
+    if (!accessToken.value) return;
+    if (Date.now() - ultimaAtividade >= limiteInatividadeMs) {
+      expirarPorInatividade();
+      return;
+    }
+    ultimaAtividade = Date.now();
+    agendarExpiracao();
+    void registrarAtividade();
+  }
+
+  if (typeof window !== "undefined") {
+    for (const evento of ["pointerdown", "keydown", "scroll"]) {
+      window.addEventListener(evento, observarInteracao, { passive: true });
+    }
+  }
 
   function aplicarSessao(sessao: SessaoResposta) {
     accessToken.value = sessao.accessToken;
     conta.value = sessao.conta;
     expiraEm.value = Date.now() + sessao.expiraEmSegundos * 1000;
     definirTokenAcesso(sessao.accessToken);
+    ultimaAtividade = Date.now();
+    ultimoRegistro = ultimaAtividade;
+    agendarExpiracao();
   }
 
   function limparSessao() {
+    if (temporizadorInatividade) clearTimeout(temporizadorInatividade);
+    temporizadorInatividade = null;
     accessToken.value = null;
     conta.value = null;
     temPlano.value = null;
@@ -83,6 +145,7 @@ export const useEstadoSessao = defineStore("sessao", () => {
       },
     );
     aplicarSessao(resposta.data);
+    window.localStorage.removeItem(marcadorInatividade);
     restaurada.value = true;
     await consultarPlano();
   }
@@ -121,6 +184,11 @@ export const useEstadoSessao = defineStore("sessao", () => {
   }
 
   async function restaurar(): Promise<boolean> {
+    if (window.localStorage.getItem(marcadorInatividade) === "1") {
+      limparSessao();
+      restaurada.value = true;
+      return false;
+    }
     if (accessToken.value && Date.now() < expiraEm.value - 30_000) return true;
     if (accessToken.value) {
       accessToken.value = null;

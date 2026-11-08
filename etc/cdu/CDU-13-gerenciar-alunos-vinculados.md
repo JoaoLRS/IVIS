@@ -15,7 +15,7 @@
 
 1. A instituição abre a área de gestão institucional.
 2. O sistema apresenta alunos vinculados e, por contrato, as vagas de alunos totais, utilizadas e disponíveis.
-3. Para adicionar, a instituição escolhe entre informar o e-mail de uma conta de aluno existente ou preencher o cadastro de um novo aluno.
+3. Para adicionar, a instituição escolhe entre informar o e-mail de uma conta de aluno existente, conforme CDU-20, ou preencher o cadastro de um novo aluno.
 4. O sistema verifica titularidade do contrato, vaga disponível e ausência de outro vínculo institucional ativo para o aluno.
 5. Se for um novo aluno, o sistema exige a política de senha do CDU-16 e cria a conta e o perfil com a senha protegida por hash; se for existente, localiza a conta pelo e-mail.
 6. O sistema cria o vínculo e grava no perfil do aluno o código do objeto da instituição em `codigo_objeto_perfis_instituicao`, exposto como `objetoInstituicao` na conta. A conta e o vínculo são persistidos na mesma transação.

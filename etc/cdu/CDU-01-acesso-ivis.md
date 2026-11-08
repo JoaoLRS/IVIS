@@ -36,6 +36,7 @@
 - **A6 — Esqueceu a senha:** o usuário solicita a recuperação conforme CDU-04.
 - **A7 — Encerrar sessão:** o usuário aciona Sair; o sistema revoga a sessão de renovação, limpa os dados locais e retorna à área pública.
 - **A8 — Consultar a mensagem de boas-vindas simulada:** após criar a conta, o usuário pode abrir a caixa de entrada simulada na própria página de cadastro; nenhuma mensagem real é enviada por essa ação.
+- **A9 — Inatividade por 20 minutos:** o sistema encerra a sessão na interface; a renovação do token é recusada pelo backend e o usuário precisa entrar novamente com suas credenciais.
 - **E1 — Serviço indisponível ou falha de persistência:** o sistema informa que não foi possível concluir o cadastro ou o login e não cria sessão parcial.
 
 ## Pós-condições

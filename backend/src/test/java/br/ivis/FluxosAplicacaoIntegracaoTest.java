@@ -276,6 +276,25 @@ class FluxosAplicacaoIntegracaoTest {
     }
 
     @Test
+    void inatividadeDeVinteMinutosExigeNovoLoginMesmoComCookiePresente() throws Exception {
+        ProtecaoCsrf csrf = obterProtecaoCsrf();
+        String email = "inatividade-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        HttpResponse<String> login = postarComCsrf("/v1/sessoes", """
+                {"email":"%s","senha":"Senha-de-teste-segura-123"}
+                """.formatted(email), csrf, null);
+        assertEquals(200, login.statusCode());
+        String refresh = valorCookie(login, "ivis_refresh");
+
+        try (Connection conexao = fonteDeDados.getConnection(); Statement comando = conexao.createStatement()) {
+            comando.executeUpdate("update sessoes_autenticacao set ultima_atividade_em=now()-interval '21 minutes' "
+                    + "where codigo_objeto_contas='" + idConta(email) + "' and revogada_em is null");
+        }
+        assertEquals(401, postarComCsrf("/v1/sessoes/renovacao", "{}", csrf, refresh).statusCode());
+        assertEquals(401, postarComCsrf("/v1/sessoes/atividade", "{}", csrf, refresh).statusCode());
+    }
+
+    @Test
     void contratacaoRegistraAuditoriaUmaUnicaVezQuandoChaveEhReprocessada() throws Exception {
         ProtecaoCsrf csrf = obterProtecaoCsrf();
         String email = "auditoria-" + UUID.randomUUID() + "@exemplo.test";

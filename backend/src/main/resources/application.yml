@@ -73,3 +73,37 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
+      on-profile: homologacao
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  structured:
+    format:
+      console: ecs

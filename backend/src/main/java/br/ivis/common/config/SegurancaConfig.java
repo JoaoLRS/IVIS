@@ -62,6 +62,7 @@ public class SegurancaConfig {
                                 "/v1/contas/instituicoes",
                                 "/v1/sessoes",
                                 "/v1/sessoes/renovacao",
+                                "/v1/sessoes/atividade",
                                 "/v1/senhas/recuperacao",
                                 "/v1/senhas/redefinicao")
                         .permitAll()

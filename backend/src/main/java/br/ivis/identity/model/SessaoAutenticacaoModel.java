@@ -35,12 +35,17 @@ public class SessaoAutenticacaoModel {
 
     @Column(name = "criado_em", nullable = false)
     private Instant criadoEm;
-public SessaoAutenticacaoModel(UUID id, UUID contaId, String hashTokenRenovacao, Instant expiraEm, Instant agora) {
+
+    @Column(name = "ultima_atividade_em", nullable = false)
+    private Instant ultimaAtividadeEm;
+
+    public SessaoAutenticacaoModel(UUID id, UUID contaId, String hashTokenRenovacao, Instant expiraEm, Instant agora) {
         this.id = id;
         this.contaId = contaId;
         this.hashTokenRenovacao = hashTokenRenovacao;
         this.expiraEm = expiraEm;
         this.criadoEm = agora;
+        this.ultimaAtividadeEm = agora;
     }
 
     public UUID getId() {
@@ -69,6 +74,15 @@ public SessaoAutenticacaoModel(UUID id, UUID contaId, String hashTokenRenovacao,
 
     public boolean estaAtivaEm(Instant agora) {
         return revogadaEm == null && expiraEm.isAfter(agora);
+    }
+
+    public boolean estaAtivaAposInatividade(Instant agora, long minutos) {
+        return estaAtivaEm(agora) && ultimaAtividadeEm != null
+                && ultimaAtividadeEm.plus(minutos, java.time.temporal.ChronoUnit.MINUTES).isAfter(agora);
+    }
+
+    public void registrarAtividade(Instant agora) {
+        this.ultimaAtividadeEm = agora;
     }
 
     public void revogar(Instant agora, UUID substitutaId) {
