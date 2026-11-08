@@ -12,27 +12,11 @@ import {
   conferirFeedbackDaEntrevista,
   conferirRespostaPreservadaAposFalha,
   reenviarRespostaPreservada,
-  prepararRetomadaDaEntrevista,
-  recarregarEntrevista,
-  conferirEntrevistaRetomada,
   conferirTerceiraRespostaRegistrada,
   conferirAvaliacaoPersistida,
 } from "../funcoes/cdu.js";
 
 describe("CDU-07 - Realizar treinamento e receber feedback", () => {
-  it("retoma a pergunta e a resposta registradas após recarregar a página", () => {
-    prepararTreinoComIA();
-    abrirTreinoPorHabilidades();
-    iniciarEntrevistaComIA();
-    digitarRespostaDaEntrevista(1);
-    enviarRespostaDaEntrevista();
-    conferirProximaPerguntaDaEntrevista(2);
-
-    prepararRetomadaDaEntrevista();
-    recarregarEntrevista();
-    conferirEntrevistaRetomada();
-  });
-
   it("preserva respostas e permite repetir pergunta e avaliação após falha da IA", () => {
     prepararTreinoComIA(null, { falharUmaVez: true });
     abrirTreinoPorHabilidades();

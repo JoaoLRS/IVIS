@@ -38,13 +38,13 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e no backend. A API `GET /v1/treinos/em-andamento` recupera a sessão persistida da conta autenticada; `POST /v1/treinos` também reaproveita uma sessão ativa. A interface carrega o perfil e a sessão ao restabelecer o acesso, incluindo após recarregar a página. O cenário de recarga está no teste Cypress do CDU-07; os testes de integração do backend verificam a persistência e a retomada em nova sessão HTTP. Os dois caminhos felizes CDU-17 e CDU-18 não exercitam esta interrupção.
+Implementado no frontend e no backend. A API `GET /v1/treinos/em-andamento` recupera a sessão persistida da conta autenticada; `POST /v1/treinos` também reaproveita uma sessão ativa. A interface carrega o perfil e a sessão ao restabelecer o acesso, incluindo após recarregar a página. O teste Cypress do CDU-19 exercita a retomada e a conclusão com API simulada; os testes de integração do backend verificam a persistência e a retomada em nova sessão HTTP. Os dois caminhos felizes CDU-17 e CDU-18 não exercitam esta interrupção.
 
 ## Relação com requisitos e testes
 
 - **RF07, RF09:** continuidade do treino processado por IA e preservação do registro das perguntas e respostas.
 - **RF08, RF10:** avaliação e consulta do resultado após a conclusão, conforme CDU-07 e CDU-08.
-- **Cobertura:** [`CDU-07-realizar-treinamento.cy.js`](../../cypress/e2e/cdu/CDU-07-realizar-treinamento.cy.js) verifica a apresentação após recarga com resposta de API simulada; [`FluxosAplicacaoIntegracaoTest.java`](../../backend/src/test/java/br/ivis/FluxosAplicacaoIntegracaoTest.java) verifica o estado persistido no backend.
+- **Cobertura:** [`CDU-19-retomar-treinamento.cy.js`](../../cypress/e2e/cdu/CDU-19-retomar-treinamento.cy.js) verifica a retomada, recarga e conclusão com resposta de API simulada; [`FluxosAplicacaoIntegracaoTest.java`](../../backend/src/test/java/br/ivis/FluxosAplicacaoIntegracaoTest.java) verifica o estado persistido no backend.
 
 ## Diagrama de ações do ator
 

@@ -719,8 +719,22 @@ export function prepararVinculoDeAlunoExistente() {
   }).as(aliases.vincularExistente);
 }
 
+export function prepararVinculoDeAlunoJaVinculado() {
+  prepararVinculoDeAlunoExistente();
+  cy.intercept(metodosHttp.post, endpoints.vincularAlunoPorEmail, {
+    statusCode: codigosHttp.conflito,
+    body: {
+      codigo: "aluno_ja_vinculado",
+      mensagem: textos.instituicao.alunoJaVinculado,
+    },
+  }).as(aliases.vincularExistente);
+}
+
 export function abrirGestaoParaVinculoExistente() {
   cy.visit(rotas.instituicao);
+  cy.contains(textos.instituicao.vagasDisponiveis)
+    .parent()
+    .should("contain", valoresCdu.capacidadeInstitucionalVazia.disponivel);
 }
 
 export function informarEmailDoAlunoExistente() {
@@ -745,6 +759,26 @@ export function conferirVinculoDoAlunoExistente() {
   cy.contains(elementos.celulaTabela, valoresCdu.alunoExistente.nome).should(
     "be.visible",
   );
+  cy.contains(elementos.celulaTabela, valoresCdu.alunoExistente.email).should(
+    "be.visible",
+  );
+  cy.contains(textos.instituicao.vagasDisponiveis)
+    .parent()
+    .should("contain", valoresCdu.capacidadeInstitucional.disponivel);
+}
+
+export function conferirRejeicaoDoAlunoJaVinculado() {
+  cy.wait(aliases.aguardar(aliases.vincularExistente))
+    .its("request.body")
+    .should("deep.equal", {
+      emailAluno: valoresCdu.alunoExistente.email,
+      contratoId: valoresCdu.contratoInstitucional,
+    });
+  cy.contains('[role="alert"]', textos.instituicao.alunoJaVinculado).should("be.visible");
+  cy.contains(elementos.celulaTabela, valoresCdu.alunoExistente.nome).should("not.exist");
+  cy.contains(textos.instituicao.vagasDisponiveis)
+    .parent()
+    .should("contain", valoresCdu.capacidadeInstitucionalVazia.disponivel);
 }
 
 export function prepararInstituicaoSemVinculos() {
@@ -825,26 +859,62 @@ export function abrirTreinoPorHabilidades() {
 }
 
 export function prepararRetomadaDaEntrevista() {
-  cy.intercept(metodosHttp.get, endpoints.treinoEmAndamento, {
-    statusCode: codigosHttp.sucesso,
-    body: {
-      id: valoresCdu.treinoCaminhoFeliz,
-      tipoContexto: valoresSistema.contexto.habilidades,
-      contexto: textos.historico.contextoHabilidades,
-      vagaId: null,
-      habilidades: [habilidadeTesteCdu.nome],
-      totalPerguntas: dadosCaminhoFeliz.totalPerguntas,
-      perguntas: [
-        {
-          id: "pergunta-1",
-          numero: 1,
-          texto: textos.treino.perguntaIa(1),
-          resposta: textos.treino.respostaDemonstracao(1),
-        },
-        { id: "pergunta-2", numero: 2, texto: textos.treino.perguntaIa(2), resposta: null },
-      ],
-    },
+  const respostas = [textos.treino.respostaDemonstracao(1)];
+  const sessao = () => ({
+    id: valoresCdu.treinoCaminhoFeliz,
+    tipoContexto: valoresSistema.contexto.habilidades,
+    contexto: textos.historico.contextoHabilidades,
+    vagaId: null,
+    habilidades: [habilidadeTesteCdu.nome],
+    totalPerguntas: dadosCaminhoFeliz.totalPerguntas,
+    perguntas: Array.from({ length: Math.min(respostas.length + 1, dadosCaminhoFeliz.totalPerguntas) }, (_, indice) => ({
+      id: `pergunta-${indice + 1}`,
+      numero: indice + 1,
+      texto: textos.treino.perguntaIa(indice + 1),
+      resposta: respostas[indice] ?? null,
+    })),
+  });
+  prepararSessao({ habilidades: [habilidadeTesteCdu] });
+  cy.intercept(metodosHttp.get, endpoints.treinoEmAndamento, (requisicao) => {
+    requisicao.reply({ statusCode: codigosHttp.sucesso, body: sessao() });
   }).as(aliases.retomarTreino);
+  cy.intercept(metodosHttp.post, endpoints.iniciarTreino, {
+    statusCode: codigosHttp.conflito,
+  }).as(aliases.iniciarOutroTreino);
+  cy.intercept(metodosHttp.post, endpoints.responderTreino, (requisicao) => {
+    const numero = respostas.length + 1;
+    expect(requisicao.url).to.include(
+      `/treinos/${valoresCdu.treinoCaminhoFeliz}/respostas`,
+    );
+    expect(requisicao.body).to.deep.equal({
+      perguntaId: `pergunta-${numero}`,
+      resposta: textos.treino.respostaDemonstracao(numero),
+    });
+    respostas.push(requisicao.body.resposta);
+    requisicao.reply({ statusCode: codigosHttp.sucesso, body: sessao() });
+  }).as(aliases.gerarPerguntaIA);
+  cy.intercept(metodosHttp.post, endpoints.concluirTreino, (requisicao) => {
+    expect(requisicao.url).to.include(
+      `/treinos/${valoresCdu.treinoCaminhoFeliz}/concluir`,
+    );
+    expect(requisicao.body).to.deep.equal({});
+    requisicao.reply({
+      statusCode: codigosHttp.sucesso,
+      body: {
+        id: valoresCdu.treinoCaminhoFeliz,
+        titulo: textos.historico.tituloEntrevistaHabilidades,
+        contexto: textos.historico.contextoHabilidades,
+        nota: valoresCdu.pontuacao,
+        data: datasCypress.treinoConcluido,
+        pontosFortes: valoresCdu.pontosFortes,
+        pontosMelhoria: valoresCdu.pontosMelhoria,
+      },
+    });
+  }).as(aliases.avaliarTreinoIA);
+}
+
+export function abrirEntrevistaEmAndamento() {
+  cy.visit(rotas.treinos);
 }
 
 export function recarregarEntrevista() {
@@ -855,6 +925,11 @@ export function conferirEntrevistaRetomada() {
   cy.wait(aliases.aguardar(aliases.retomarTreino));
   cy.contains(textos.treino.perguntaIa(2)).should("be.visible");
   cy.contains(textos.treino.respostaDemonstracao(1)).should("be.visible");
+}
+
+export function conferirRetomadaSemNovoTreino() {
+  cy.get(`${aliases.aguardar(aliases.iniciarOutroTreino)}.all`)
+    .should("have.length", 0);
 }
 
 export function digitarRespostaDaEntrevista(numero) {
@@ -906,8 +981,8 @@ export function conferirFeedbackDaEntrevista() {
     "have.text",
     String(valoresCdu.pontuacao),
   );
-  cy.contains(valoresCdu.pontosFortes[0]).should("be.visible");
-  cy.contains(valoresCdu.pontosMelhoria[0]).should("be.visible");
+  cy.contains(textos.feedback.resultadoDemonstrativo).should("be.visible");
+  cy.contains(textos.feedback.semAvaliacaoQualitativa).should("be.visible");
 }
 
 export function conferirAvaliacaoPersistida() {

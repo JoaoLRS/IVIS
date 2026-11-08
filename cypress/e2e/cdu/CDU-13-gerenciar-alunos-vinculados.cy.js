@@ -12,11 +12,6 @@ import {
   conferirCadastroEVinculoInstitucional,
   removerVinculoInstitucional,
   conferirVinculoRemovido,
-  prepararVinculoDeAlunoExistente,
-  abrirGestaoParaVinculoExistente,
-  informarEmailDoAlunoExistente,
-  confirmarVinculoDoAlunoExistente,
-  conferirVinculoDoAlunoExistente,
 } from "../funcoes/cdu.js";
 
 describe("CDU-13 - Gerenciar alunos vinculados", () => {
@@ -34,12 +29,5 @@ describe("CDU-13 - Gerenciar alunos vinculados", () => {
     conferirCadastroEVinculoInstitucional();
     removerVinculoInstitucional();
     conferirVinculoRemovido();
-  });
-  it("vincula uma conta de aluno existente pelo e-mail", () => {
-    prepararVinculoDeAlunoExistente();
-    abrirGestaoParaVinculoExistente();
-    informarEmailDoAlunoExistente();
-    confirmarVinculoDoAlunoExistente();
-    conferirVinculoDoAlunoExistente();
   });
 });

@@ -38,14 +38,14 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e no backend. O formulário institucional aceita o e-mail de uma conta existente e chama `POST /v1/instituicao/vinculos/por-email`. O backend verifica o perfil, o contrato e a capacidade e persiste vínculo, associação institucional e auditoria. O teste Cypress do CDU-13 cobre o envio e o resultado visível com API simulada. O caminho feliz CDU-18 usa a outra opção, cadastrar um novo aluno e vinculá-lo, portanto não cobre esta entrada.
+Implementado no frontend e no backend. O formulário institucional aceita o e-mail de uma conta existente e chama `POST /v1/instituicao/vinculos/por-email`. O backend verifica o perfil, o contrato e a capacidade e persiste vínculo, associação institucional e auditoria. O teste Cypress do CDU-20 cobre o envio, o resultado visível e a rejeição de vínculo duplicado com API simulada. O caminho feliz CDU-18 usa a outra opção, cadastrar um novo aluno e vinculá-lo, portanto não cobre esta entrada.
 
 ## Relação com requisitos e testes
 
 - **RF16, RF18:** vincular um aluno dentro da capacidade contratada e atualizar as vagas disponíveis.
 - **RF17:** acesso do aluno conforme o vínculo institucional vigente.
 - **RF20:** auditoria da criação do vínculo.
-- **Cobertura:** [`CDU-13-gerenciar-alunos-vinculados.cy.js`](../../cypress/e2e/cdu/CDU-13-gerenciar-alunos-vinculados.cy.js) verifica a interface; [`VinculoInstitucionalServiceTest.java`](../../backend/src/test/java/br/ivis/identity/VinculoInstitucionalServiceTest.java) verifica regras do serviço.
+- **Cobertura:** [`CDU-20-vincular-aluno-existente.cy.js`](../../cypress/e2e/cdu/CDU-20-vincular-aluno-existente.cy.js) verifica a interface; [`VinculoInstitucionalServiceTest.java`](../../backend/src/test/java/br/ivis/identity/VinculoInstitucionalServiceTest.java) verifica regras do serviço.
 
 ## Diagrama de ações dos atores
 

@@ -51,6 +51,7 @@ export const codigosHttp = {
   criado: 201,
   aceito: 202,
   semConteudo: 204,
+  conflito: 409,
   naoAutorizado: 401,
 };
 
@@ -305,6 +306,8 @@ export const textos = {
     titulo: "Feedback da entrevista",
     pontoForte: "Seus pontos fortes",
     melhoria: "Para continuar evoluindo",
+    resultadoDemonstrativo: "RESULTADO DEMONSTRATIVO",
+    semAvaliacaoQualitativa: "A avaliação qualitativa não está disponível neste modo.",
   },
   areaAluno: {
     saudacao: (nome) => `Olá, ${nome}!`,
@@ -326,6 +329,7 @@ export const textos = {
     mensagemAlunoCriado:
       "Conta criada e aluno vinculado ao plano da instituição.",
     mensagemAlunoVinculado: "Aluno vinculado ao plano da instituição.",
+    alunoJaVinculado: "O aluno já possui um vínculo institucional ativo.",
     vagasDisponiveis: "Vagas disponíveis",
     removerVinculo: (nome) => `${nome} foi removido do plano institucional.`,
     tituloAlunos: "Alunos e vagas",
@@ -400,6 +404,7 @@ export const aliases = {
   consultarPlanoAposCompra: "consultarPlanoAposCompra",
   gerarPerguntaIA: "gerarPerguntaIA",
   retomarTreino: "retomarTreino",
+  iniciarOutroTreino: "iniciarOutroTreino",
   avaliarTreinoIA: "avaliarTreinoIA",
   salvarTreinoConcluido: "salvarTreinoConcluido",
   aguardar: (nome) => `@${nome}`,
