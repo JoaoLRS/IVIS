@@ -73,8 +73,8 @@ function Get-PythonLauncher {
     if (Get-Command py -ErrorAction SilentlyContinue) {
         foreach ($version in @('3.12', '3.13')) {
             try {
-                & py "-$version" --version 2>$null
-                if ($LASTEXITCODE -eq 0) {
+                $detectedVersion = & py "-$version" --version 2>$null
+                if ($LASTEXITCODE -eq 0 -and $detectedVersion -match "^Python $([regex]::Escape($version))\.") {
                     return @{ Command = 'py'; Arguments = @("-$version") }
                 }
             }
@@ -104,7 +104,8 @@ function Install-PythonPackages {
 
     if (-not (Test-Path -LiteralPath $venvPython -PathType Leaf)) {
         $launcher = Get-PythonLauncher
-        Invoke-Checked -Label 'Criar ambiente virtual da API de IA' -Command $launcher.Command -Arguments ($launcher.Arguments + @('-m', 'venv', (Join-Path $apiDirectory '.venv')))
+        $venvArguments = @($launcher.Arguments) + @('-m', 'venv', (Join-Path $apiDirectory '.venv'))
+        Invoke-Checked -Label 'Criar ambiente virtual da API de IA' -Command $launcher.Command -Arguments $venvArguments
     }
 
     $version = & $venvPython --version
