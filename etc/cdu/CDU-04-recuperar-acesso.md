@@ -2,9 +2,8 @@
 
 ## Atores
 
-- Aluno ou Instituição de Ensino sem acesso à conta
-- Serviço de e-mail (capturado pelo Mailpit no ambiente local)
-- Sistema IVIS
+- Aluno
+- Instituição de Ensino
 
 ## Pré-condições
 

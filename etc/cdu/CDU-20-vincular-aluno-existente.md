@@ -3,8 +3,7 @@
 ## Atores
 
 - Instituição de Ensino
-- Aluno com conta IVIS existente
-- Sistema IVIS
+- Aluno
 
 ## Pré-condições
 

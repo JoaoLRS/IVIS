@@ -4,9 +4,7 @@ Este caso de uso encadeia operações dos CDU-01, CDU-02, CDU-03, CDU-06, CDU-07
 
 ## Atores
 
-- Aluno pagante
-- Sistema IVIS
-- Serviço de IA, acessado pelo backend durante o treino
+- Aluno
 
 ## Pré-condições
 

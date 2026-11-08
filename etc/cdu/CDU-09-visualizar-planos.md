@@ -5,7 +5,6 @@
 - Visitante
 - Aluno
 - Instituição de Ensino
-- Sistema IVIS
 
 ## Pré-condições
 

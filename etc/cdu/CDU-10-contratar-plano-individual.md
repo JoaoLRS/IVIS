@@ -2,8 +2,7 @@
 
 ## Atores
 
-- Aluno sem vínculo institucional ativo
-- Sistema IVIS
+- Aluno
 
 ## Pré-condições
 

@@ -3,7 +3,6 @@
 ## Atores
 
 - Aluno
-- Sistema IVIS
 
 ## Pré-condições
 

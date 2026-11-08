@@ -8,6 +8,10 @@ Os 16 temas originais cobrem identidade e acesso, política de senha, preparaç�
 
 Os códigos RF seguem a versão consolidada em [IVIS_Requisitos.md](../plano/IVIS_Requisitos.md). O estado de implementação não representa validação de produção nem aceite do requisito.
 
+## Padrão da seção Atores
+
+Cada CDU lista apenas os papéis externos que participam do fluxo: **Visitante**, **Aluno** e/ou **Instituição de Ensino**. Condições como estar autenticado, possuir plano, criar conta ou recuperar senha ficam nas pré-condições e nos passos do fluxo. Componentes do IVIS, como backend, API de IA e simulador de pagamento, não são atores.
+
 ## Índice e rastreabilidade
 
 | CDU | Caso de uso | RF | Situação observada | Documento | Cobertura principal |

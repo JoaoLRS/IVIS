@@ -3,7 +3,6 @@
 ## Atores
 
 - Instituição de Ensino
-- Sistema IVIS
 
 ## Pré-condições
 

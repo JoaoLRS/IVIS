@@ -3,8 +3,6 @@
 ## Atores
 
 - Aluno
-- Serviço de IA, acessado pelo backend
-- Sistema IVIS
 
 ## Pré-condições
 

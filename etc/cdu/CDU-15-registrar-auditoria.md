@@ -2,8 +2,8 @@
 
 ## Atores
 
-- Aluno ou Instituição de Ensino que inicia uma operação sensível
-- Sistema IVIS
+- Aluno
+- Instituição de Ensino
 
 ## Pré-condições
 

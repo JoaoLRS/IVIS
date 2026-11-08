@@ -2,11 +2,9 @@
 
 ## Atores
 
-- Visitante que cria uma conta de Aluno ou Instituição de Ensino
-- Aluno ou Instituição de Ensino que altera a própria senha
-- Usuário que redefine a senha após solicitar recuperação
-- Instituição de Ensino que cadastra um novo aluno
-- Sistema IVIS
+- Visitante
+- Aluno
+- Instituição de Ensino
 
 ## Pré-condições
 

@@ -2,9 +2,8 @@
 
 ## Atores
 
-- Aluno contratante ou Instituição de Ensino
-- Simulador de pagamento do backend
-- Sistema IVIS
+- Aluno
+- Instituição de Ensino
 
 ## Pré-condições
 

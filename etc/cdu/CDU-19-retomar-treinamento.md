@@ -2,9 +2,7 @@
 
 ## Atores
 
-- Aluno com acesso ativo
-- Sistema IVIS
-- Serviço de IA, acessado pelo backend quando o aluno continuar a entrevista
+- Aluno
 
 ## Pré-condições
 
