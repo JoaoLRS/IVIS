@@ -17,6 +17,7 @@ Este diretório registra decisões arquiteturais do IVIS. Cada decisão tem um i
 | [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md) | Manter regras de negócio exclusivamente sob autoridade do backend | Em andamento |
 | [ADR-0010](ADR-0010-modelagem-relacional-do-banco.md) | Definir modelo relacional inicial do IVIS | Em andamento |
 | [ADR-0011](ADR-0011-autenticacao-do-mvp.md) | Autenticação e sessão do MVP (JWT de acesso curto e token de renovação) | Aprovado |
+| [ADR-0012](ADR-0012-hospedagem-aws.md) | Hospedar o IVIS na AWS (EC2, RDS, Terraform, CI/CD e observabilidade) | Proposto |
 
 ## Como adicionar uma decisão
 

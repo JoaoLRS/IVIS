@@ -1,6 +1,6 @@
 # Plano de implantação do IVIS na AWS Academy
 
-**Estado:** planejamento, sem recursos AWS criados. **Data:** 08/11/2026.
+**Estado:** arquitetura substituída pelo [ADR-0012](adr/ADR-0012-hospedagem-aws.md); este documento permanece como registro das verificações e dos riscos levantados. Sem recursos AWS criados na data original. **Data:** 08/11/2026.
 
 ## 1. Objetivo e limites
 
