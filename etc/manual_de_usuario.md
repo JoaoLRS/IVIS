@@ -2,11 +2,13 @@
 
 ## 1. Sobre o IVIS
 
-O **IVIS (Intelligent Virtual Interview System)** é uma aplicação web para praticar entrevistas técnicas. O aluno escolhe suas habilidades ou uma vaga de interesse como contexto, responde a perguntas em uma entrevista por texto e, ao concluir, consulta o feedback e o histórico dos treinos.
+O **IVIS (Intelligent Virtual Interview System)** foi criado para ajudar estudantes a praticar entrevistas técnicas. Você pode começar um treino com base nas suas habilidades ou em uma vaga que chamou sua atenção. Depois de responder às perguntas por texto, recebe um feedback e pode rever os treinos no histórico.
 
-O sistema também oferece uma área para instituições de ensino contratarem um plano institucional e administrarem os alunos vinculados. O aluno pode acessar a plataforma com um plano individual ou por meio de um vínculo institucional ativo.
+Há duas formas de acesso: contratar um plano individual ou ser vinculado a uma instituição de ensino com plano ativo. As instituições têm uma área própria para acompanhar e administrar os alunos vinculados.
 
-Este manual explica como obter e iniciar o projeto e como usar suas principais áreas. Para as atividades da disciplina, o IVIS será publicado na AWS Academy como um ambiente temporário, disponível por até quatro horas. A equipe iniciará a aplicação pouco antes do começo da aula; a professora e os alunos poderão então acessar o endereço divulgado pela equipe e realizar testes cruzados. Para executar uma cópia no computador, siga as instruções abaixo.
+Neste manual, você encontra os passos para instalar, iniciar e usar o IVIS. Durante a aula, a equipe também disponibilizará a aplicação pela AWS Academy. 
+Esse ambiente fica ativo por até quatro horas, então será iniciado pouco antes da aula. Se quiser rodar o projeto no seu computador, siga os passos a seguir.
+Além, disso a equipe disponibilizara dois notebook já configurado para realizar os testes. 
 
 ## 2. Clonar o repositório
 
@@ -63,6 +65,31 @@ Para iniciar o IVIS pelo Docker, basta ter Docker disponível e em execução de
 
 Escolha o procedimento de acordo com o sistema operacional: no Windows, use os scripts PowerShell; no Linux ou macOS, use o script Bash; para desenvolver os módulos fora dos containers, instale também as dependências de cada tecnologia. Para apenas usar a aplicação, o Docker executa os serviços sem exigir Node.js, Python ou JDK instalados no computador.
 
+### Usar os arquivos de ambiente fornecidos para a aula
+
+Junto com o projeto, a professora e os alunos receberão dois arquivos na pasta `env/`. Antes de executar `config.ps1`, `release.ps1` ou `release.sh`, copie cada arquivo para o local em que a aplicação o procura:
+
+| Arquivo recebido | Copiar para | Uso |
+| --- | --- | --- |
+| `env/env_main/.env` | `.env`, na raiz do repositório | Configurações do banco, do backend e da comunicação com a API de IA. |
+| `env/env_api_ia/.env` | `api-ia/.env` | Configurações do provedor de IA, incluindo `NVIDIA_API_KEY`. |
+
+No **Windows**, abra o PowerShell na raiz do repositório e execute:
+
+```powershell
+Copy-Item -LiteralPath 'env/env_main/.env' -Destination '.env' -Force
+Copy-Item -LiteralPath 'env/env_api_ia/.env' -Destination 'api-ia/.env' -Force
+```
+
+No **Linux ou macOS**, abra o terminal na raiz do repositório e execute:
+
+```bash
+cp env/env_main/.env .env
+cp env/env_api_ia/.env api-ia/.env
+```
+
+Esses comandos substituem os arquivos de destino caso já existam, por exemplo, se uma execução anterior dos scripts criou arquivos a partir dos exemplos. A chave `IVIS_IA_CHAVE_SERVICO` usada pelos dois containers é lida do `.env` da raiz pelo Docker Compose; mantenha os arquivos recebidos nos destinos indicados. Depois da cópia, siga a opção de inicialização do seu sistema operacional abaixo.
+
 ### Opção A — preparar com `config.ps1` e iniciar com `release.ps1`
 
 Abra o PowerShell na raiz do repositório. Para instalar as dependências locais e compilar os módulos, execute:
@@ -91,7 +118,7 @@ O `config.ps1` instala e compila os componentes, mas não inicia a aplicação. 
 .\release.ps1 up
 ```
 
-O `release.ps1 up` cria `.env` e `api-ia/.env` a partir dos arquivos de exemplo quando necessário, gera chaves locais ausentes e inicia frontend, backend, banco de dados, API de IA e Mailpit. Configure `NVIDIA_API_KEY` em `api-ia/.env` para habilitar a geração de perguntas e avaliações. Sem essa chave, o restante da aplicação pode iniciar, mas os treinos que dependem de IA não funcionarão. Não compartilhe nem envie arquivos `.env` ao repositório.
+O `release.ps1 up` preserva os arquivos de ambiente já copiados. Se algum deles estiver ausente, cria-o a partir do respectivo exemplo; também gera chaves locais ausentes e inicia frontend, backend, banco de dados, API de IA e Mailpit. A `NVIDIA_API_KEY` em `api-ia/.env` habilita a geração de perguntas e avaliações. Sem essa chave, o restante da aplicação pode iniciar, mas os treinos que dependem de IA não funcionarão.
 
 Quando os serviços estiverem prontos, abra <http://localhost:8080> no navegador. Para consultar o estado, acompanhar os logs, reiniciar ou parar os serviços, use:
 
@@ -132,7 +159,7 @@ npm --prefix frontend run build
 
 Se tiver Python 3.13 em vez de 3.12, substitua `py -3.12` por `py -3.13`. O Gradle Wrapper deve ser executado com JDK 25. Configure `JAVA_HOME` para apontar à pasta do JDK quando essa versão não for a padrão do terminal.
 
-Crie os arquivos de ambiente a partir dos exemplos, sem sobrescrever configurações existentes:
+Se você recebeu os arquivos da pasta `env/`, use a cópia indicada no início desta seção. Somente se não os recebeu, crie os arquivos de ambiente a partir dos exemplos, sem sobrescrever configurações existentes:
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
@@ -155,7 +182,7 @@ O `config.ps1` e o `release.ps1` são scripts PowerShell destinados ao Windows. 
 bash release.sh up
 ```
 
-Na primeira execução, o script cria `.env` e `api-ia/.env` com base nos exemplos e gera as chaves locais necessárias. Edite `api-ia/.env` para preencher `NVIDIA_API_KEY` e execute `bash release.sh up` novamente para habilitar os treinos com IA. Abra <http://localhost:8080> quando a inicialização terminar.
+Se os arquivos recebidos já foram copiados, o script os preserva. Caso contrário, na primeira execução ele cria `.env` e `api-ia/.env` com base nos exemplos e gera as chaves locais necessárias. Nesse caso, preencha `NVIDIA_API_KEY` em `api-ia/.env` e execute `bash release.sh up` novamente para habilitar os treinos com IA. Abra <http://localhost:8080> quando a inicialização terminar.
 
 Os comandos de manutenção no Linux e macOS são:
 
@@ -255,7 +282,116 @@ No menu, abra os dados identificados como **Aluno** ou **Instituição** para co
 
 Para encerrar a sessão, use o botão de saída no menu. Em computadores e dispositivos móveis, o menu pode aparecer como uma barra lateral ou ser aberto pelo botão de navegação.
 
-## 9. Dúvidas e problemas comuns
+## 9. Executar todos os testes no computador
+
+Execute os comandos **na raiz do repositório**, salvo quando o passo indicar outra pasta. Os testes de frontend usam Vitest; os de backend usam JUnit e Testcontainers; os da API de IA usam pytest; e os testes de interface usam Cypress. A suíte Cypress completa inclui as jornadas reais do aluno e da instituição, verifica e-mails no Mailpit e solicita perguntas e avaliações ao provedor de IA.
+
+### 9.1. Preparar o ambiente
+
+1. Instale Git, Docker, Node.js 22 ou superior, Python 3.12 ou 3.13 e JDK 25 pelos links da seção 2. Inicie o Docker.
+2. Copie os dois arquivos recebidos de `env/` para `.env` e `api-ia/.env`, seguindo a seção 3. Os treinos reais exigem `NVIDIA_API_KEY` em `api-ia/.env`.
+3. Instale as dependências locais e inicie a aplicação. Aguarde até que o frontend esteja acessível em <http://localhost:8080> e o Mailpit em <http://localhost:8025>. Mantenha os serviços em execução durante os testes de backend com Testcontainers, da limpeza do banco e do Cypress.
+
+No **Windows (PowerShell)**, os comandos de preparação são:
+
+```powershell
+.\config.ps1 install
+.\release.ps1 up
+```
+
+No **Linux ou macOS (Bash)**, instale as dependências e inicie a stack com:
+
+```bash
+npm ci
+npm --prefix frontend ci
+npm --prefix cypress/e2e ci
+python3.12 -m venv api-ia/.venv
+api-ia/.venv/bin/python -m pip install -r api-ia/requirements.txt
+bash release.sh up
+```
+
+Se estiver usando Python 3.13, substitua `python3.12` por `python3.13`. O `config.ps1 install` já instala as dependências locais no Windows. No Linux/macOS, o Gradle Wrapper baixa as dependências Java quando o teste do backend for executado.
+
+### 9.2. Rodar as suítes no Windows
+
+Execute cada bloco abaixo no **PowerShell**, na ordem. Aguarde a conclusão de um bloco antes de iniciar o próximo.
+
+**Frontend — testes unitários, tipos, estilo e compilação:**
+
+```powershell
+npm --prefix frontend run test:unit
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+npm --prefix frontend run build
+```
+
+**Backend — testes unitários e de integração com PostgreSQL via Testcontainers:**
+
+```powershell
+Push-Location backend
+.\gradlew.bat test --rerun-tasks
+Pop-Location
+```
+
+**API de IA — testes com o transporte do provedor simulado:**
+
+```powershell
+Push-Location api-ia
+& .\.venv\Scripts\python.exe -m pytest tests -q
+Pop-Location
+```
+
+**Limpeza seletiva dos dados usados pelo Cypress — teste de integração com o banco da aplicação:**
+
+```powershell
+node --test cypress/tasks/limpar-banco.integracao.test.mjs
+```
+
+**Interface — todos os casos de uso e jornadas reais:**
+
+```powershell
+npm run testar:e2e
+```
+
+### 9.3. Rodar as suítes no Linux ou macOS
+
+Execute cada bloco abaixo no **Bash**, na ordem, a partir da raiz do repositório. Aguarde a conclusão de um bloco antes de iniciar o próximo.
+
+```bash
+npm --prefix frontend run test:unit
+npm --prefix frontend run typecheck
+npm --prefix frontend run lint
+npm --prefix frontend run build
+```
+
+```bash
+(cd backend && ./gradlew test --rerun-tasks)
+```
+
+```bash
+(cd api-ia && .venv/bin/python -m pytest tests -q)
+```
+
+```bash
+node --test cypress/tasks/limpar-banco.integracao.test.mjs
+npm run testar:e2e
+```
+
+### 9.4. Executar novamente um teste Cypress específico
+
+Se quiser investigar somente uma jornada, execute um dos exemplos abaixo com a stack ativa. Os mesmos comandos funcionam no PowerShell e no Bash:
+
+```bash
+npm --prefix cypress/e2e run testar:e2e -- --spec "caminho_feliz/perfil_aluno.cy.js" --config retries=0
+npm --prefix cypress/e2e run testar:e2e -- --spec "caminho_feliz/perfil_instituicao.cy.js" --config retries=0
+npm --prefix cypress/e2e run testar:e2e -- --spec "caminho_feliz/emails_mailpit.cy.js" --config retries=0
+```
+
+Para executar um caso de uso isolado, substitua o valor de `--spec` pelo arquivo correspondente em `cypress/e2e/cdu/`, por exemplo `"cdu/CDU-10-contratar-plano-individual.cy.js"`. Execute **uma suíte Cypress por vez**: os hooks das jornadas reais e do CDU-15 limpam as contas reservadas para os testes antes e depois da execução. A limpeza preserva outras contas e o catálogo de planos.
+
+O Cypress usa a aplicação em `localhost:8080` e o Mailpit em `localhost:8025`; não é preciso iniciar o Vite em outra porta. Os vídeos são gravados em `cypress/downloads` e as capturas de falhas em `cypress/screenshots`. Se a jornada de treino falhar por indisponibilidade do provedor, confira a configuração da API de IA e os logs com `.\release.ps1 logs` no Windows ou `bash release.sh logs` no Linux/macOS.
+
+## 10. Dúvidas e problemas comuns
 
 | Situação | O que fazer |
 | --- | --- |
