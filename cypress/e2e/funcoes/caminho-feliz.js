@@ -8,7 +8,6 @@ import {
 
 export const habilidadeDoCaminho = dadosCaminhoFeliz.habilidade;
 export const vagaDoCaminho = dadosCaminhoFeliz.vaga;
-export const respostasDoTreino = dadosCaminhoFeliz.respostasTreino;
 let mensagensAnteriores = new Set();
 
 export function marcarCaixaMailpit() {
@@ -300,8 +299,23 @@ export function conferirPerguntaDaIa(numero) {
   });
 }
 
-export function digitarRespostaDoTreino(resposta) {
-  cy.get(seletores.treino.resposta).should("be.visible").type(resposta);
+export function responderPerguntaDaIa() {
+  cy.get(seletores.treino.mensagem).last().find("p").invoke("text").then((pergunta) => {
+    const texto = pergunta.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const respostas = dadosCaminhoFeliz.respostasTreino;
+    const resposta = /desempenho|performance|otimiz|virtualiz|lista longa|renderiz/.test(texto)
+      ? respostas.desempenho
+      : /estado|pinia|vuex|store|gerenciamento/.test(texto)
+        ? respostas.estado
+        : /api|assincron|fetch|http|backend|requisic/.test(texto)
+          ? respostas.integracao
+          : /acessib|semant|css|responsiv|teclado/.test(texto)
+            ? respostas.interface
+            : /component|props|emit|typescript|tipag|teste|jest|vitest/.test(texto)
+              ? respostas.componentes
+              : respostas.geral;
+    cy.get(seletores.treino.resposta).should("be.visible").type(resposta);
+  });
 }
 
 export function enviarRespostaDoTreino() {
@@ -315,10 +329,14 @@ export function conferirTreinoProntoParaFinalizar() {
 }
 
 export function finalizarTreino() {
+  cy.intercept("POST", "**/api/v1/treinos/*/concluir").as("concluirTreinoReal");
   cy.contains(seletores.treino.finalizar, textos.treino.finalizar).click();
 }
 
 export function conferirFeedbackDoTreino(vaga = vagaDoCaminho) {
+  cy.wait("@concluirTreinoReal", { timeout: 120000 }).then(({ response }) => {
+    expect(response?.statusCode, "status da conclusão do treino no backend").to.eq(200);
+  });
   cy.location("pathname", { timeout: 30000 }).should("eq", rotas.feedback);
   cy.contains("h1", textos.feedback.titulo).should("be.visible");
   cy.contains(
