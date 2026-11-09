@@ -28,3 +28,32 @@ planos-equipe/
 api-ia/.venv/
 api-ia/.pytest_cache/
 api-ia/**/__pycache__/
+
+# IDEs
+.idea/
+.vscode/
+
+# Terraform (manter .terraform.lock.hcl versionado)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+*.tfplan
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Chaves e certificados privados
+*.key
+*.pfx
+*.p12
+*.ppk
+id_rsa*
+id_ed25519*
+*.pem
+!nvidia-chain.pem
