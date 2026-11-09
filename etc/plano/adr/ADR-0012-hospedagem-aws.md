@@ -1,6 +1,6 @@
 # ADR-0012 — Hospedagem do IVIS na AWS
 
-- **Status:** Proposto
+- **Status:** Aprovado
 - **Data:** 2026-11-09
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md), [ADR-0011](ADR-0011-autenticacao-do-mvp.md), [`Plano_Implantacao_AWS_Academy.md`](../Plano_Implantacao_AWS_Academy.md)
