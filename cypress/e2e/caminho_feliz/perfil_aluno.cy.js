@@ -15,6 +15,7 @@ import {
   conferirCheckoutIndividual,
   conferirContextoDaVagaNoTreino,
   conferirDadosDoAlunoSalvos,
+  conferirEmailNoMailpit,
   conferirFeedbackAbertoPeloHistorico,
   conferirFeedbackDoTreino,
   conferirFormularioDeCadastroDoAluno,
@@ -54,6 +55,7 @@ import {
   informarTituloDaVaga,
   iniciarEntrevistaComIa,
   irParaAreaDoAluno,
+  marcarCaixaMailpit,
   preencherCartaoAprovado,
   respostasDoTreino,
   salvarDadosDaConta,
@@ -80,8 +82,10 @@ describe(
       informarEnderecoDoAluno(dadosTeste.aluno.endereco);
       informarSenhaDeCadastro(dadosTeste.senha);
       confirmarSenhaDeCadastro(dadosTeste.senha);
+      marcarCaixaMailpit();
       enviarCadastroDoAluno();
       conferirCadastroDoAlunoConcluido();
+      conferirEmailNoMailpit(dadosTeste.aluno.email, "Bem-vindo ao IVIS");
       continuarDoCadastroParaOfertas();
       conferirOfertasDoAluno();
     });
@@ -90,8 +94,10 @@ describe(
       selecionarOfertaIndividual();
       conferirCheckoutIndividual();
       preencherCartaoAprovado();
+      marcarCaixaMailpit();
       enviarPagamentoSimulado();
       conferirPagamentoAprovado();
+      conferirEmailNoMailpit(dadosTeste.aluno.email, "Confirmação de contratação simulada — IVIS");
       irParaAreaDoAluno();
       conferirAreaDoAluno(dadosTeste.aluno.nome);
     });

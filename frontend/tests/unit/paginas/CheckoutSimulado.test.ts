@@ -71,6 +71,8 @@ describe("checkout simulado", () => {
     );
     expect(consultarPlano).toHaveBeenCalledOnce();
     expect(pagina.get(".checkout-result-success").text()).toContain("Simulação aprovada");
+    expect(pagina.get(".checkout-email-fallback").text()).toContain("Mailpit");
+    expect(pagina.find(".checkout-email-preview").exists()).toBe(false);
     expect(pagina.find("form").exists()).toBe(false);
   });
 

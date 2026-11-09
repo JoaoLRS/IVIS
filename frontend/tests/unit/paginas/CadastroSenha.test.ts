@@ -9,7 +9,9 @@ vi.mock("vue-router", () => ({
   useRouter: vi.fn(),
   RouterLink: { props: ["to"], template: "<a :href='to'><slot /></a>" },
 }));
-vi.mock("../../../src/estados/estadoSessao", () => ({ useEstadoSessao: vi.fn() }));
+vi.mock("../../../src/estados/estadoSessao", () => ({
+  useEstadoSessao: vi.fn(),
+}));
 
 const cadastrarAluno = vi.fn();
 const cadastrarInstituicao = vi.fn();
@@ -50,6 +52,15 @@ describe("senha no cadastro", () => {
     const pagina = montarPagina();
     await pagina.get("#senha-cadastro").setValue("Abcdefg1!");
     await pagina.get("#confirmar-senha").setValue("Abcdefg2!");
+
+    expect(pagina.get("#erro-confirmacao").text()).toContain("não coincidem");
+    expect(pagina.get("#confirmar-senha").attributes("aria-invalid")).toBe(
+      "true",
+    );
+    expect(
+      pagina.find('label[for="confirmar-senha"] .bi-check-lg').exists(),
+    ).toBe(false);
+
     await pagina.get("form").trigger("submit");
 
     expect(pagina.get(".cadastro-message").text()).toContain("não coincidem");
@@ -62,6 +73,10 @@ describe("senha no cadastro", () => {
     const pagina = montarPagina();
     await pagina.get("#senha-cadastro").setValue("Abcdefg1!");
     await pagina.get("#confirmar-senha").setValue("Abcdefg1!");
+    expect(pagina.find("#erro-confirmacao").exists()).toBe(false);
+    expect(
+      pagina.find('label[for="confirmar-senha"] .bi-check-lg').exists(),
+    ).toBe(true);
     await pagina.get("form").trigger("submit");
     await flushPromises();
 
@@ -69,5 +84,7 @@ describe("senha no cadastro", () => {
       expect.objectContaining({ senha: "Abcdefg1!" }),
     );
     expect(pagina.get(".cadastro-success").text()).toContain("Conta criada");
+    expect(pagina.find(".email-simulator").exists()).toBe(false);
+    expect(pagina.get('.cadastro-success a[href="http://localhost:8025"]').text()).toBe("Abrir Mailpit");
   });
 });

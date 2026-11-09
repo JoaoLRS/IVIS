@@ -14,14 +14,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.ivis.plans.service.CompraSimuladaService;
+import br.ivis.plans.service.ConfirmacaoContratacaoEmailService;
 
 @RestController
 @RequestMapping("/v1/contratacoes")
 public class ContratacaoController {
     private final CompraSimuladaService servico;
+    private final ConfirmacaoContratacaoEmailService emailConfirmacao;
 
-    public ContratacaoController(CompraSimuladaService servico) {
+    public ContratacaoController(CompraSimuladaService servico,
+            ConfirmacaoContratacaoEmailService emailConfirmacao) {
         this.servico = servico;
+        this.emailConfirmacao = emailConfirmacao;
     }
 
     @PostMapping("/simuladas")
@@ -30,6 +34,8 @@ public class ContratacaoController {
             @RequestHeader("Idempotency-Key") String chaveIdempotencia,
             @Valid @RequestBody Requisicao requisicao) {
         UUID contaId = UUID.fromString(principal.getSubject());
-        return servico.contratar(contaId, chaveIdempotencia, requisicao);
+        Resposta resposta = servico.contratar(contaId, chaveIdempotencia, requisicao);
+        if (!resposta.reprocessada()) emailConfirmacao.enviar(resposta.emailConfirmacao());
+        return resposta;
     }
 }

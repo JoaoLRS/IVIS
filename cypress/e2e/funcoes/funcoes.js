@@ -338,14 +338,7 @@ export function prepararCheckoutPlanoIndividual({ atualizarPlanoAposCompra = tru
     if (atualizarPlanoAposCompra) planoAtivo = true;
     requisicao.reply({
       statusCode: codigosHttp.criado,
-      body: respostaContratacao({
-        plano: planoIndividualCdu,
-        emailConfirmacao: {
-          destinatario: dadosTeste.aluno.email,
-          assunto: textos.plano.assuntoEmailAtivado,
-          corpo: textos.plano.corpoEmailSimulado,
-        },
-      }),
+      body: respostaContratacao({ plano: planoIndividualCdu }),
     });
   }).as(aliases.contratarPlanoIndividual);
 }
@@ -368,8 +361,7 @@ export function simularPagamentoAprovado(plano = planoIndividualCdu) {
   });
   cy.contains(elementos.cabecalho2, textos.plano.aprovado).should("be.visible");
   cy.contains(textos.plano.semCobranca).should("be.visible");
-  cy.contains(elementos.resumo, textos.plano.verConfirmacaoEmail).click();
-  cy.contains(textos.plano.corpoEmailSimulado).should("be.visible");
+  cy.contains("A confirmação foi encaminhada ao serviço de e-mail de demonstração.").should("be.visible");
 }
 
 export function irParaMinhaAreaAposCompra(aluno = dadosTeste.aluno) {
