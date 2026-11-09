@@ -9,9 +9,45 @@ import {
 export const habilidadeDoCaminho = dadosCaminhoFeliz.habilidade;
 export const vagaDoCaminho = dadosCaminhoFeliz.vaga;
 export const respostasDoTreino = dadosCaminhoFeliz.respostasTreino;
+let mensagensAnteriores = new Set();
+
+export function marcarCaixaMailpit() {
+  cy.request("http://127.0.0.1:8025/api/v1/messages").then(({ body }) => {
+    mensagensAnteriores = new Set(body.messages.map((item) => item.ID));
+  });
+}
+
+export function conferirEmailNoMailpit(destinatario, assunto, trechoEsperado) {
+  cy.request("http://127.0.0.1:8025/api/v1/messages").then(({ body }) => {
+    const mensagem = body.messages.find((item) =>
+      !mensagensAnteriores.has(item.ID) &&
+      item.Subject === assunto &&
+      item.To.some((alvo) => alvo.Address === destinatario)
+    );
+    expect(mensagem, `e-mail ${assunto} para ${destinatario} no Mailpit`).to.exist;
+    cy.request(`http://127.0.0.1:8025/api/v1/message/${mensagem.ID}`).then(({ body: email }) => {
+      expect(email.Subject).to.eq(assunto);
+      expect(email.To.some((alvo) => alvo.Address === destinatario)).to.be.true;
+      expect(email.Text).to.be.a("string").and.not.be.empty;
+      if (trechoEsperado) expect(email.Text).to.include(trechoEsperado);
+    });
+  });
+}
 
 export function visitarCadastroDoAluno() {
   cy.visit(rotas.cadastroAluno);
+}
+
+export function abrirRecuperacaoDeSenhaAposCheckout(email) {
+  cy.get(".checkout-logout").click();
+  cy.visit(rotas.login);
+  cy.contains("button", "Esqueci minha senha").click();
+  cy.get(seletores.login.email).type(email);
+}
+
+export function solicitarRecuperacaoDeSenha() {
+  cy.contains("button", "Enviar instruções").click();
+  cy.contains("Se este e-mail estiver cadastrado").should("be.visible");
 }
 
 export function conferirFormularioDeCadastroDoAluno() {

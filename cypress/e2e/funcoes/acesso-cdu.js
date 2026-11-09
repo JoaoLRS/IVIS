@@ -5,6 +5,8 @@ import {
   datasCypress,
   endpoints,
   metodosHttp,
+  rotas,
+  textos,
   valoresSistema,
 } from "./constantes.js";
 
@@ -88,6 +90,29 @@ export function prepararAcessoEntreContas() {
     statusCode: codigosHttp.semConteudo,
     body: null,
   }).as(aliases.encerrarSessao);
+}
+
+export function conferirHistoricoPrivadoDaConta(conta, tituloTreino, tituloAusente) {
+  cy.wait("@historicoPorConta")
+    .its("request.headers.authorization")
+    .should("eq", `Bearer ${conta.id}`);
+  cy.get("summary").contains("Seu desenvolvimento").click();
+  cy.contains("a", "Histórico").click();
+  cy.location("pathname").should("eq", rotas.historico);
+  cy.contains(".history-list-row", tituloTreino).should("be.visible");
+  if (tituloAusente) cy.contains(tituloAusente).should("not.exist");
+}
+
+export function visitarHistoricoSemSessao() {
+  cy.visit(rotas.historico);
+}
+
+export function conferirRedirecionamentoAoLoginDoHistorico() {
+  cy.location("pathname").should("eq", rotas.login);
+  cy.location("search").then((search) => {
+    expect(new URLSearchParams(search).get("redirect")).to.eq(rotas.historico);
+  });
+  cy.contains("h1", textos.tituloLogin).should("be.visible");
 }
 
 export function abrirRedefinicaoDeSenha({ expirado = false } = {}) {

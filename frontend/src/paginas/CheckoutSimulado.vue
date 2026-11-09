@@ -312,26 +312,9 @@ onMounted(carregarOferta);
                 O cartão de teste foi recusado. Nenhum valor foi cobrado e o
                 plano não foi ativado.
               </p>
-              <details
-                v-if="resultado.emailConfirmacao"
-                class="checkout-email-preview"
-              >
-                <summary>Ver confirmação de e-mail simulada</summary>
-                <div>
-                  <small
-                    >CAIXA DE ENTRADA SIMULADA ·
-                    {{ resultado.emailConfirmacao.destinatario }}</small
-                  >
-                  <strong>{{ resultado.emailConfirmacao.assunto }}</strong>
-                  <pre>{{ resultado.emailConfirmacao.corpo }}</pre>
-                </div>
-              </details>
-              <p
-                v-else-if="resultado.situacaoPagamento === 'APROVADO'"
-                class="checkout-email-fallback"
-              >
-                A compra foi salva. A confirmação simulada não pôde ser exibida;
-                tente novamente com a mesma sessão.
+              <p v-if="resultado.situacaoPagamento === 'APROVADO'" class="checkout-email-fallback">
+                A confirmação foi encaminhada ao serviço de e-mail de demonstração.
+                No ambiente local, consulte o Mailpit em localhost:8025.
               </p>
               <RouterLink
                 v-if="resultado.situacaoPagamento === 'APROVADO' && !enviando"
@@ -696,46 +679,6 @@ onMounted(carregarOferta);
   margin: 0 auto 16px;
   color: #696b7c;
   font-size: 12px;
-  line-height: 1.7;
-}
-.checkout-email-preview {
-  max-width: 620px;
-  margin: 20px auto;
-  border: 1px solid #e3e3ed;
-  border-radius: 12px;
-  text-align: left;
-}
-.checkout-email-preview summary {
-  padding: 13px 15px;
-  color: #4f459f;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.checkout-email-preview > div {
-  padding: 15px;
-  border-top: 1px solid #eeeef3;
-}
-.checkout-email-preview small,
-.checkout-email-preview strong {
-  display: block;
-  margin-bottom: 8px;
-  color: #4d4f61;
-}
-.checkout-email-preview small {
-  color: #737586;
-  font-size: 9px;
-  letter-spacing: 0.6px;
-}
-.checkout-email-preview strong {
-  font-size: 13px;
-}
-.checkout-email-preview pre {
-  margin: 0;
-  white-space: pre-wrap;
-  color: #555769;
-  font-family: inherit;
-  font-size: 11px;
   line-height: 1.7;
 }
 .checkout-email-fallback {

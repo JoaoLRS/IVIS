@@ -3650,6 +3650,29 @@ input[type="radio"],
   font-weight: 650;
 }
 
+.cadastro-required-note {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 11px;
+}
+
+.campo-obrigatorio {
+  color: #b42318;
+}
+
+.campo-valido {
+  margin-left: 6px;
+  color: #198754;
+  font-size: 15px;
+  vertical-align: -1px;
+}
+
+.cadastro-confirmation-error {
+  margin: 5px 0 0;
+  color: #b42318;
+  font-size: 11px;
+}
+
 .cadastro-fields .form-control {
   min-height: 43px;
   border-color: #9298a7;
@@ -3748,97 +3771,6 @@ input[type="radio"],
   color: #5142c5;
   font-size: 13px;
   font-weight: 650;
-}
-
-.email-simulator-backdrop {
-  position: fixed;
-  z-index: 20;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: #17172b99;
-}
-
-.email-simulator {
-  width: min(100%, 560px);
-  padding: 24px;
-  border: 1px solid #e5e3ef;
-  background: #fff;
-  box-shadow: 0 24px 80px #13132740;
-}
-
-.email-simulator > header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.email-simulator > header h2 {
-  margin: 6px 0 0;
-  color: #292a35;
-  font:
-    700 20px/1.3 Manrope,
-    sans-serif;
-}
-
-.email-simulator > header button {
-  width: 32px;
-  height: 32px;
-  border: 1px solid #e4e4ec;
-  background: #fff;
-  color: #4c4d5d;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.email-simulator-label {
-  color: #6757df;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1.1px;
-}
-
-.email-simulator dl {
-  display: grid;
-  gap: 9px;
-  padding: 14px;
-  border: 1px solid #ececf2;
-  background: #f8f8fb;
-}
-
-.email-simulator dl div {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 8px;
-  font-size: 12px;
-}
-
-.email-simulator dt {
-  color: #858695;
-}
-
-.email-simulator dd {
-  margin: 0;
-  color: #343544;
-  overflow-wrap: anywhere;
-}
-
-.email-simulator > p {
-  color: #4a4b5b;
-  font-size: 13px;
-  line-height: 1.65;
-}
-
-.email-simulator .email-simulator-note {
-  margin: 18px 0 0;
-  padding: 12px;
-  background: #f4f2ff;
-  color: #5142a4;
-  font-size: 11px;
 }
 
 .cadastro-login-link {

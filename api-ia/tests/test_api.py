@@ -102,9 +102,13 @@ def test_rota_pergunta_usa_provedor_injetado(monkeypatch) -> None:
 
 def test_rota_avaliacao_usa_provedor_injetado(monkeypatch) -> None:
     resposta_provedor = {
-        "nota": 82,
-        "pontos_fortes": ["Explicou a solução com clareza."],
-        "pontos_melhoria": ["Detalhar as alternativas consideradas."],
+        "nota": None,
+        "pontos_fortes": [],
+        "pontos_melhoria": [],
+        "avaliacoes_por_pergunta": [],
+        "avaliacao_qualitativa": False,
+        "nivel_confianca": "BAIXA",
+        "limitacoes": "Não há interações para avaliar.",
         "versao_modelo": "fake-1",
         "versao_prompt": "fake-prompt-1",
     }

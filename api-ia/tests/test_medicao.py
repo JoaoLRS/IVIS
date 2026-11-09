@@ -65,23 +65,27 @@ def test_validar_resposta_de_pergunta_confere_contrato() -> None:
 
 
 def test_validar_resposta_de_avaliacao_confere_contrato() -> None:
-    assert validar_resposta(
-        "avaliacoes",
-        {
-            "nota": 80,
-            "pontos_fortes": ["Ponto forte"],
-            "pontos_melhoria": ["Ponto de melhoria"],
-            "versao_modelo": "modelo-teste",
-            "versao_prompt": "avaliacao-1",
-        },
-    )
-    assert not validar_resposta(
-        "avaliacoes",
-        {
-            "nota": True,
-            "pontos_fortes": ["Ponto forte"],
-            "pontos_melhoria": ["Ponto de melhoria"],
-            "versao_modelo": "modelo-teste",
-            "versao_prompt": "avaliacao-1",
-        },
-    )
+    avaliacao = {
+        "nota": 80,
+        "pontos_fortes": ["Ponto forte"],
+        "pontos_melhoria": ["Ponto de melhoria"],
+        "avaliacoes_por_pergunta": [{
+            "numero": 1,
+            "pergunta": "Como trataria falhas?",
+            "criterios": [
+                {"criterio": criterio, "nota": 4,
+                 "justificativa": "Resposta objetiva.",
+                 "trecho_resposta": "Use timeout"}
+                for criterio in ("CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA")
+            ],
+            "nivel_confianca": "MEDIA",
+            "limitacao": "Falta contexto adicional.",
+        }],
+        "avaliacao_qualitativa": True,
+        "nivel_confianca": "MEDIA",
+        "limitacoes": "Há uma resposta apenas.",
+        "versao_modelo": "modelo-teste",
+        "versao_prompt": "avaliacao-3",
+    }
+    assert validar_resposta("avaliacoes", avaliacao)
+    assert not validar_resposta("avaliacoes", {**avaliacao, "nota": True})

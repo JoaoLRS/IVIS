@@ -29,6 +29,7 @@ services:
       - "127.0.0.1:8025:8025"
     networks:
       - rede-banco
+      - rede-local
     restart: unless-stopped
 
   ivis-backend:
@@ -53,6 +54,8 @@ services:
       IVIS_RECUPERACAO_VALIDADE: ${IVIS_RECUPERACAO_VALIDADE:-30m}
       IVIS_URL_REDEFINICAO_SENHA: ${IVIS_URL_REDEFINICAO_SENHA:-http://localhost:8080/redefinir-senha}
       IVIS_EMAIL_REMETENTE: ${IVIS_EMAIL_REMETENTE:-no-reply@ivis.local}
+      IVIS_EMAIL_BOAS_VINDAS_HABILITADO: "true"
+      IVIS_EMAIL_CONFIRMACAO_HABILITADA: "true"
       IVIS_SMTP_HOST: ivis-mailpit
       IVIS_SMTP_PORTA: 1025
       IVIS_IA_URL: http://ivis-api-ia:8000

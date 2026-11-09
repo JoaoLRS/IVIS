@@ -1,8 +1,7 @@
 import {
   conferirOfertaDoCheckout,
   conferirPagamentoIndividualAprovado,
-  abrirConfirmacaoDeEmailDoPagamento,
-  conferirConfirmacaoDeEmailDoPagamento,
+  conferirAvisoDeConfirmacaoPorEmail,
   prepararConfirmacaoDemoradaDoPlano,
   conferirAcessoAguardandoConfirmacaoDoPlano,
   aguardarConfirmacaoDoPlano,
@@ -41,7 +40,6 @@ describe("CDU-10 - Contratar plano individual", () => {
     preencherCartaoAprovado();
     enviarPagamentoSimulado();
     conferirPagamentoIndividualAprovado();
-    abrirConfirmacaoDeEmailDoPagamento();
-    conferirConfirmacaoDeEmailDoPagamento();
+    conferirAvisoDeConfirmacaoPorEmail();
   });
 });

@@ -1033,6 +1033,11 @@ export function informarEnderecoDaInstituicao(valor) {
   cy.get(seletores.cadastro.endereco).type(valor);
 }
 
+export function conferirAvisoDeConfirmacaoPorEmail() {
+  cy.contains("A confirmação foi encaminhada ao serviço de e-mail de demonstração.")
+    .should("be.visible");
+}
+
 export function conferirPagamentoIndividualAprovado() {
   const plano = planoIndividualCdu;
   cy.wait(aliases.aguardar(aliases.contratarPlanoIndividual)).then(
@@ -1054,10 +1059,4 @@ export function conferirPagamentoIndividualAprovado() {
   );
   cy.contains(elementos.cabecalho2, textos.plano.aprovado).should("be.visible");
   cy.contains(textos.plano.semCobranca).should("be.visible");
-}
-export function abrirConfirmacaoDeEmailDoPagamento() {
-  cy.contains(elementos.resumo, textos.plano.verConfirmacaoEmail).click();
-}
-export function conferirConfirmacaoDeEmailDoPagamento() {
-  cy.contains(textos.plano.corpoEmailSimulado).should("be.visible");
 }

@@ -24,15 +24,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.ivis.identity.dto.VinculoInstitucionalResumo;
 import br.ivis.identity.service.VinculoInstitucionalService;
+import br.ivis.identity.service.BoasVindasEmailService;
 
 @RestController
 @RequestMapping("/v1/instituicao")
 public class VinculoInstitucionalController {
 
     private final VinculoInstitucionalService servico;
+    private final BoasVindasEmailService emailBoasVindas;
 
-    public VinculoInstitucionalController(VinculoInstitucionalService servico) {
+    public VinculoInstitucionalController(VinculoInstitucionalService servico,
+            BoasVindasEmailService emailBoasVindas) {
         this.servico = servico;
+        this.emailBoasVindas = emailBoasVindas;
     }
 
     @GetMapping("/alunos")
@@ -61,7 +65,9 @@ public class VinculoInstitucionalController {
     public CadastroAlunoResposta cadastrarAluno(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CadastroAlunoRequisicao requisicao) {
-        return servico.cadastrarEVincularAluno(contaId(jwt), requisicao);
+        CadastroAlunoResposta resposta = servico.cadastrarEVincularAluno(contaId(jwt), requisicao);
+        emailBoasVindas.enviar(resposta.aluno());
+        return resposta;
     }
 
     @DeleteMapping("/vinculos/{id}")

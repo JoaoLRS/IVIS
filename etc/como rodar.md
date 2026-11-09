@@ -44,7 +44,7 @@ No **Bash, Git Bash ou WSL**, use `bash release.sh up` após preparar os mesmos 
 | Aplicação | <http://localhost:8080> |
 | Backend | <http://localhost:8081/api> |
 | API de IA | <http://localhost:8000> |
-| Mailpit, para ver e-mails de recuperação | <http://localhost:8025> |
+| Mailpit, para ver e-mails de boas-vindas, contratação e recuperação de senha | <http://localhost:8025> |
 | PostgreSQL | `localhost:5433`, banco `ivis` |
 
 O backend pode ser conferido em <http://localhost:8081/api/v1/pronto> e a API de IA em <http://localhost:8000/pronto>. Para abrir o banco em uma IDE, use o usuário e a senha de `IVIS_BD_USUARIO` e `IVIS_BD_SENHA` no `.env`. O exemplo usa `ivis` e `ivis_local`. A porta é definida por `IVIS_BD_PORTA` (padrão `5433`); `5432` é a porta **interna** do container.
@@ -86,7 +86,7 @@ Abra a aplicação, crie uma conta de aluno ou instituição e consulte os plano
 | Aprovado | `4242 4242 4242 4242` | `12/30` | `123` |
 | Recusado | `4000 0000 0000 0002` | `12/30` | `123` |
 
-Use uma validade futura quando executar o teste. Os e-mails de recuperação ficam no Mailpit; não são entregues a uma caixa externa. Sem `NVIDIA_API_KEY`, os treinos que precisam gerar perguntas ou avaliação não funcionam.
+Use uma validade futura quando executar o teste. Os e-mails de boas-vindas, confirmação de contratação simulada e recuperação de senha ficam no Mailpit; não são entregues a uma caixa externa. Sem `NVIDIA_API_KEY`, os treinos que precisam gerar perguntas ou avaliação não funcionam.
 
 ## 4. Rodar os testes
 

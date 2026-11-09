@@ -96,7 +96,7 @@ public class CompraSimuladaService {
                 + "Acesso válido até: " + expiraEm + "\n"
                 + "Contrato: " + contratoId + "\n"
                 + "Referência de pagamento simulado: " + pagamentoId + "\n\n"
-                + "Nenhum valor foi cobrado. Este comprovante é uma mensagem fictícia armazenada no IVIS.";
+                + "Nenhum valor foi cobrado. Esta confirmação foi enviada ao serviço de e-mail de demonstração.";
         compras.inserirEmail(emailId, conta.getId(), contratoId, pagamentoId,
                 conta.getEmail(), assunto, corpo, dataJdbc(agora));
         return new EmailSimulado(conta.getEmail(), assunto, corpo, agora);

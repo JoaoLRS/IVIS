@@ -4,6 +4,7 @@ import { GraduationCap, LogOut, School } from "lucide-vue-next";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import RequisitosSenha from "../componentes/RequisitosSenha.vue";
+import BootstrapCheck from "../componentes/BootstrapCheck.vue";
 import { senhaValida } from "../validacao/senha";
 
 type PerfilCadastro = "aluno" | "instituicao";
@@ -24,17 +25,34 @@ const confirmarSenha = ref("");
 const mensagem = ref("");
 const processando = ref(false);
 const cadastroConcluido = ref(false);
-const emailSimuladorAberto = ref(false);
 const sessao = useEstadoSessao();
 const roteador = useRouter();
 const nomeCampo = computed(() =>
   perfil.value === "aluno" ? "Nome" : "Nome da instituição",
 );
+const preenchido = (valor: string) => valor.trim().length > 0;
+const documentoValido = (valor: string, tamanho: number) =>
+  valor.replace(/\D/g, "").length === tamanho;
+const emailValido = computed(() =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()),
+);
+const erroConfirmacao = computed(() => {
+  if (!confirmarSenha.value) return "";
+  if (confirmarSenha.value !== senha.value) return "As senhas não coincidem.";
+  if (!senhaValida(senha.value))
+    return "A senha ainda não atende a todos os requisitos.";
+  return "";
+});
+const confirmacaoValida = computed(
+  () => confirmarSenha.value.length > 0 && !erroConfirmacao.value,
+);
+const mailpitLocal = computed(() =>
+  ["localhost", "127.0.0.1"].includes(window.location.hostname),
+);
 
 async function sairDaConta() {
   await sessao.sair();
   cadastroConcluido.value = false;
-  emailSimuladorAberto.value = false;
   await roteador.replace("/");
 }
 
@@ -51,7 +69,8 @@ async function enviarCadastro() {
   mensagem.value = "";
   cadastroConcluido.value = false;
   if (!senhaValida(senha.value)) {
-    mensagem.value = "A senha ainda não atende a todos os requisitos informados.";
+    mensagem.value =
+      "A senha ainda não atende a todos os requisitos informados.";
     return;
   }
   if (senha.value !== confirmarSenha.value) {
@@ -127,16 +146,10 @@ async function continuarAposCadastro() {
           <span class="cadastro-success-mark" aria-hidden="true">✓</span>
           <h2>Conta criada com sucesso</h2>
           <p>
-            Seu cadastro foi concluído. Você também pode conferir a mensagem de
-            boas-vindas no simulador de e-mail do IVIS.
+            Seu cadastro foi concluído. A mensagem de boas-vindas foi encaminhada
+            ao serviço de e-mail de demonstração.
           </p>
-          <button
-            class="btn cadastro-email-button"
-            type="button"
-            @click="emailSimuladorAberto = true"
-          >
-            Abrir simulador de e-mail
-          </button>
+          <a v-if="mailpitLocal" class="btn cadastro-email-button" href="http://localhost:8025" target="_blank" rel="noopener noreferrer">Abrir Mailpit</a>
           <button
             class="btn btn-primary cadastro-submit"
             type="button"
@@ -149,6 +162,9 @@ async function continuarAposCadastro() {
       <template v-else>
         <header class="cadastro-heading">
           <h2>Crie sua conta</h2>
+          <p class="cadastro-required-note">
+            <span aria-hidden="true">*</span> Campos obrigatórios
+          </p>
         </header>
 
         <div
@@ -197,7 +213,13 @@ async function continuarAposCadastro() {
 
         <form class="cadastro-fields" @submit.prevent="enviarCadastro">
           <div v-if="perfil === 'instituicao'">
-            <label class="form-label" for="nome-responsavel">Nome do responsável</label>
+            <label class="form-label" for="nome-responsavel"
+              >Nome do responsável
+              <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck
+                v-if="preenchido(nomeResponsavel)"
+                class="campo-valido"
+            /></label>
             <input
               id="nome-responsavel"
               v-model="nomeResponsavel"
@@ -209,7 +231,12 @@ async function continuarAposCadastro() {
           </div>
 
           <div v-if="perfil === 'aluno'">
-            <label class="form-label" for="cpf-cadastro">CPF</label>
+            <label class="form-label" for="cpf-cadastro"
+              >CPF <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck
+                v-if="documentoValido(cpf, 11)"
+                class="campo-valido"
+            /></label>
             <input
               id="cpf-cadastro"
               v-model="cpf"
@@ -222,7 +249,12 @@ async function continuarAposCadastro() {
             />
           </div>
           <div v-else>
-            <label class="form-label" for="cnpj-cadastro">CNPJ</label>
+            <label class="form-label" for="cnpj-cadastro"
+              >CNPJ <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck
+                v-if="documentoValido(cnpj, 14)"
+                class="campo-valido"
+            /></label>
             <input
               id="cnpj-cadastro"
               v-model="cnpj"
@@ -236,7 +268,11 @@ async function continuarAposCadastro() {
           </div>
 
           <div>
-            <label class="form-label" for="telefone-cadastro">Telefone</label>
+            <label class="form-label" for="telefone-cadastro"
+              >Telefone
+              <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck v-if="preenchido(telefone)" class="campo-valido"
+            /></label>
             <input
               id="telefone-cadastro"
               v-model="telefone"
@@ -250,7 +286,11 @@ async function continuarAposCadastro() {
           </div>
 
           <div>
-            <label class="form-label" for="endereco-cadastro">Endereço</label>
+            <label class="form-label" for="endereco-cadastro"
+              >Endereço
+              <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck v-if="preenchido(endereco)" class="campo-valido"
+            /></label>
             <input
               id="endereco-cadastro"
               v-model="endereco"
@@ -262,9 +302,11 @@ async function continuarAposCadastro() {
             />
           </div>
           <div>
-            <label class="form-label" for="nome-cadastro">{{
-              nomeCampo
-            }}</label>
+            <label class="form-label" for="nome-cadastro"
+              >{{ nomeCampo }}
+              <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck v-if="preenchido(nome)" class="campo-valido"
+            /></label>
             <input
               id="nome-cadastro"
               v-model="nome"
@@ -280,7 +322,10 @@ async function continuarAposCadastro() {
           </div>
 
           <div>
-            <label class="form-label" for="email-cadastro">E-mail</label>
+            <label class="form-label" for="email-cadastro"
+              >E-mail <span class="campo-obrigatorio" aria-hidden="true">*</span
+              ><BootstrapCheck v-if="emailValido" class="campo-valido"
+            /></label>
             <input
               id="email-cadastro"
               v-model="email"
@@ -294,7 +339,11 @@ async function continuarAposCadastro() {
 
           <div class="cadastro-passwords">
             <div>
-              <label class="form-label" for="senha-cadastro">Senha</label>
+              <label class="form-label" for="senha-cadastro"
+                >Senha
+                <span class="campo-obrigatorio" aria-hidden="true">*</span
+                ><BootstrapCheck v-if="senhaValida(senha)" class="campo-valido"
+              /></label>
               <input
                 id="senha-cadastro"
                 v-model="senha"
@@ -311,6 +360,11 @@ async function continuarAposCadastro() {
             <div>
               <label class="form-label" for="confirmar-senha">
                 Confirmar senha
+                <span class="campo-obrigatorio" aria-hidden="true">*</span
+                ><BootstrapCheck
+                  v-if="confirmacaoValida"
+                  class="campo-valido"
+                />
               </label>
               <input
                 id="confirmar-senha"
@@ -321,8 +375,20 @@ async function continuarAposCadastro() {
                 autocomplete="new-password"
                 minlength="8"
                 maxlength="128"
+                :aria-invalid="Boolean(erroConfirmacao)"
+                :aria-describedby="
+                  erroConfirmacao ? 'erro-confirmacao' : undefined
+                "
                 required
               />
+              <p
+                v-if="erroConfirmacao"
+                id="erro-confirmacao"
+                class="cadastro-confirmation-error"
+                role="status"
+              >
+                {{ erroConfirmacao }}
+              </p>
             </div>
           </div>
 
@@ -357,56 +423,5 @@ async function continuarAposCadastro() {
 
     <p class="cadastro-demo">Sua conta é protegida pelo IVIS.</p>
 
-    <div
-      v-if="emailSimuladorAberto"
-      class="email-simulator-backdrop"
-      role="presentation"
-      @click.self="emailSimuladorAberto = false"
-    >
-      <section
-        class="email-simulator"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="email-simulator-title"
-      >
-        <header>
-          <div>
-            <span class="email-simulator-label">CAIXA DE ENTRADA SIMULADA</span>
-            <h2 id="email-simulator-title">Mensagem de boas-vindas</h2>
-          </div>
-          <button
-            type="button"
-            aria-label="Fechar simulador de e-mail"
-            @click="emailSimuladorAberto = false"
-          >
-            ×
-          </button>
-        </header>
-        <dl>
-          <div>
-            <dt>De</dt>
-            <dd>IVIS · no-reply@ivis.local</dd>
-          </div>
-          <div>
-            <dt>Para</dt>
-            <dd>{{ sessao.conta?.email }}</dd>
-          </div>
-          <div>
-            <dt>Assunto</dt>
-            <dd>Bem-vindo ao IVIS</dd>
-          </div>
-        </dl>
-        <p>Olá, {{ sessao.conta?.nome }}!</p>
-        <p>
-          Sua conta IVIS foi criada com sucesso. A partir de agora, você pode
-          escolher um plano individual ou, se sua instituição tiver um plano
-          acadêmico ativo, acessar pelo vínculo institucional.
-        </p>
-        <p class="email-simulator-note">
-          Esta mensagem é apenas uma simulação acadêmica. Nenhum e-mail real foi
-          enviado.
-        </p>
-      </section>
-    </div>
   </main>
 </template>

@@ -344,11 +344,24 @@ def test_avaliacao_envia_interacoes_e_retorna_versoes(monkeypatch) -> None:
         assert dados["interacoes"][0]["resposta"] == "Usei índices e expliquei o custo."
         assert "id_correlacao" not in dados
         assert corpo["response_format"]["json_schema"]["name"] == "avaliacao_gerada"
+        assert "avaliacoes_por_pergunta" in corpo["response_format"]["json_schema"]["schema"]["required"]
         return httpx.Response(200, json={
             "choices": [{"message": {"content": json.dumps({
-                "nota": 82,
+                "avaliacoes_por_pergunta": [{
+                    "numero": 1,
+                    "criterios": [
+                        {"criterio": criterio, "nota": 4,
+                         "justificativa": "A resposta explica a solução.",
+                         "trecho_resposta": "Usei índices"}
+                        for criterio in ("CORRECAO_TECNICA", "COMPLETUDE", "CLAREZA")
+                    ],
+                    "nivel_confianca": "MEDIA",
+                    "limitacao": "Há apenas uma resposta.",
+                }],
                 "pontos_fortes": ["Explicou o custo da solução."],
                 "pontos_melhoria": ["Comparar alternativas."],
+                "nivel_confianca": "MEDIA",
+                "limitacoes": "Há apenas uma resposta.",
             })}}]
         })
 
@@ -365,10 +378,12 @@ def test_avaliacao_envia_interacoes_e_retorna_versoes(monkeypatch) -> None:
 
     resultado = asyncio.run(ProvedorNvidia().gerar_avaliacao(entrada))
 
-    assert resultado["nota"] == 82
+    assert "nota" not in resultado
+    assert resultado["avaliacao_qualitativa"] is True
+    assert resultado["avaliacoes_por_pergunta"][0]["pergunta"] == "Como otimizar uma consulta?"
     assert resultado["pontos_fortes"] == ["Explicou o custo da solução."]
     assert resultado["versao_modelo"] == config.configuracoes.modelo_nvidia
-    assert resultado["versao_prompt"] == "avaliacao-1"
+    assert resultado["versao_prompt"] == "avaliacao-3"
 
 
 def test_pergunta_seguinte_inclui_nivel_e_historico_para_evitar_repeticao(monkeypatch) -> None:

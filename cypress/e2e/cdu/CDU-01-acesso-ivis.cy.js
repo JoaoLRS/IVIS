@@ -33,8 +33,11 @@ import {
   sairDaConta,
 } from "../funcoes/funcoes.js";
 import {
+  conferirHistoricoPrivadoDaConta,
+  conferirRedirecionamentoAoLoginDoHistorico,
   contasIsolamentoCdu,
   prepararAcessoEntreContas,
+  visitarHistoricoSemSessao,
 } from "../funcoes/acesso-cdu.js";
 
 describe("CDU-01 - Acesso IVIS", () => {
@@ -101,14 +104,7 @@ describe("CDU-01 - Acesso IVIS", () => {
       rotas.inicioAluno,
       textos.areaAluno.saudacao(contasIsolamentoCdu.alunoA.nome),
     );
-    cy.wait("@historicoPorConta")
-      .its("request.headers.authorization")
-      .should("eq", `Bearer ${contasIsolamentoCdu.alunoA.id}`);
-    cy.get("summary").contains("Seu desenvolvimento").click();
-    cy.contains("a", "Histórico").click();
-    cy.contains(".history-list-row", "Treino privado da conta A").should(
-      "be.visible",
-    );
+    conferirHistoricoPrivadoDaConta(contasIsolamentoCdu.alunoA, "Treino privado da conta A");
     sairDaConta();
 
     login(
@@ -117,26 +113,16 @@ describe("CDU-01 - Acesso IVIS", () => {
       rotas.inicioAluno,
       textos.areaAluno.saudacao(contasIsolamentoCdu.alunoB.nome),
     );
-    cy.wait("@historicoPorConta")
-      .its("request.headers.authorization")
-      .should("eq", `Bearer ${contasIsolamentoCdu.alunoB.id}`);
-    cy.get("summary").contains("Seu desenvolvimento").click();
-    cy.contains("a", "Histórico").click();
-    cy.location("pathname").should("eq", rotas.historico);
-    cy.contains(".history-list-row", "Treino privado da conta B").should(
-      "be.visible",
+    conferirHistoricoPrivadoDaConta(
+      contasIsolamentoCdu.alunoB,
+      "Treino privado da conta B",
+      "Treino privado da conta A",
     );
-    cy.contains("Treino privado da conta A").should("not.exist");
   });
 
   it("redireciona para o login ao abrir o histórico sem sessão", () => {
     prepararVisitanteSemSessao();
-    cy.visit(rotas.historico);
-
-    cy.location("pathname").should("eq", rotas.login);
-    cy.location("search").then((search) => {
-      expect(new URLSearchParams(search).get("redirect")).to.eq(rotas.historico);
-    });
-    cy.contains("h1", textos.tituloLogin).should("be.visible");
+    visitarHistoricoSemSessao();
+    conferirRedirecionamentoAoLoginDoHistorico();
   });
 });
