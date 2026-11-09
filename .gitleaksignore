@@ -1,0 +1,4 @@
+# Chave NVIDIA exposta em api-ia/.env.example (27/10/2026).
+# Chave revogada em 08/11/2026; sem validade. Ver historico no PR de higiene.
+936cf0e2c97f1a2341f896d8472de1670931e312:api-ia/.env.example:generic-api-key:7
+5eae8cce61cbf393665d02fdfaf0339943349189:api-ia/.env.example:generic-api-key:7
