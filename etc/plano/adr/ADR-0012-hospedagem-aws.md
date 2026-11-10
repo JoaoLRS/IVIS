@@ -1,6 +1,6 @@
 # ADR-0012 — Hospedagem do IVIS na AWS
 
-- **Status:** Aprovado
+- **Status:** Aceito
 - **Data:** 2026-11-09
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md), [ADR-0011](ADR-0011-autenticacao-do-mvp.md), [`Plano_Implantacao_AWS_Academy.md`](../Plano_Implantacao_AWS_Academy.md)
@@ -18,14 +18,14 @@ O [plano de implantação anterior](../Plano_Implantacao_AWS_Academy.md) previa 
 Migrar toda a pilha (frontend, backend, API de IA e banco de dados) para a AWS, com a seguinte arquitetura:
 
 - **EC2 "app"** (t3.medium, com IP elástico): executa, em Docker Compose, o proxy reverso Caddy, o frontend (Nginx), o backend e a API de IA. As imagens são publicadas no **Amazon ECR**.
-- **Mesma origem:** o Caddy serve `/` (frontend) e `/api` (backend) no mesmo domínio, com HTTPS por DuckDNS e Let's Encrypt, preservando o cookie `ivis_refresh`. Somente as portas 80 e 443 ficam abertas ao público; o acesso administrativo é restrito.
+- **Mesma origem:** o Caddy serve `/` (frontend) e `/api` (backend) no mesmo domínio, com HTTPS por DuckDNS e Let's Encrypt, preservando o cookie `ivis_refresh`. Somente as portas 80 e 443 ficam abertas ao público; o acesso administrativo é feito pelo AWS Systems Manager (SSM), sem a porta 22 aberta.
 - **Amazon RDS para PostgreSQL** (db.t3.micro), em sub-rede privada, acessível apenas pelo grupo de segurança da EC2 "app".
 - **EC2 "monitoramento"** (t3.small): Prometheus (métricas), Loki (logs) e Grafana (painéis). A coleta de logs na EC2 "app" usa o **Grafana Alloy**, pois o Promtail foi descontinuado.
 - **Terraform** em `infra/`, com estado remoto em **bucket S3**.
 - **GitHub Actions** para verificação, testes, construção das imagens, implantação e verificação automática de disponibilidade após a implantação.
 - **Infisical** como fonte dos segredos. Como as credenciais do Learner Lab mudam a cada sessão, elas ficam no Infisical e o GitHub guarda apenas uma credencial fixa de acesso a ele.
 
-**Premissas a validar na etapa 0.3** (ver plano da Fase 0): disponibilidade de RDS, ECR, S3 e SSM no laboratório; classes de instância aceitas pelo RDS; uso de `LabRole` e `LabInstanceProfile`; permanência do IP elástico e retorno das instâncias ao reiniciar o laboratório; consumo de crédito. Se alguma premissa falhar, este ADR será revisto antes da implantação. O status passa a **Aceito** depois dessa validação.
+**Validação (etapa 0.3):** as premissas foram validadas em 09 e 10/11/2026 e estão registradas em [`Validacao_Learner_Lab.md`](../Validacao_Learner_Lab.md). Todas se confirmaram: RDS, ECR, S3 e SSM disponíveis; RDS db.t3.micro com PostgreSQL 17.x em sub-rede privada; uso de `LabRole` e `LabInstanceProfile`; permanência do IP elástico e retorno das EC2 ao reiniciar o laboratório. O estado remoto no S3 com travamento por arquivo (`use_lockfile`, Terraform 1.11 ou superior) dispensa o DynamoDB. O consumo de crédito foi estimado pela tabela de preços, pois o painel do laboratório não permite medi-lo. Os achados que não invalidam a decisão estão em Consequências. Por isso o status é **Aceito**.
 
 Esta decisão não define alta disponibilidade, política de backup do banco, domínio permanente, envio real de e-mail (o Mailpit segue como no ADR-0007) nem a forma de expor métricas no backend, que serão tratados em decisões posteriores.
 
@@ -41,7 +41,8 @@ Esta decisão não define alta disponibilidade, política de backup do banco, do
 ### Custos e riscos
 
 - Consumo de crédito do laboratório com duas EC2, um RDS e um IP elástico; é preciso acompanhar o gasto.
-- O laboratório pode encerrar a sessão e parar recursos; credenciais e IPs podem mudar, e é necessário procedimento de retomada.
+- O Start Lab religa toda EC2 parada, e o RDS não é parado pelo laboratório; os dois consomem crédito o tempo todo. Regra: apagar o que não estiver em uso (`terraform destroy`) em vez de parar.
+- As credenciais mudam a cada sessão e o encerramento por esgotamento do tempo não foi testado. O IP elástico persistiu nos ciclos testados, mas é necessário um procedimento de retomada (Start Lab, esperar cerca de 3 minutos e verificar a saúde); o Docker e os contêineres precisam subir sozinhos no boot.
 - Ponto único de falha na EC2 "app": aceitável para demonstração acadêmica, não para produção.
 - DuckDNS é serviço externo gratuito, sem garantia de disponibilidade.
 - O backend não expõe métricas hoje; será preciso adicionar suporte a elas antes da observabilidade.
