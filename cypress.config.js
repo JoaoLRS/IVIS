@@ -1,4 +1,4 @@
-import { limparBancoDeDados } from "./cypress/tasks/limpar-banco.js";
+import { consultarAuditoriaPorContrato, limparBancoDeDados } from "./cypress/tasks/limpar-banco.js";
 
 export default {
   video: true,
@@ -17,7 +17,7 @@ export default {
     specPattern: "cypress/e2e/**/*.cy.{js,ts}",
     supportFile: "cypress/support/e2e.js",
     setupNodeEvents(on) {
-      on("task", { limparBancoDeDados });
+      on("task", { limparBancoDeDados, consultarAuditoriaPorContrato });
     },
   },
 };
