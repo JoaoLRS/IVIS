@@ -57,3 +57,4 @@ id_rsa*
 id_ed25519*
 *.pem
 !nvidia-chain.pem
+Roadmap IVIS na AWS*passo a passo.md
