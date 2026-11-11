@@ -377,7 +377,20 @@ node --test cypress/tasks/limpar-banco.integracao.test.mjs
 npm run testar:e2e
 ```
 
-### 9.4. Executar novamente um teste Cypress específico
+### 9.4. Entender as pastas CDU
+
+**CDU** significa **caso de uso**: uma atividade que alguém realiza no IVIS, como criar uma conta, contratar um plano ou fazer um treino. O número identifica o mesmo caso na documentação e nos testes automatizados. As duas pastas têm finalidades diferentes:
+
+| Pasta | O que você encontra nela | Como usar |
+| --- | --- | --- |
+| [`etc/cdu/`](cdu/) | A descrição de cada caso de uso: quem participa, condições para começar, sequência de ações, resultados esperados e situações alternativas. | A professora e os alunos podem seguir os passos no navegador e comparar o resultado observado com o documento. |
+| [`cypress/e2e/cdu/`](../cypress/e2e/cdu/) | Os arquivos `.cy.js` que automatizam os casos de uso na interface. | Execute um arquivo para repetir as verificações daquele caso de uso pelo Cypress. |
+
+Comece pelo [índice de casos de uso](cdu/IVIS_Casos_de_Uso.md): ele relaciona cada CDU ao requisito e ao teste correspondente. Por exemplo, o [CDU-04 — Recuperar acesso](cdu/CDU-04-recuperar-acesso.md) descreve o fluxo de recuperação de senha, enquanto [CDU-04-recuperar-acesso.cy.js](../cypress/e2e/cdu/CDU-04-recuperar-acesso.cy.js) contém seu teste de interface.
+
+Para os **testes cruzados da aula**, escolha um CDU no índice, leia os passos e o resultado esperado, realize o fluxo no IVIS e anote o que aconteceu. Os testes em `cypress/e2e/cdu/` ajudam a repetir verificações da interface, mas a maioria usa respostas simuladas da API. O **CDU-15** usa o backend e o banco reais para conferir a auditoria. As jornadas completas **CDU-17** e **CDU-18** estão documentadas em `etc/cdu/` e têm seus testes reais em [`cypress/e2e/caminho_feliz/`](../cypress/e2e/caminho_feliz/), com cadastro, contratação e demais etapas encadeadas.
+
+### 9.5. Executar novamente um teste Cypress específico
 
 Se quiser investigar somente uma jornada, execute um dos exemplos abaixo com a stack ativa. Os mesmos comandos funcionam no PowerShell e no Bash:
 

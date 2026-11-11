@@ -521,11 +521,14 @@ export const dadosCaminhoFeliz = {
     nivel: "Pleno",
     requisitos: "Vue.js, TypeScript, testes automatizados",
   },
-  respostasTreino: [
-    "Eu começaria entendendo o objetivo da funcionalidade e os critérios de aceitação. Depois dividiria a interface em componentes Vue reutilizáveis, manteria o estado próximo de quem o utiliza e validaria os fluxos com testes automatizados.",
-    "Eu avaliaria impacto para a pessoa usuária, risco técnico e dependências. Entregaria primeiro uma solução pequena e observável, acompanharia erros e desempenho e ajustaria com base nos resultados e no retorno da equipe.",
-    "Em um projeto de interface, eu alinharia a solução com produto e backend, documentaria as decisões e faria uma revisão com a equipe. Se surgisse um problema em produção, reproduziria o caso, corrigiria a causa e acrescentaria um teste de regressão.",
-  ],
+  respostasTreino: {
+    desempenho: "Para uma lista longa em Vue, eu usaria virtualização para renderizar apenas os itens visíveis, com uma chave estável por item. Mediria tempo de renderização e uso de memória antes e depois; usaria computed para dados derivados e evitaria estado reativo desnecessário. Testaria a rolagem, a troca dos itens visíveis e o comportamento com milhares de registros.",
+    estado: "Eu organizaria o estado compartilhado em uma store Pinia com state, getters e actions tipados em TypeScript. As ações concentrariam as atualizações e o tratamento de erros, enquanto os componentes consumiriam apenas o estado necessário. Testaria uma action e um getter com uma store isolada, verificando o estado inicial, a atualização e os casos de falha.",
+    componentes: "Eu definiria props com tipos explícitos e valores padrão, e tiparia os eventos com defineEmits para que o componente Vue tenha um contrato claro. Separaria a lógica reutilizável em composables e escreveria testes com Vitest e Vue Test Utils para conferir as props, os eventos emitidos e o resultado renderizado.",
+    integracao: "Eu isolaria as chamadas HTTP em um serviço tipado, validaria as respostas recebidas e trataria carregamento, erro e cancelamento da requisição na interface Vue. Em testes, simularia a resposta da API para conferir os estados de sucesso e falha sem depender da rede.",
+    interface: "Eu usaria HTML semântico, rótulos associados aos campos e navegação por teclado. Ajustaria o layout com CSS responsivo e verificaria contraste, foco visível e leitura por tecnologia assistiva. Testaria a interface em tamanhos de tela diferentes e validaria os estados de erro.",
+    geral: "Em uma aplicação Vue com TypeScript, eu separaria a interface em componentes com props e eventos tipados, manteria o estado compartilhado em Pinia e isolaria a comunicação HTTP em serviços. Para garantir qualidade, escreveria testes unitários para a lógica e testes de interface para o fluxo completo, incluindo erros, acessibilidade e desempenho.",
+  },
   contaAtualizada: {
     telefone: "(81) 98888-2222",
     endereco: "Rua Cypress, 500, Recife/PE",

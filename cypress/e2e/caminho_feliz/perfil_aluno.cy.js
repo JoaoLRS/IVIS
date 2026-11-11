@@ -35,7 +35,6 @@ import {
   confirmarCadastroDaVaga,
   confirmarSenhaDeCadastro,
   continuarDoCadastroParaOfertas,
-  digitarRespostaDoTreino,
   expandirMenuDesenvolvimento,
   enviarCadastroDoAluno,
   enviarPagamentoSimulado,
@@ -57,7 +56,7 @@ import {
   irParaAreaDoAluno,
   marcarCaixaMailpit,
   preencherCartaoAprovado,
-  respostasDoTreino,
+  responderPerguntaDaIa,
   salvarDadosDaConta,
   selecionarNivelDaHabilidade,
   selecionarNivelDaVaga,
@@ -147,13 +146,13 @@ describe(
       conferirContextoDaVagaNoTreino(vagaDoCaminho);
       iniciarEntrevistaComIa();
       conferirPerguntaDaIa(1);
-      digitarRespostaDoTreino(respostasDoTreino[0]);
+      responderPerguntaDaIa();
       enviarRespostaDoTreino();
       conferirPerguntaDaIa(2);
-      digitarRespostaDoTreino(respostasDoTreino[1]);
+      responderPerguntaDaIa();
       enviarRespostaDoTreino();
       conferirPerguntaDaIa(3);
-      digitarRespostaDoTreino(respostasDoTreino[2]);
+      responderPerguntaDaIa();
       enviarRespostaDoTreino();
       conferirTreinoProntoParaFinalizar();
       finalizarTreino();
