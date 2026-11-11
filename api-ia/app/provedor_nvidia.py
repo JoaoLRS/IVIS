@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from typing import Any
 
 import httpx
@@ -11,6 +12,7 @@ from app.schemas import GerarAvaliacaoEntrada, GerarPerguntaEntrada
 _VERSAO_PROMPT_PERGUNTA = "perguntas-1"
 _VERSAO_PROMPT_AVALIACAO = "avaliacao-3"
 _MAX_TOKENS = 3072
+log = logging.getLogger(__name__)
 _ESQUEMA_PERGUNTA = {
     "type": "object",
     "properties": {
@@ -97,6 +99,7 @@ class ProvedorNvidia:
             dados=dados,
             esquema=_ESQUEMA_PERGUNTA,
             nome_esquema="pergunta_gerada",
+            id_correlacao=entrada.id_correlacao,
         )
         return {
             "pergunta": conteudo.get("pergunta"),
@@ -125,6 +128,7 @@ class ProvedorNvidia:
             dados=dados,
             esquema=_ESQUEMA_AVALIACAO,
             nome_esquema="avaliacao_gerada",
+            id_correlacao=entrada.id_correlacao,
         )
         avaliacoes = conteudo.get("avaliacoes_por_pergunta")
         if isinstance(avaliacoes, list):
@@ -148,6 +152,7 @@ class ProvedorNvidia:
         dados: dict[str, Any],
         esquema: dict[str, Any],
         nome_esquema: str,
+        id_correlacao: str,
     ) -> dict[str, Any]:
         chave_nvidia = configuracoes.chave_nvidia
         if chave_nvidia is None:
@@ -192,6 +197,8 @@ class ProvedorNvidia:
                         resposta,
                         cabecalhos,
                         url_base,
+                        nome_esquema,
+                        id_correlacao,
                     )
                     resposta.raise_for_status()
         except (TimeoutError, httpx.TimeoutException) as erro:
@@ -212,6 +219,11 @@ class ProvedorNvidia:
             texto = envelope["choices"][0]["message"]["content"]
             resultado = json.loads(texto)
         except (ValueError, KeyError, IndexError, TypeError) as erro:
+            log.warning(
+                "Saída inválida do provedor: etapa=decodificacao tipo=%s id_correlacao=%r",
+                nome_esquema,
+                id_correlacao,
+            )
             raise HTTPException(
                 status_code=502,
                 detail={
@@ -221,6 +233,11 @@ class ProvedorNvidia:
             ) from erro
 
         if not isinstance(resultado, dict):
+            log.warning(
+                "Saída inválida do provedor: etapa=tipo_raiz tipo=%s id_correlacao=%r",
+                nome_esquema,
+                id_correlacao,
+            )
             raise HTTPException(
                 status_code=502,
                 detail={
@@ -236,6 +253,8 @@ class ProvedorNvidia:
         resposta: httpx.Response,
         cabecalhos: dict[str, str],
         url_base: str,
+        nome_esquema: str,
+        id_correlacao: str,
     ) -> httpx.Response:
         if resposta.status_code != 202:
             return resposta
@@ -245,6 +264,11 @@ class ProvedorNvidia:
         except (ValueError, AttributeError):
             requisicao_id = None
         if not isinstance(requisicao_id, str) or not requisicao_id:
+            log.warning(
+                "Saída inválida do provedor: etapa=id_assincrono tipo=%s id_correlacao=%r",
+                nome_esquema,
+                id_correlacao,
+            )
             raise HTTPException(
                 status_code=502,
                 detail={

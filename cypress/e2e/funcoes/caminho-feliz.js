@@ -305,10 +305,10 @@ export function responderPerguntaDaIa() {
     const respostas = dadosCaminhoFeliz.respostasTreino;
     const resposta = /desempenho|performance|otimiz|virtualiz|lista longa|renderiz/.test(texto)
       ? respostas.desempenho
-      : /estado|pinia|vuex|store|gerenciamento/.test(texto)
-        ? respostas.estado
-        : /api|assincron|fetch|http|backend|requisic/.test(texto)
-          ? respostas.integracao
+      : /\bapi\b|assincron|fetch|http|backend|requisic/.test(texto)
+        ? respostas.integracao
+        : /estado compartilhado|gerenciamento de estado|pinia|vuex|\bstore\b/.test(texto)
+          ? respostas.estado
           : /acessib|semant|css|responsiv|teclado/.test(texto)
             ? respostas.interface
             : /component|props|emit|typescript|tipag|teste|jest|vitest/.test(texto)
