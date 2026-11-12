@@ -83,7 +83,7 @@ def test_provedor_nvidia_chama_modelo_e_retorna_contrato(monkeypatch) -> None:
     assert "nível 1 é iniciante" in requisicao["json"]["messages"][0]["content"]
 
 
-def test_provedor_nvidia_rejeita_json_invalido(monkeypatch) -> None:
+def test_provedor_nvidia_rejeita_json_invalido(monkeypatch, caplog) -> None:
     class ClienteFalso:
         def __init__(self, **kwargs) -> None:
             pass
@@ -117,6 +117,9 @@ def test_provedor_nvidia_rejeita_json_invalido(monkeypatch) -> None:
         asyncio.run(ProvedorNvidia().gerar_pergunta(entrada))
     assert erro.value.status_code == 502
     assert erro.value.detail["codigo"] == "saida_invalida"
+    assert "etapa=decodificacao tipo=pergunta_gerada" in caplog.text
+    assert "id_correlacao='correlacao-teste'" in caplog.text
+    assert "texto sem JSON" not in caplog.text
 
 
 def test_provedor_nvidia_retorna_rubrica_com_evidencia_literal(monkeypatch) -> None:
