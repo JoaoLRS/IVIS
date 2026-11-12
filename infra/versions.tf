@@ -19,4 +19,11 @@ terraform {
 
 provider "aws" {
   region = var.regiao
+
+  default_tags {
+    tags = {
+      Projeto       = "IVIS"
+      GerenciadoPor = "Terraform"
+    }
+  }
 }
