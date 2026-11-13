@@ -31,3 +31,25 @@ output "endereco_banco" {
   description = "Endereço (host) do RDS PostgreSQL. A senha nunca é exposta como saída."
   value       = aws_db_instance.principal.address
 }
+output "ip_elastico_app" {
+  description = "IP elástico da EC2 app (aponta o subdomínio do DuckDNS)."
+  value       = aws_eip.app.public_ip
+}
+
+output "ip_privado_app" {
+  description = "IP privado da EC2 app (alvo do Prometheus na porta 9091)."
+  value       = aws_instance.app.private_ip
+}
+
+output "ip_publico_monitoramento" {
+  description = "IP público da EC2 de monitoramento (muda a cada reinício)."
+  value       = aws_instance.monitoramento.public_ip
+}
+
+output "ids_instancias" {
+  description = "Identificadores das instâncias EC2, para uso com o SSM."
+  value = {
+    app           = aws_instance.app.id
+    monitoramento = aws_instance.monitoramento.id
+  }
+}
