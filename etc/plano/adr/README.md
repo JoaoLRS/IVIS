@@ -6,18 +6,18 @@ Este diretório registra decisões arquiteturais do IVIS. Cada decisão tem um i
 
 | ID | Decisão | Status |
 |---|---|---|
-| [ADR-0001](ADR-0001-arquitetura-modular.md) | Organizar o IVIS em módulos com responsabilidades e interfaces explícitas | Em andamento |
-| [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md) | Definir os limites dos módulos frontend, backend e API de IA | Em andamento |
-| [ADR-0003](ADR-0003-comunicacao-entre-modulos.md) | Backend consome a API de IA Python/NVIDIA NGC; módulos integram por APIs | Em andamento |
-| [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md) | Stack do backend e persistência relacional | Em andamento |
-| [ADR-0005](ADR-0005-modulo-de-inteligencia-artificial.md) | Isolar o processamento de IA em módulo Python | Em andamento |
-| [ADR-0006](ADR-0006-frontend-web.md) | Manter o frontend como módulo web Vue e TypeScript | Em andamento |
-| [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md) | Capturar e-mails de demonstração usando Mailpit | Em andamento |
-| [ADR-0008](ADR-0008-pagamento-simulado-para-demonstracao.md) | Simular contratação com cartão de teste no backend | Em andamento |
-| [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md) | Manter regras de negócio exclusivamente sob autoridade do backend | Em andamento |
-| [ADR-0010](ADR-0010-modelagem-relacional-do-banco.md) | Definir modelo relacional inicial do IVIS | Em andamento |
+| [ADR-0001](ADR-0001-arquitetura-modular.md) | Organizar o IVIS em módulos com responsabilidades e interfaces explícitas | Aprovado |
+| [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md) | Definir os limites dos módulos frontend, backend e API de IA | Aprovado |
+| [ADR-0003](ADR-0003-comunicacao-entre-modulos.md) | Backend consome a API de IA Python/NVIDIA NGC; módulos integram por APIs | Aprovado |
+| [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md) | Stack do backend e persistência relacional | Aprovado |
+| [ADR-0005](ADR-0005-modulo-de-inteligencia-artificial.md) | Isolar o processamento de IA em módulo Python | Aprovado |
+| [ADR-0006](ADR-0006-frontend-web.md) | Manter o frontend como módulo web Vue e TypeScript | Aprovado |
+| [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md) | Capturar e-mails de demonstração usando Mailpit | Aprovado |
+| [ADR-0008](ADR-0008-pagamento-simulado-para-demonstracao.md) | Simular contratação com cartão de teste no backend | Aprovado |
+| [ADR-0009](ADR-0009-backend-como-autoridade-de-negocio.md) | Manter regras de negócio exclusivamente sob autoridade do backend | Aprovado |
+| [ADR-0010](ADR-0010-modelagem-relacional-do-banco.md) | Definir modelo relacional inicial do IVIS | Aprovado |
 | [ADR-0011](ADR-0011-autenticacao-do-mvp.md) | Autenticação e sessão do MVP (JWT de acesso curto e token de renovação) | Aprovado |
-| [ADR-0012](ADR-0012-hospedagem-aws.md) | Hospedar o IVIS na AWS (EC2, RDS, Terraform, CI/CD e observabilidade) | Aceito |
+| [ADR-0012](ADR-0012-hospedagem-aws.md) | Hospedar o IVIS na AWS (EC2, RDS, Terraform, CI/CD e observabilidade) | Aprovado |
 
 ## Como adicionar uma decisão
 

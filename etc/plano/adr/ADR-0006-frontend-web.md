@@ -1,6 +1,6 @@
 # ADR-0006 — Frontend web
 
-- **Status:*Aprovado**
+- **Status:** Aprovado
 - **Data:*17/10/2026**
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0001](ADR-0001-arquitetura-modular.md), [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md), [ADR-0003](ADR-0003-comunicacao-entre-modulos.md)
