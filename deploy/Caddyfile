@@ -1,0 +1,16 @@
+# Caddyfile de produção do IVIS. O domínio vem da variável IVIS_DOMINIO (padrão abaixo no compose).
+# HTTPS automático (Let's Encrypt). Frontend e API na mesma origem, por causa do cookie ivis_refresh.
+#
+# O log de acesso do Caddy não é ativado de propósito: por padrão ele poderia registrar
+# cabeçalhos de requisição. Os logs de aplicação vêm do backend.
+{$IVIS_DOMINIO} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy backend:8081
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
+}
