@@ -26,3 +26,8 @@ output "urls_ecr" {
   description = "URLs dos repositórios ECR, por nome de imagem."
   value       = { for nome, repositorio in aws_ecr_repository.imagem : nome => repositorio.repository_url }
 }
+
+output "endereco_banco" {
+  description = "Endereço (host) do RDS PostgreSQL. A senha nunca é exposta como saída."
+  value       = aws_db_instance.principal.address
+}
