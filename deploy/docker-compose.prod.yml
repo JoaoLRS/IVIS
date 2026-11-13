@@ -1,0 +1,127 @@
+# Compose de produção do IVIS (EC2 "app").
+#
+# Como é usado: o pipeline (ou a implantação manual) copia este arquivo e o Caddyfile
+# para /opt/ivis na EC2 app. O arquivo .env, gerado no próprio host a partir do Infisical
+# com chmod 600, fica ao lado deles. Nenhum segredo existe neste arquivo.
+#
+# Validar sem subir nada:  docker compose -f docker-compose.prod.yml config
+#
+# Entrada: só o Caddy publica portas (80 e 443). Frontend, backend e api-ia ficam em redes
+# internas do Docker. A única outra porta publicada é a 9091 (métricas), liberada no grupo
+# de segurança somente para a EC2 de monitoramento.
+name: ivis
+
+x-registro-de-logs: &registro-de-logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  caddy:
+    # Igualar à versão do Caddy de teste (docker inspect) antes da primeira subida.
+    image: caddy:2-alpine
+    container_name: ivis-caddy
+    environment:
+      IVIS_DOMINIO: ${IVIS_DOMINIO:-ivis-ia.duckdns.org}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_dados:/data
+      - caddy_config:/config
+    networks:
+      - rede-web
+    depends_on:
+      - frontend
+      - backend
+    logging: *registro-de-logs
+    restart: unless-stopped
+
+  frontend:
+    # A imagem deve ter sido construída com --build-arg VITE_API_URL=/api (mesma origem).
+    image: ${IVIS_ECR_REGISTRO:?Defina IVIS_ECR_REGISTRO}/ivis-frontend:${IVIS_TAG:?Defina IVIS_TAG}
+    container_name: ivis-frontend
+    networks:
+      - rede-web
+    logging: *registro-de-logs
+    restart: unless-stopped
+
+  backend:
+    image: ${IVIS_ECR_REGISTRO:?Defina IVIS_ECR_REGISTRO}/ivis-backend:${IVIS_TAG:?Defina IVIS_TAG}
+    container_name: ivis-backend
+    environment:
+      # O Dockerfile define PORT=80; o Caddyfile espera 8081.
+      PORT: 8081
+      SPRING_PROFILES_ACTIVE: prod
+      IVIS_BD_URL: ${IVIS_BD_URL:?Defina IVIS_BD_URL (endpoint do RDS)}
+      IVIS_BD_USUARIO: ${IVIS_BD_USUARIO:-ivis}
+      IVIS_BD_SENHA: ${IVIS_BD_SENHA:?Defina IVIS_BD_SENHA}
+      IVIS_JWT_CHAVE_ASSINATURA: ${IVIS_JWT_CHAVE_ASSINATURA:?Defina IVIS_JWT_CHAVE_ASSINATURA}
+      IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO}
+      IVIS_IA_URL: http://api-ia:8000
+      # Mesma origem: o cookie ivis_refresh (SameSite=Strict) exige HTTPS.
+      IVIS_COOKIE_SEGURO: "true"
+      IVIS_CORS_ORIGENS: https://${IVIS_DOMINIO:-ivis-ia.duckdns.org}
+      IVIS_URL_REDEFINICAO_SENHA: https://${IVIS_DOMINIO:-ivis-ia.duckdns.org}/redefinir-senha
+      # Sem Mailpit e sem SMTP na demonstração (limitação documentada): o backend registra
+      # o erro de envio e a resposta ao usuário continua neutra.
+      IVIS_EMAIL_BOAS_VINDAS_HABILITADO: "false"
+      IVIS_EMAIL_CONFIRMACAO_HABILITADA: "false"
+      # IVIS_LIMPEZA_CHAVE não é passada de propósito: a API de limpeza não existe em prod.
+    ports:
+      # Métricas Prometheus (porta de gerenciamento). Fora do Caddy; no grupo de segurança
+      # só a EC2 de monitoramento alcança.
+      - "9091:9091"
+    networks:
+      - rede-web
+      - rede-ia
+    depends_on:
+      api-ia:
+        condition: service_healthy
+    healthcheck:
+      # Verificação de porta, sem depender de curl na imagem (a conferir na primeira subida).
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8081'"]
+      interval: 15s
+      timeout: 5s
+      start_period: 90s
+      retries: 6
+    logging: *registro-de-logs
+    restart: unless-stopped
+
+  api-ia:
+    image: ${IVIS_ECR_REGISTRO:?Defina IVIS_ECR_REGISTRO}/ivis-api-ia:${IVIS_TAG:?Defina IVIS_TAG}
+    container_name: ivis-api-ia
+    environment:
+      IVIS_IA_CHAVE_SERVICO: ${IVIS_IA_CHAVE_SERVICO:?Defina IVIS_IA_CHAVE_SERVICO}
+      # Sem a chave, os treinos com IA ficam indisponíveis e o /pronto informa isso.
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+    networks:
+      - rede-ia
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/saude', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    logging: *registro-de-logs
+    restart: unless-stopped
+
+volumes:
+  # Reaproveitam os volumes do Caddy de teste para manter o certificado Let's Encrypt e
+  # evitar novo pedido (há limite de emissões; a conferir). Se não existirem (EC2 nova):
+  #   docker volume create ivis-teste_caddy_dados
+  #   docker volume create ivis-teste_caddy_config
+  caddy_dados:
+    external: true
+    name: ivis-teste_caddy_dados
+  caddy_config:
+    external: true
+    name: ivis-teste_caddy_config
+
+networks:
+  # Caddy, frontend e backend. O backend também sai por aqui para o RDS.
+  rede-web:
+  # Backend e api-ia. A api-ia precisa de saída para a API da NVIDIA; ninguém de fora a alcança.
+  rede-ia:
