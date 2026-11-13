@@ -1,6 +1,6 @@
 # ADR-0007 — Simulação de envio de e-mail com Mailpit
 
-- **Status:*Aprovado**
+- **Status:** Aprovado
 - **Data:*17/10/2026**
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0002](ADR-0002-limites-e-responsabilidades-dos-modulos.md), [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md)

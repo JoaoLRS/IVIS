@@ -1,6 +1,6 @@
 # ADR-0012 — Hospedagem do IVIS na AWS
 
-- **Status:** Aceito
+- **Status:** Aprovado
 - **Data:** 2026-11-09
 - **Decisores:** Equipe IVIS
 - **Relacionados:** [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md), [ADR-0011](ADR-0011-autenticacao-do-mvp.md), [`Plano_Implantacao_AWS_Academy.md`](../Plano_Implantacao_AWS_Academy.md)
@@ -25,7 +25,7 @@ Migrar toda a pilha (frontend, backend, API de IA e banco de dados) para a AWS, 
 - **GitHub Actions** para verificação, testes, construção das imagens, implantação e verificação automática de disponibilidade após a implantação.
 - **Infisical** como fonte dos segredos. Como as credenciais do Learner Lab mudam a cada sessão, elas ficam no Infisical e o GitHub guarda apenas uma credencial fixa de acesso a ele.
 
-**Validação (etapa 0.3):** as premissas foram validadas em 09 e 10/11/2026 e estão registradas em [`Validacao_Learner_Lab.md`](../Validacao_Learner_Lab.md). Todas se confirmaram: RDS, ECR, S3 e SSM disponíveis; RDS db.t3.micro com PostgreSQL 17.x em sub-rede privada; uso de `LabRole` e `LabInstanceProfile`; permanência do IP elástico e retorno das EC2 ao reiniciar o laboratório. O estado remoto no S3 com travamento por arquivo (`use_lockfile`, Terraform 1.11 ou superior) dispensa o DynamoDB. O consumo de crédito foi estimado pela tabela de preços, pois o painel do laboratório não permite medi-lo. Os achados que não invalidam a decisão estão em Consequências. Por isso o status é **Aceito**.
+**Validação (etapa 0.3):** as premissas foram validadas em 09 e 10/11/2026 e estão registradas em [`Validacao_Learner_Lab.md`](../Validacao_Learner_Lab.md). Todas se confirmaram: RDS, ECR, S3 e SSM disponíveis; RDS db.t3.micro com PostgreSQL 17.x em sub-rede privada; uso de `LabRole` e `LabInstanceProfile`; permanência do IP elástico e retorno das EC2 ao reiniciar o laboratório. O estado remoto no S3 com travamento por arquivo (`use_lockfile`, Terraform 1.11 ou superior) dispensa o DynamoDB. O consumo de crédito foi estimado pela tabela de preços, pois o painel do laboratório não permite medi-lo. Os achados que não invalidam a decisão estão em Consequências. Por isso o status é **Aprovado**.
 
 Esta decisão não define alta disponibilidade, política de backup do banco, domínio permanente, envio real de e-mail (o Mailpit segue como no ADR-0007) nem a forma de expor métricas no backend, que serão tratados em decisões posteriores.
 
