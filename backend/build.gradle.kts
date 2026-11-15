@@ -30,6 +30,8 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.80")
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

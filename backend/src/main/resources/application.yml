@@ -59,7 +59,7 @@ ivis:
     boas-vindas-habilitado: ${IVIS_EMAIL_BOAS_VINDAS_HABILITADO:false}
     confirmacao-habilitada: ${IVIS_EMAIL_CONFIRMACAO_HABILITADA:false}
   cors:
-    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173,https://ivis-ia.vercel.app,https://ivis-b4s65t63k-lucifer-son.vercel.app}
+    origens-permitidas: ${IVIS_CORS_ORIGENS:http://localhost:8080,http://localhost:5173}
   ia:
     url: ${IVIS_IA_URL:http://localhost:8000}
     chave-servico: ${IVIS_IA_CHAVE_SERVICO}
@@ -104,6 +104,12 @@ spring:
   config:
     activate:
       on-profile: prod
+  main:
+    lazy-initialization: false
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
 
 logging:
   structured:
