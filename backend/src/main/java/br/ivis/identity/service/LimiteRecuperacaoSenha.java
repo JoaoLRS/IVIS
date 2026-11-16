@@ -40,8 +40,10 @@ public class LimiteRecuperacaoSenha {
         }
     }
 
-    public void verificarRedefinicao(String enderecoOrigem) {
-        if (!registrarTentativa("ip", enderecoOrigem)) {
+    public void verificarRedefinicao(String emailNormalizado, String enderecoOrigem) {
+        boolean emailPermitido = registrarTentativa("redefinicao-email", emailNormalizado);
+        boolean ipPermitido = registrarTentativa("redefinicao-ip", enderecoOrigem);
+        if (!emailPermitido || !ipPermitido) {
             throw limiteExcedido();
         }
     }

@@ -13,6 +13,7 @@ import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
 import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
+import EstadoVazio from "../componentes/EstadoVazio.vue";
 
 const estado = useEstadoAplicacao();
 const sessao = useEstadoSessao();
@@ -160,10 +161,15 @@ async function confirmarRemocao() {
       </article>
     </div>
   </div>
-  <div v-else class="empty-state card card-body">
-    Nenhuma habilidade cadastrada. Adicione habilidades para usá-las nos
-    próximos treinamentos.
-  </div>
+  <EstadoVazio
+    v-else
+    titulo="Comece pelo que você sabe fazer"
+    descricao="Adicione uma habilidade para receber perguntas mais próximas da sua experiência nos próximos treinos."
+    acao="Adicionar primeira habilidade"
+    @acionar="abrirNovo"
+  >
+    <template #icone><Code2 :size="23" /></template>
+  </EstadoVazio>
   <ModalFormulario
     v-if="modal"
     :titulo="

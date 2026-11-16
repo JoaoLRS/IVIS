@@ -20,7 +20,7 @@ export const clienteHttp = axios.create({
 
 clienteHttp.interceptors.request.use((config) => {
   const caminho = (config.url ?? "").split("?")[0];
-  if (!["/v1/sessoes/csrf", "/v1/sessoes/renovacao", "/v1/sessoes/atividade"].includes(caminho)) {
+  if (!["/v1/sessoes/csrf", "/v1/sessoes/renovacao", "/v1/sessoes/atividade", "/v1/senhas/redefinicao/autorizacao"].includes(caminho)) {
     requisicoesVisiveis.add(config);
     requisicoesEmAndamento.value += 1;
   }
@@ -29,6 +29,10 @@ clienteHttp.interceptors.request.use((config) => {
     caminho === "/v1/sessoes/csrf" ||
     caminho === "/v1/sessoes/renovacao" ||
     caminho === "/v1/sessoes/atividade" ||
+    caminho === "/v1/senhas/recuperacao" ||
+    caminho === "/v1/senhas/validacao-codigo" ||
+    caminho === "/v1/senhas/redefinicao" ||
+    caminho === "/v1/senhas/redefinicao/autorizacao" ||
     caminho === "/v1/contas/alunos" ||
     caminho === "/v1/contas/instituicoes";
 

@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-vue-next";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import { clienteHttp } from "../servicos/clienteHttp";
+import VisualEntrevista from "../componentes/VisualEntrevista.vue";
 
 const email = ref("");
 const senha = ref("");
@@ -53,8 +54,10 @@ async function enviarFormulario() {
           headers: { "X-XSRF-TOKEN": csrf.data.token },
         },
       );
-      mensagem.value =
-        "Se este e-mail estiver cadastrado, você receberá instruções para recuperar o acesso.";
+      await roteador.push({
+        name: "redefinir-senha",
+        state: { emailRecuperacao: email.value.trim() },
+      });
     } else {
       await sessao.entrar(email.value, senha.value);
       const destino =
@@ -102,7 +105,7 @@ function voltarAoLogin() {
         <p>
           {{
             modoRecuperacao
-              ? "Informe seu e-mail e enviaremos as instruções de recuperação."
+              ? "Informe seu e-mail e enviaremos um código de recuperação."
               : "Entre para acessar seus treinamentos e acompanhar seu desenvolvimento."
           }}
         </p>
@@ -169,10 +172,13 @@ function voltarAoLogin() {
             processando
               ? "Aguarde..."
               : modoRecuperacao
-                ? "Enviar instruções"
+                ? "Enviar código"
                 : "Entrar"
           }}
         </button>
+        <RouterLink v-if="modoRecuperacao" class="login-return" to="/redefinir-senha">
+          Já tenho o código
+        </RouterLink>
         <button
           v-if="modoRecuperacao"
           class="login-return"
@@ -196,6 +202,7 @@ function voltarAoLogin() {
       <div class="login-visual-content">
         <div class="login-visual-brand">IVIS<span>.</span></div>
         <p>Pratique para sua próxima entrevista.</p>
+        <VisualEntrevista />
         <div v-if="!modoRecuperacao" class="login-promo">
           <strong>Ainda não tem uma conta?</strong>
           <RouterLink :to="{ name: 'cadastro', query: rota.query }"

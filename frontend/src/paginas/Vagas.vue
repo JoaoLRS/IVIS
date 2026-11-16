@@ -21,6 +21,7 @@ import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
 import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
+import EstadoVazio from "../componentes/EstadoVazio.vue";
 
 const estado = useEstadoAplicacao();
 const sessao = useEstadoSessao();
@@ -226,8 +227,18 @@ function treinarPara(titulo: string) {
         </div>
       </article>
     </div>
-    <div v-if="!vagasFiltradas.length" class="col-12">
-      <div class="empty-state card card-body">Nenhuma vaga encontrada.</div>
+    <div v-if="!estado.vagas.length" class="col-12">
+      <EstadoVazio
+        titulo="Prepare-se para uma vaga de interesse"
+        descricao="Cadastre o cargo e os requisitos da vaga para orientar as perguntas do seu próximo treino."
+        acao="Adicionar primeira vaga"
+        @acionar="abrirNova"
+      >
+        <template #icone><BriefcaseBusiness :size="23" /></template>
+      </EstadoVazio>
+    </div>
+    <div v-else-if="!vagasFiltradas.length" class="col-12">
+      <div class="empty-state card card-body">Nenhuma vaga corresponde à busca.</div>
     </div>
   </div>
   <ModalFormulario

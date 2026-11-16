@@ -5,11 +5,12 @@ import { useEstadoSessao } from "../../../src/estados/estadoSessao";
 import { clienteHttp } from "../../../src/servicos/clienteHttp";
 
 const substituir = vi.fn();
+const navegar = vi.fn();
 const rota = { query: { redirect: "/treinos", recuperar: undefined as string | undefined } };
 vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("vue-router")>()),
   useRoute: () => rota,
-  useRouter: () => ({ replace: substituir }),
+  useRouter: () => ({ replace: substituir, push: navegar }),
 }));
 vi.mock("../../../src/estados/estadoSessao", () => ({ useEstadoSessao: vi.fn() }));
 vi.mock("../../../src/servicos/clienteHttp", () => ({
@@ -26,6 +27,7 @@ describe("página Login", () => {
   beforeEach(() => {
     entrar.mockReset().mockResolvedValue(undefined);
     substituir.mockReset().mockResolvedValue(undefined);
+    navegar.mockReset().mockResolvedValue(undefined);
     vi.mocked(clienteHttp.get).mockReset();
     vi.mocked(clienteHttp.post).mockReset();
     vi.mocked(useEstadoSessao).mockReturnValue(sessao as never);
@@ -84,7 +86,11 @@ describe("página Login", () => {
       { withCredentials: true, headers: { "X-XSRF-TOKEN": "csrf-1" } },
     );
     expect(entrar).not.toHaveBeenCalled();
-    expect(pagina.get('[role="status"]').text()).toContain("instruções para recuperar");
+    expect(navegar).toHaveBeenCalledWith({
+      name: "redefinir-senha",
+      state: { emailRecuperacao: "aluno@ivis.test" },
+    });
+    expect(pagina.find('[role="status"]').exists()).toBe(false);
   });
 
   it("abre a recuperação diretamente ao solicitar outro link", () => {

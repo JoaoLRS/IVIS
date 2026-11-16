@@ -1,25 +1,35 @@
 <script setup lang="ts">
 import axios from "axios";
-import { ref } from "vue";
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, KeyRound } from "lucide-vue-next";
-import { useRoute } from "vue-router";
+import { onMounted, ref } from "vue";
+import { ArrowLeft, CheckCircle2 } from "lucide-vue-next";
 import { clienteHttp } from "../servicos/clienteHttp";
 import { obterTokenCsrf } from "../servicos/perfilAluno";
 import RequisitosSenha from "../componentes/RequisitosSenha.vue";
+import VisualEntrevista from "../componentes/VisualEntrevista.vue";
 import { senhaValida } from "../validacao/senha";
 
-const rota = useRoute();
-const token = typeof rota.query.token === "string" ? rota.query.token : "";
+const email = ref(
+  typeof window.history.state?.emailRecuperacao === "string"
+    ? window.history.state.emailRecuperacao
+    : "",
+);
+const codigo = ref("");
+const etapa = ref<"codigo" | "senha">("codigo");
 const senha = ref("");
 const confirmacao = ref("");
-const mostrarSenha = ref(false);
-const mostrarConfirmacao = ref(false);
 const erro = ref("");
 const concluido = ref(false);
 const processando = ref(false);
+const endereco = new URL(window.location.href);
+if (endereco.hash.startsWith("#token=") || endereco.searchParams.has("token")) {
+  endereco.hash = "";
+  endereco.searchParams.delete("token");
+  window.history.replaceState(window.history.state, "", endereco.pathname + endereco.search);
+  erro.value = "O link antigo não pode mais ser usado. Solicite um novo código por e-mail.";
+}
 
 async function redefinir() {
-  if (processando.value || !token) return;
+  if (processando.value) return;
   erro.value = "";
   if (!senhaValida(senha.value)) {
     erro.value = "A nova senha ainda não atende a todos os requisitos informados.";
@@ -35,21 +45,53 @@ async function redefinir() {
     const csrf = await obterTokenCsrf();
     await clienteHttp.post(
       "/v1/senhas/redefinicao",
-      { token, novaSenha: senha.value },
+      { novaSenha: senha.value },
       { withCredentials: true, headers: { "X-XSRF-TOKEN": csrf } },
     );
     senha.value = "";
     confirmacao.value = "";
+    codigo.value = "";
     concluido.value = true;
   } catch (falha) {
     erro.value = axios.isAxiosError(falha)
       ? falha.response?.data?.mensagem ??
-        "Não foi possível redefinir a senha. Solicite um novo link ou tente novamente."
+        "Não foi possível redefinir a senha. Solicite um novo código ou tente novamente."
       : "Não foi possível redefinir a senha.";
   } finally {
     processando.value = false;
   }
 }
+
+async function validarCodigo() {
+  if (processando.value) return;
+  erro.value = "";
+  processando.value = true;
+  try {
+    const csrf = await obterTokenCsrf();
+    await clienteHttp.post(
+      "/v1/senhas/validacao-codigo",
+      { email: email.value.trim(), codigo: codigo.value },
+      { withCredentials: true, headers: { "X-XSRF-TOKEN": csrf } },
+    );
+    codigo.value = "";
+    etapa.value = "senha";
+  } catch (falha) {
+    erro.value = axios.isAxiosError(falha)
+      ? falha.response?.data?.mensagem ?? "Não foi possível validar o código. Tente novamente."
+      : "Não foi possível validar o código. Tente novamente.";
+  } finally {
+    processando.value = false;
+  }
+}
+
+onMounted(async () => {
+  try {
+    await clienteHttp.get("/v1/senhas/redefinicao/autorizacao", { withCredentials: true });
+    etapa.value = "senha";
+  } catch {
+    // Sem autorização ativa, a pessoa deve informar o código recebido.
+  }
+});
 </script>
 
 <template>
@@ -70,85 +112,72 @@ async function redefinir() {
           <RouterLink class="recovery-action" to="/login">Entrar na conta</RouterLink>
         </section>
 
-        <section v-else-if="!token" class="recovery-state" role="alert">
-          <KeyRound :size="36" aria-hidden="true" />
-          <h1>Link de recuperação inválido</h1>
-          <p>Solicite um novo link para redefinir sua senha.</p>
-          <RouterLink class="recovery-action" to="/login?recuperar=1">
-            Solicitar novo link
+        <template v-else-if="etapa === 'codigo'">
+          <header class="login-heading">
+            <h1>Confira seu e-mail</h1>
+            <p v-if="email">Enviamos um código de 8 dígitos para <strong class="recovery-email">{{ email }}</strong>. Digite o código abaixo para continuar.</p>
+            <p v-else>Digite o e-mail da sua conta e o código de 8 dígitos que enviamos para você.</p>
+          </header>
+          <form class="login-fields" @submit.prevent="validarCodigo">
+            <div v-if="!email">
+              <label for="recovery-email" class="form-label">E-mail da conta</label>
+              <input id="recovery-email" v-model="email" class="form-control" type="email" autocomplete="email" required />
+            </div>
+            <div>
+              <label for="recovery-code" class="form-label">Código de recuperação</label>
+              <input id="recovery-code" v-model="codigo" class="form-control" type="text" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="one-time-code" placeholder="8 dígitos" required />
+            </div>
+            <p v-if="erro" class="recovery-error" role="alert">{{ erro }}</p>
+            <button class="btn btn-primary login-submit" type="submit" :disabled="processando">
+              {{ processando ? "Verificando..." : "Verificar código" }}
+            </button>
+          </form>
+          <RouterLink class="recovery-new-link" to="/login?recuperar=1">
+            Não recebeu o código? Solicite outro
           </RouterLink>
-        </section>
+        </template>
 
         <template v-else>
           <header class="login-heading">
-            <h1>Redefina sua senha</h1>
-            <p>Crie uma nova senha para voltar a acessar sua conta.</p>
+            <h1>Crie sua nova senha</h1>
+            <p>O código foi confirmado. Escolha uma nova senha para sua conta.</p>
           </header>
-
           <form class="login-fields" @submit.prevent="redefinir">
             <div>
               <label for="nova-senha" class="form-label">Nova senha</label>
-              <div class="login-password-field">
-                <input
-                  id="nova-senha"
-                  v-model="senha"
-                  :type="mostrarSenha ? 'text' : 'password'"
-                  autocomplete="new-password"
-                  minlength="8"
-                  maxlength="128"
-                  required
-                  aria-describedby="requisitos-redefinicao"
-                  class="form-control"
-                />
-                <button
-                  class="login-password-toggle"
-                  type="button"
-                  :aria-label="mostrarSenha ? 'Ocultar nova senha' : 'Mostrar nova senha'"
-                  :aria-pressed="mostrarSenha"
-                  @click="mostrarSenha = !mostrarSenha"
-                >
-                  <EyeOff v-if="mostrarSenha" :size="18" />
-                  <Eye v-else :size="18" />
-                </button>
-              </div>
+              <input
+                id="nova-senha"
+                v-model="senha"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                maxlength="128"
+                required
+                aria-describedby="requisitos-redefinicao"
+                class="form-control"
+              />
               <RequisitosSenha id="requisitos-redefinicao" :senha="senha" />
             </div>
-
             <div>
-              <label for="confirmar-senha" class="form-label">
-                Confirme a nova senha
-              </label>
-              <div class="login-password-field">
-                <input
-                  id="confirmar-senha"
-                  v-model="confirmacao"
-                  :type="mostrarConfirmacao ? 'text' : 'password'"
-                  autocomplete="new-password"
-                  minlength="8"
-                  maxlength="128"
-                  required
-                  class="form-control"
-                />
-                <button
-                  class="login-password-toggle"
-                  type="button"
-                  :aria-label="mostrarConfirmacao ? 'Ocultar confirmação' : 'Mostrar confirmação'"
-                  :aria-pressed="mostrarConfirmacao"
-                  @click="mostrarConfirmacao = !mostrarConfirmacao"
-                >
-                  <EyeOff v-if="mostrarConfirmacao" :size="18" />
-                  <Eye v-else :size="18" />
-                </button>
-              </div>
+              <label for="confirmar-senha" class="form-label">Confirme a nova senha</label>
+              <input
+                id="confirmar-senha"
+                v-model="confirmacao"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                maxlength="128"
+                required
+                class="form-control"
+              />
             </div>
-
             <p v-if="erro" class="recovery-error" role="alert">{{ erro }}</p>
             <button class="btn btn-primary login-submit" type="submit" :disabled="processando">
               {{ processando ? "Salvando..." : "Redefinir senha" }}
             </button>
           </form>
           <RouterLink class="recovery-new-link" to="/login?recuperar=1">
-            Precisa de outro link? Solicite aqui
+            A verificação expirou? Solicite outro código
           </RouterLink>
         </template>
       </div>
@@ -158,6 +187,7 @@ async function redefinir() {
       <div class="login-visual-content">
         <div class="login-visual-brand">IVIS<span>.</span></div>
         <p>Pratique para sua próxima entrevista.</p>
+        <VisualEntrevista />
       </div>
     </aside>
   </main>
@@ -167,6 +197,10 @@ async function redefinir() {
 .recovery-page {
   --requirements-text: #b9c1d5;
   --requirements-met: #c5f477;
+}
+.recovery-email {
+  color: #fff;
+  overflow-wrap: anywhere;
 }
 .recovery-page .login-top {
   margin-bottom: clamp(44px, 7vh, 86px);

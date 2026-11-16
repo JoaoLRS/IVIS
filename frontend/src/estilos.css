@@ -4167,15 +4167,28 @@ input[type="radio"],
   display: grid;
   place-items: center;
   overflow: hidden;
-  background:
-    linear-gradient(#02082040, #02082050),
-    url("/login-nebula.png") center / cover no-repeat,
-    #071945;
+  background: linear-gradient(135deg, #151833 0%, #242052 56%, #383078 100%);
+}
+.login-visual::before {
+  content: "";
+  position: absolute;
+  inset: -25% -20% -20% 24%;
+  transform: skewX(-12deg);
+  background: repeating-linear-gradient(132deg, transparent 0 54px, #bbb5ff0c 54px 105px);
+  pointer-events: none;
+}
+.login-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 74% 16%, #6a63c23b, transparent 52%);
+  pointer-events: none;
 }
 .login-visual-content {
   position: relative;
   z-index: 1;
-  width: min(100% - 48px, 620px);
+  width: min(100% - 64px, 600px);
+  padding: 48px 0;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -4183,30 +4196,31 @@ input[type="radio"],
 }
 .login-visual-brand {
   color: #fff;
-  font: 800 clamp(74px, 10vw, 150px)/1 Manrope, sans-serif;
+  font: 800 clamp(68px, 8vw, 112px)/1 Manrope, sans-serif;
   letter-spacing: -0.09em;
-  text-shadow: 0 14px 45px #0209228f;
 }
 .login-visual-brand span {
   color: #c5f477;
 }
 .login-visual-content > p {
-  margin: 15px 0 0;
+  margin: 9px 0 0;
   color: #e4eaff;
-  font-size: clamp(17px, 1.7vw, 23px);
+  font-size: clamp(16px, 1.5vw, 21px);
+}
+.login-visual-content > .interview-preview {
+  margin-top: 30px;
 }
 .login-promo {
   width: min(100%, 480px);
-  margin-top: 46px;
-  padding: 26px;
+  margin-top: 24px;
+  padding: 18px 22px;
   display: grid;
   justify-items: center;
-  gap: 17px;
+  gap: 12px;
   border: 1px solid #a5b9f03d;
   border-radius: 10px;
-  background: #061230b8;
-  box-shadow: 0 16px 50px #0005;
-  backdrop-filter: blur(15px);
+  background: #111634d9;
+  box-shadow: 0 16px 50px #090b224d;
 }
 .login-promo strong {
   color: #fff;
@@ -4266,15 +4280,18 @@ input[type="radio"],
   color: #fff;
   font-size: 14px;
   font-weight: 700;
-  cursor: wait;
+  cursor: progress;
 }
 
 .global-loading-spinner {
+  display: inline-block;
+  flex: 0 0 25px;
   width: 25px;
   height: 25px;
   border: 3px solid #ffffff70;
   border-top-color: #fff;
-  border-radius: 50%;
+  border-radius: 50% !important;
+  box-sizing: border-box;
   animation: ivis-loading-spin 0.75s linear infinite;
 }
 

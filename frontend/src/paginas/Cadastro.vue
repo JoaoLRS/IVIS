@@ -5,6 +5,7 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import RequisitosSenha from "../componentes/RequisitosSenha.vue";
 import BootstrapCheck from "../componentes/BootstrapCheck.vue";
+import VisualEntrevista from "../componentes/VisualEntrevista.vue";
 import { senhaValida } from "../validacao/senha";
 
 type PerfilCadastro = "aluno" | "instituicao";
@@ -443,6 +444,7 @@ async function continuarAposCadastro() {
       <div class="login-visual-content">
         <div class="login-visual-brand">IVIS<span>.</span></div>
         <p>Pratique para sua próxima entrevista.</p>
+        <VisualEntrevista />
         <div v-if="!cadastroConcluido" class="login-promo">
           <strong>Já tem uma conta?</strong>
           <RouterLink :to="{ name: 'login', query: rota.query }">Entrar</RouterLink>

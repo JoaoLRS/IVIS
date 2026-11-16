@@ -6,14 +6,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,12 +72,14 @@ class RecuperacaoSenhaServiceTest {
     }
 
     @Test
-    void tokenEnviadoEhArmazenadoComoHashEConsumoRedefineSenhaRevogandoSessoes() throws Exception {
+    void codigoEnviadoEhArmazenadoComoHashEConsumoRedefineSenhaRevogandoSessoes() {
         UUID contaId = UUID.randomUUID();
         ContaModel conta = new ContaModel(contaId, "ALUNO", "aluno@example.com",
                 "aluno@example.com", "hash-antigo", Instant.now());
         when(contas.findByEmailNormalizado("aluno@example.com")).thenReturn(Optional.of(conta));
         when(tokens.save(any(TokenRecuperacaoSenhaModel.class))).thenAnswer(invocacao -> invocacao.getArgument(0));
+        when(codificadorSenha.encode(any())).thenAnswer(invocacao ->
+                "senha-nova-segura".equals(invocacao.getArgument(0)) ? "hash-novo" : "hash-do-codigo");
         when(codificadorSenha.encode("senha-nova-segura")).thenReturn("hash-novo");
 
         servico.solicitar("aluno@example.com", "127.0.0.1");
@@ -83,40 +87,63 @@ class RecuperacaoSenhaServiceTest {
         var mensagemCaptor = org.mockito.ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(remetente).send(mensagemCaptor.capture());
         String corpoMensagem = mensagemCaptor.getValue().getText();
-        String token = corpoMensagem.replaceFirst("(?s).*token=([A-Za-z0-9_-]{43}).*", "$1");
-        String hashToken = hash(token);
+        String codigo = corpoMensagem.replaceFirst("(?s).*código de 8 dígitos em até 30 minutos:\\s*([0-9]{8}).*", "$1");
         var tokenCaptor = org.mockito.ArgumentCaptor.forClass(TokenRecuperacaoSenhaModel.class);
         verify(tokens).save(tokenCaptor.capture());
         TokenRecuperacaoSenhaModel registro = tokenCaptor.getValue();
-        assertThat(token).matches("[A-Za-z0-9_-]{43}");
-        assertThat(registro.getHashToken()).isEqualTo(hashToken).isNotEqualTo(token);
+        assertThat(codigo).matches("[0-9]{8}");
+        assertThat(corpoMensagem).doesNotContain("#token=", "?token=");
+        assertThat(registro.getHashToken()).isEqualTo("hash-do-codigo").isNotEqualTo(codigo);
 
-        when(tokens.buscarPorHashParaAtualizacao(hashToken)).thenReturn(Optional.of(registro));
+        when(tokens.buscarAtivosDaContaParaAtualizacao(contaId)).thenReturn(List.of(registro));
+        when(codificadorSenha.matches(codigo, "hash-do-codigo")).thenReturn(true);
         when(contas.buscarPorIdParaAtualizacao(contaId)).thenReturn(Optional.of(conta));
-        servico.redefinir(token, "senha-nova-segura", "127.0.0.1");
+        String autorizacao = servico.validarCodigo("aluno@example.com", codigo, "127.0.0.1");
+        assertThat(autorizacao).matches("[A-Za-z0-9_-]{43}");
+        assertThat(registro.estaValidoEm(Instant.now())).isFalse();
+        var registrosCaptor = org.mockito.ArgumentCaptor.forClass(TokenRecuperacaoSenhaModel.class);
+        verify(tokens, times(2)).save(registrosCaptor.capture());
+        TokenRecuperacaoSenhaModel sessaoRedefinicao = registrosCaptor.getAllValues().get(1);
+        assertThat(sessaoRedefinicao.getHashToken()).isEqualTo(hash(autorizacao));
+        when(tokens.buscarPorHashParaAtualizacao(hash(autorizacao)))
+                .thenReturn(Optional.of(sessaoRedefinicao));
+        when(tokens.findByHashToken(hash(autorizacao))).thenReturn(Optional.of(sessaoRedefinicao));
+        servico.verificarAutorizacao(autorizacao);
+        servico.redefinir(autorizacao, "senha-nova-segura", "127.0.0.1");
 
         assertThat(conta.getHashSenha()).isEqualTo("hash-novo");
-        assertThat(registro.estaValidoEm(Instant.now())).isFalse();
+        assertThat(sessaoRedefinicao.estaValidoEm(Instant.now())).isFalse();
         verify(sessoes).revogarTodasDaConta(eq(contaId), any(Instant.class));
-        assertThatThrownBy(() -> servico.redefinir(token, "outra-senha-segura", "127.0.0.1"))
+        assertThatThrownBy(() -> servico.verificarAutorizacao(autorizacao))
+                .isInstanceOf(br.ivis.common.error.ExcecaoNegocio.class);
+        assertThatThrownBy(() -> servico.redefinir(autorizacao, "outra-senha-segura", "127.0.0.1"))
                 .isInstanceOf(br.ivis.common.error.ExcecaoNegocio.class);
     }
 
     @Test
-    void rejeitaTokenExpirado() {
+    void rejeitaCodigoExpirado() {
+        UUID contaId = UUID.randomUUID();
+        ContaModel conta = new ContaModel(contaId, "ALUNO", "aluno@example.com",
+                "aluno@example.com", "hash-antigo", Instant.now());
         TokenRecuperacaoSenhaModel expirado = new TokenRecuperacaoSenhaModel(
-                UUID.randomUUID(), UUID.randomUUID(), "hash", Instant.now().minusSeconds(1),
+                UUID.randomUUID(), contaId, "hash", Instant.now().minusSeconds(1),
                 Instant.now().minusSeconds(60));
-        when(tokens.buscarPorHashParaAtualizacao(any())).thenReturn(Optional.of(expirado));
+        when(contas.findByEmailNormalizado("aluno@example.com")).thenReturn(Optional.of(conta));
+        when(tokens.buscarAtivosDaContaParaAtualizacao(contaId)).thenReturn(List.of(expirado));
 
-        assertThatThrownBy(() -> servico.redefinir("A".repeat(43), "senha-nova-segura", "127.0.0.1"))
+        assertThatThrownBy(() -> servico.validarCodigo("aluno@example.com", "12345678", "127.0.0.1"))
                 .isInstanceOfSatisfying(br.ivis.common.error.ExcecaoNegocio.class,
                         excecao -> assertThat(excecao.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST));
         verify(sessoes, never()).revogarTodasDaConta(any(UUID.class), any(Instant.class));
     }
 
-    private static String hash(String valor) throws Exception {
-        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                .digest(valor.getBytes(StandardCharsets.UTF_8)));
+    private static String hash(String valor) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(valor.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception excecao) {
+            throw new AssertionError(excecao);
+        }
     }
+
 }

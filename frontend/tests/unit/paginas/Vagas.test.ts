@@ -63,4 +63,13 @@ describe("página Vagas", () => {
     expect(estado.vagas).toHaveLength(1);
     expect(excluirVaga).not.toHaveBeenCalled();
   });
+
+  it("abre o cadastro de vaga pelo estado vazio", async () => {
+    const pagina = mount(Vagas);
+    expect(pagina.text()).toContain("Prepare-se para uma vaga de interesse");
+
+    await pagina.get(".profile-empty-action").trigger("click");
+
+    expect(pagina.get('[role="dialog"]').text()).toContain("Adicionar vaga de interesse");
+  });
 });

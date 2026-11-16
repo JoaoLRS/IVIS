@@ -61,7 +61,8 @@ public class PerfilAlunoService {
     public HabilidadeResposta criarHabilidade(UUID contaId, HabilidadeRequisicao requisicao) {
         exigirPerfilAluno(contaId);
         DadosHabilidade dados = validarHabilidade(requisicao);
-        if (habilidades.existsByContaAlunoIdAndNomeNormalizado(contaId, dados.nomeNormalizado())) {
+        if (habilidades.existsByContaAlunoIdAndNomeNormalizadoAndNivel(
+                contaId, dados.nomeNormalizado(), dados.nivel())) {
             throw habilidadeDuplicada();
         }
         Instant agora = Instant.now();
@@ -83,8 +84,8 @@ public class PerfilAlunoService {
         HabilidadePerfilModel habilidade = habilidades.findByIdAndContaAlunoId(habilidadeId, contaId)
                 .orElseThrow(PerfilAlunoService::naoEncontrado);
         DadosHabilidade dados = validarHabilidade(requisicao);
-        if (habilidades.existsByContaAlunoIdAndNomeNormalizadoAndIdNot(
-                contaId, dados.nomeNormalizado(), habilidadeId)) {
+        if (habilidades.existsByContaAlunoIdAndNomeNormalizadoAndNivelAndIdNot(
+                contaId, dados.nomeNormalizado(), dados.nivel(), habilidadeId)) {
             throw habilidadeDuplicada();
         }
         habilidade.atualizar(
