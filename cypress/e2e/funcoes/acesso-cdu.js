@@ -115,12 +115,26 @@ export function conferirRedirecionamentoAoLoginDoHistorico() {
   cy.contains("h1", textos.tituloLogin).should("be.visible");
 }
 
-export function abrirRedefinicaoDeSenha({ expirado = false } = {}) {
+export function abrirRedefinicaoDeSenha({ codigoInvalido = false } = {}) {
   prepararVisitante();
-  cy.intercept("POST", "**/api/v1/senhas/redefinicao", expirado
-    ? { statusCode: 400, body: { mensagem: "O link é inválido ou expirou." } }
-    : { statusCode: 204 }).as("redefinirSenha");
-  cy.visit("/redefinir-senha?token=token-sintetico");
+  cy.intercept("GET", "**/api/v1/senhas/redefinicao/autorizacao", {
+    statusCode: 401,
+  });
+  cy.intercept("POST", "**/api/v1/senhas/validacao-codigo", codigoInvalido
+    ? { statusCode: 400, body: { mensagem: "O código de recuperação é inválido ou expirou." } }
+    : { statusCode: 204 }).as("validarCodigo");
+  cy.intercept("POST", "**/api/v1/senhas/redefinicao", { statusCode: 204 }).as("redefinirSenha");
+  cy.visit(rotas.redefinirSenha);
+  cy.contains("h1", "Confira seu e-mail").should("be.visible");
+  cy.get("#recovery-email").type("aluno@ivis.test");
+  cy.get("#recovery-code").type("12345678");
+}
+export function validarCodigoDeRecuperacao() {
+  cy.contains("button", "Verificar código").click();
+  cy.wait("@validarCodigo").its("request.body").should("deep.equal", {
+    email: "aluno@ivis.test", codigo: "12345678",
+  });
+  cy.contains("h1", "Crie sua nova senha").should("be.visible");
 }
 export function informarNovaSenha() {
   cy.get("#nova-senha").type("NovaSenhaSintetica123!", { log: false });
@@ -129,15 +143,17 @@ export function informarNovaSenha() {
 export function confirmarRedefinicao() {
   cy.contains("button", "Redefinir senha").click();
   cy.wait("@redefinirSenha").its("request.body").should("deep.equal", {
-    token: "token-sintetico", novaSenha: "NovaSenhaSintetica123!",
+    novaSenha: "NovaSenhaSintetica123!",
   });
 }
 export function conferirRedefinicaoConcluida() {
   cy.contains('[role="status"]', "Senha redefinida").should("be.visible");
   cy.get("#nova-senha").should("not.exist");
 }
-export function conferirLinkExpirado() {
-  cy.contains('[role="alert"]', "O link é inválido ou expirou.").should("be.visible");
+export function conferirCodigoInvalido() {
+  cy.contains("button", "Verificar código").click();
+  cy.wait("@validarCodigo");
+  cy.contains('[role="alert"]', "O código de recuperação é inválido ou expirou.").should("be.visible");
 }
 export function abrirDetalhesDoPlano({ semPlano = false } = {}) {
   prepararSessao({ planoAtivo: !semPlano });
@@ -171,7 +187,7 @@ export function abrirTrocaDeSenha() {
   cy.get("#nome-conta")
     .should("have.css", "background-color", "rgb(255, 255, 255)")
     .and("have.css", "border-top-color", "rgb(146, 152, 167)");
-  cy.contains("a", "Alterar senha").click();
+  cy.contains(".account-security-card a", "Alterar senha").should("be.visible").click();
   cy.location("pathname").should("eq", "/alterar-senha");
   cy.contains("h1", "Alterar senha").should("be.visible");
   cy.get("#senha-atual")

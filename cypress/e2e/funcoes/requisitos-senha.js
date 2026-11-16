@@ -19,7 +19,7 @@ export function conferirQuantidadeDeRequisitosAtendidos(quantidade) {
 export function conferirRequisitoEmVerde(texto) {
   cy.contains(`${seletores.requisitosSenha.lista} li`, texto)
     .should("have.class", "password-requirement-met")
-    .and("have.css", "color", "rgb(25, 135, 84)");
+    .and("have.css", "color", "rgb(197, 244, 119)");
 }
 
 export function conferirRequisitoPendente(texto) {

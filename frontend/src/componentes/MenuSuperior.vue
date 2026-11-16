@@ -8,7 +8,7 @@ import {
 } from "lucide-vue-next";
 import { RouterLink, useRouter } from "vue-router";
 import type { Component } from "vue";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useEstadoSessao } from "../estados/estadoSessao";
 
 defineProps<{ aberto: boolean }>();
@@ -44,22 +44,48 @@ async function sair() {
   await roteador.replace("/login");
 }
 
-function fecharGruposAoClicarFora(evento: PointerEvent) {
+function fecharMenus() {
+  menuRef.value
+    ?.querySelectorAll<HTMLDetailsElement>(
+      ".nav-section-menu[open], .top-menu-profile[open]",
+    )
+    .forEach((menu) => {
+      menu.open = false;
+    });
+}
+
+function fecharMenusAoClicarFora(evento: PointerEvent) {
   const alvo = evento.target;
   if (!(alvo instanceof Node)) return;
 
   menuRef.value
-    ?.querySelectorAll<HTMLDetailsElement>(".nav-section-menu[open]")
-    .forEach((grupo) => {
-      if (!grupo.contains(alvo)) grupo.open = false;
+    ?.querySelectorAll<HTMLDetailsElement>(
+      ".nav-section-menu[open], .top-menu-profile[open]",
+    )
+    .forEach((menu) => {
+      if (!menu.contains(alvo)) menu.open = false;
     });
 }
 
+function fecharOutrosMenus(evento: Event) {
+  const aberto = evento.target;
+  if (!(aberto instanceof HTMLDetailsElement) || !aberto.open) return;
+  menuRef.value
+    ?.querySelectorAll<HTMLDetailsElement>(
+      ".nav-section-menu[open], .top-menu-profile[open]",
+    )
+    .forEach((menu) => {
+      if (menu !== aberto) menu.open = false;
+    });
+}
+
+watch(() => roteador.currentRoute.value.fullPath, fecharMenus);
+
 onMounted(() =>
-  document.addEventListener("pointerdown", fecharGruposAoClicarFora),
+  document.addEventListener("pointerdown", fecharMenusAoClicarFora),
 );
 onBeforeUnmount(() =>
-  document.removeEventListener("pointerdown", fecharGruposAoClicarFora),
+  document.removeEventListener("pointerdown", fecharMenusAoClicarFora),
 );
 </script>
 
@@ -99,6 +125,7 @@ onBeforeUnmount(() =>
           : grupos"
         :key="grupo.rotulo"
         class="nav-section nav-section-menu"
+        @toggle="fecharOutrosMenus"
       >
         <summary class="nav-section-title">
           {{ grupo.rotulo }}
@@ -134,15 +161,15 @@ onBeforeUnmount(() =>
       </div>
     </nav>
     <div class="top-menu-account">
-      <details class="top-menu-profile">
+      <details class="top-menu-profile" @toggle="fecharOutrosMenus">
         <summary>
           <span class="profile-label">Minha conta</span>
           <strong class="profile-name">{{ primeiroNome }}</strong>
         </summary>
         <div class="top-menu-profile-options">
-          <RouterLink to="/conta">Meus dados</RouterLink>
-          <RouterLink to="/meu-plano">Meu plano</RouterLink>
-          <RouterLink to="/alterar-senha">Alterar senha</RouterLink>
+          <RouterLink to="/conta" @click="fecharMenus">Meus dados</RouterLink>
+          <RouterLink to="/meu-plano" @click="fecharMenus">Meu plano</RouterLink>
+          <RouterLink to="/alterar-senha" @click="fecharMenus">Alterar senha</RouterLink>
         </div>
       </details>
       <button class="top-menu-logout" type="button" @click="sair">

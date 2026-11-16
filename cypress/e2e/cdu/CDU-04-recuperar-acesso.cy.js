@@ -1,5 +1,5 @@
 import { alunoCdu } from "../funcoes/apoio.js";
-import { abrirRedefinicaoDeSenha, informarNovaSenha, confirmarRedefinicao, conferirRedefinicaoConcluida, conferirLinkExpirado } from "../funcoes/acesso-cdu.js";
+import { abrirRedefinicaoDeSenha, validarCodigoDeRecuperacao, informarNovaSenha, confirmarRedefinicao, conferirRedefinicaoConcluida, conferirCodigoInvalido } from "../funcoes/acesso-cdu.js";
 import {
   prepararRecuperacaoDeAcesso,
   abrirFormularioDeRecuperacao,
@@ -8,17 +8,16 @@ import {
 } from "../funcoes/cdu.js";
 
 describe("CDU-04 - Solicitar recuperação de acesso", () => {
-  it("redefine a senha pelo token recebido e orienta voltar ao login", () => {
+  it("redefine a senha após validar o código recebido", () => {
     abrirRedefinicaoDeSenha();
+    validarCodigoDeRecuperacao();
     informarNovaSenha();
     confirmarRedefinicao();
     conferirRedefinicaoConcluida();
   });
-  it("informa quando o link de redefinição expirou", () => {
-    abrirRedefinicaoDeSenha({ expirado: true });
-    informarNovaSenha();
-    confirmarRedefinicao();
-    conferirLinkExpirado();
+  it("informa quando o código de recuperação é inválido ou expirou", () => {
+    abrirRedefinicaoDeSenha({ codigoInvalido: true });
+    conferirCodigoInvalido();
   });
   it("apresenta resposta neutra ao solicitar a redefinição da senha", () => {
     prepararRecuperacaoDeAcesso();

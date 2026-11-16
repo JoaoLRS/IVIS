@@ -475,7 +475,7 @@ class FluxosAplicacaoIntegracaoTest {
         assertEquals(409, postarAutenticado(
                 "/v1/habilidades",
                 """
-                {"nome":"vue 3","categoria":"Front-end","nivel":3}
+                {"nome":"vue 3","categoria":"Front-end","nivel":4}
                 """,
                 csrf,
                 tokenAluno).statusCode());

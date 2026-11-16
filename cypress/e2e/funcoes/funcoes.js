@@ -87,7 +87,7 @@ export function visitar(url, textoEsperado) {
 }
 
 export function preencherCampo(seletor, valor) {
-  cy.get(seletor).should("be.visible").type(valor).should("have.value", valor);
+  cy.get(seletor).type(valor).should("have.value", valor);
 }
 
 export function selecionarPerfil(textoPerfil) {

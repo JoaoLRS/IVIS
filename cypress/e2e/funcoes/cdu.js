@@ -188,6 +188,9 @@ export function conferirRemocaoDeHabilidade() {
 
 export function prepararRecuperacaoDeAcesso() {
   prepararVisitante();
+  cy.intercept(metodosHttp.get, "**/api/v1/senhas/redefinicao/autorizacao", {
+    statusCode: codigosHttp.naoAutorizado,
+  });
   cy.intercept(metodosHttp.post, endpoints.recuperacaoSenha, {
     statusCode: codigosHttp.aceito,
     body: {},
@@ -204,15 +207,18 @@ export function abrirFormularioDeRecuperacao(email) {
 }
 
 export function enviarSolicitacaoDeRecuperacao(email) {
-  cy.contains(elementos.botao, textos.login.enviarInstrucoes).click();
+  cy.contains(elementos.botao, textos.login.enviarCodigo).click();
   cy.wait(aliases.aguardar(aliases.solicitarRecuperacao))
     .its("request.body")
     .should("deep.equal", { email });
-  cy.contains(textos.login.senhaRecuperada).should("be.visible");
+  cy.location("pathname").should("eq", rotas.redefinirSenha);
+  cy.contains(elementos.cabecalho1, textos.login.conferirEmail).should("be.visible");
+  cy.get(seletores.recuperacao.codigo).should("be.visible");
 }
 
 export function voltarDoFormularioDeRecuperacao() {
-  cy.contains(elementos.botao, textos.login.voltarLogin).click();
+  cy.contains(elementos.ancora, textos.login.voltarLogin).click();
+  cy.location("pathname").should("eq", rotas.login);
   cy.get(seletores.login.senha).should("be.visible");
 }
 
@@ -363,7 +369,8 @@ export function confirmarExclusaoDeVaga() {
 
 export function conferirExclusaoDeVaga() {
   cy.wait(aliases.aguardar(aliases.arquivarVaga));
-  cy.contains(textos.vagas.nenhuma).should("be.visible");
+  cy.contains(".profile-empty-state h3", textos.vagas.nenhuma).should("be.visible");
+  cy.get(seletores.vaga.botaoExcluir(valoresCdu.vagaAtualizada)).should("not.exist");
 }
 
 export function conferirModalidadesDoCatalogo() {
@@ -856,6 +863,11 @@ export function conferirRedirecionamentoParaOfertas() {
 
 export function abrirTreinoPorHabilidades() {
   abrirComoAluno(rotas.treinos, { habilidades: [habilidadeTesteCdu] });
+  cy.contains(".skill-chip", habilidadeTesteCdu.nome)
+    .should("have.attr", "aria-pressed", "false")
+    .click()
+    .should("have.attr", "aria-pressed", "true");
+  cy.contains(elementos.botao, textos.treino.iniciarEntrevista).should("be.enabled");
 }
 
 export function prepararRetomadaDaEntrevista() {
