@@ -1,0 +1,333 @@
+{
+  "uid": "ivis-visao-geral",
+  "title": "IVIS – Visão geral",
+  "tags": [
+    "ivis"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Disponibilidade do backend",
+      "type": "stat",
+      "description": "Mostra se o Prometheus consegue coletar as métricas do backend (1 = no ar).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "up{job=\"ivis-backend\"}",
+          "legendFormat": "backend"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Fora do ar",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "No ar",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Requisições por segundo",
+      "type": "timeseries",
+      "description": "Total de requisições HTTP atendidas por segundo.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 9,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count[1m]))",
+          "legendFormat": "requisições/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Erros 5xx por segundo",
+      "type": "timeseries",
+      "description": "Respostas com erro de servidor (5xx) por segundo. Fica em zero quando não há erros.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 15,
+        "y": 0,
+        "w": 9,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) or vector(0)",
+          "legendFormat": "erros 5xx/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Tempo de resposta (p95)",
+      "type": "timeseries",
+      "description": "Tempo dentro do qual 95% das requisições são respondidas.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket[5m])))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Memória da aplicação (heap)",
+      "type": "timeseries",
+      "description": "Memória heap da JVM em uso pelo backend.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "sum(jvm_memory_used_bytes{area=\"heap\"})",
+          "legendFormat": "heap em uso"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "CPU do processo",
+      "type": "timeseries",
+      "description": "Fração de CPU consumida pelo processo do backend.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 8,
+        "w": 6,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "process_cpu_usage",
+          "legendFormat": "CPU"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}
