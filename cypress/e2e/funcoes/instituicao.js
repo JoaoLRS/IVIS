@@ -13,7 +13,7 @@ export function conferirOfertasDaInstituicao() {
 }
 
 export function selecionarOfertaInstitucional() {
-  cy.contains(classes.cartaoPlano, textos.plano.acessoInstitucional)
+  cy.contains(classes.cartaoPlano, "Institucional 50 alunos")
     .contains("a", textos.plano.contratarInstitucional).click();
   cy.contains("h1", textos.plano.tituloCheckoutInstitucional).should("be.visible");
 }

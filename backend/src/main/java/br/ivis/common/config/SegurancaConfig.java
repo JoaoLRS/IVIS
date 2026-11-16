@@ -55,6 +55,7 @@ public class SegurancaConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/saude", "/v1/pronto").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/sessoes/csrf").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/senhas/redefinicao/autorizacao").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/planos", "/v1/planos/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/ambiente/limpar-dados").permitAll()
                         .requestMatchers(HttpMethod.POST,
@@ -64,6 +65,7 @@ public class SegurancaConfig {
                                 "/v1/sessoes/renovacao",
                                 "/v1/sessoes/atividade",
                                 "/v1/senhas/recuperacao",
+                                "/v1/senhas/validacao-codigo",
                                 "/v1/senhas/redefinicao")
                         .permitAll()
                         .anyRequest().authenticated())

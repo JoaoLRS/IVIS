@@ -1,6 +1,6 @@
-# Modelo relacional do IVIS — proposta inicial
+# Modelo relacional do IVIS
 
-Este documento descreve o modelo relacional do IVIS e suas regras de relacionamento. É o detalhamento associado ao [ADR-0010](../adr/ADR-0010-modelagem-relacional-do-banco.md). O schema parte das migrações V2–V6 e é padronizado pela [`V7__padronizar_objetos_e_perfis.sql`](../../../backend/src/main/resources/db/migration/V7__padronizar_objetos_e_perfis.sql), que preserva os UUIDs existentes. O **backend** é o único módulo que lê e grava os dados de negócio.
+Este documento descreve o modelo relacional do IVIS e suas regras de relacionamento. É o detalhamento associado ao [ADR-0010](../adr/ADR-0010-modelagem-relacional-do-banco.md). O schema parte das migrações V2–V6, é padronizado pela [`V7__padronizar_objetos_e_perfis.sql`](../../../backend/src/main/resources/db/migration/V7__padronizar_objetos_e_perfis.sql) e recebe as três ofertas institucionais pela migration V14. O **backend** é o único módulo que lê e grava os dados de negócio.
 
 ## Modelo relacional implementado
 
@@ -12,7 +12,7 @@ A primeira versão do schema cria as tabelas relacionais centrais do produto. As
 - **Planos e cobrança:** `planos`, `beneficios_plano`, `contratos`, `pagamentos` e `emails_simulados`.
 - **Gestão institucional e rastreabilidade:** `vinculos_institucionais` e `eventos_auditoria`.
 
-O banco está disponível no serviço Docker Compose `ivis-banco`, com volume persistente `ivis-banco-dados`. O Flyway do backend aplica as migrações na inicialização. A existência do schema não significa que todos os módulos de domínio já estejam implementados: endpoints, repositórios e regras transacionais para cada conjunto de tabelas ainda precisam ser construídos no backend.
+O banco está disponível no serviço Docker Compose `ivis-banco`, com volume persistente `ivis-banco-dados`. O Flyway do backend aplica as migrações na inicialização. As operações principais de identidade, planos, vínculos e treinamento usam este schema; novas regras devem entrar por migrações adicionais.
 
 ## Princípios e convenções
 
@@ -20,7 +20,7 @@ O banco está disponível no serviço Docker Compose `ivis-banco`, com volume pe
 - Todas as tabelas têm uma chave primária UUID chamada `objeto`. Quando uma coluna referencia outra tabela, seu nome é `codigo_objeto_<nome_da_tabela_relacionada>` (por exemplo, `codigo_objeto_perfis_aluno`). Os nomes são em português brasileiro, `snake_case` e sem acentos. Eventos de auditoria usam FKs específicas conforme a tabela do recurso; a V7 converte as referências de contrato já existentes. Classes de entidade e funções/métodos do backend também usam nomes em português brasileiro (`PascalCase` para classes e `camelCase` para funções/métodos), sem acentos nos identificadores.
 - Horários em `TIMESTAMPTZ`, armazenados em UTC. Valores monetários em centavos (`BIGINT` ou `INTEGER` conforme limite) e código da moeda (`CHAR(3)`), nunca ponto flutuante.
 - Regras de domínio são validadas no backend em toda operação. Constraints no banco reforçam unicidade, nulabilidade, cardinalidade e limites simples.
-- Proibir `ON DELETE CASCADE` em contratos, transações, treinos e auditoria. Usar estado de desativação/encerramento e política de retenção definida pela equipe.
+- Proibir `ON DELETE CASCADE` em contratos, transações, treinos e auditoria. Usar estado de desativação/encerramento; eventos de auditoria têm guarda mínima de 4 anos.
 - Armazenar somente os dados necessários. Não criar colunas para PAN/número de cartão, CVV, senha em texto puro ou segredos de integração.
 - `JSONB` pode ser considerado apenas para snapshot imutável do contexto enviado à IA ou metadados técnicos controlados; dados consultados e relacionados ficam em colunas/tabelas relacionais.
 
@@ -82,12 +82,12 @@ Não duplicar `AlunoPagante`/`AlunoConsórcio` como papel editável no cliente. 
 
 | Tabela | Colunas principais | Regras e finalidade |
 |---|---|---|
-| `planos` | `objeto` PK, `codigo`, `modalidade`, `nome`, `descricao`, `preco_centavos`, `moeda`, `ativo`, datas, `duracao_dias`, `vagas_incluidas` | Catálogo; `modalidade` limitado a individual/institucional; preço não negativo. Só backend administra ofertas e preço vigente. |
+| `planos` | `objeto` PK, `codigo`, `modalidade`, `nome`, `descricao`, `preco_centavos`, `moeda`, `ativo`, datas, `duracao_dias`, `vagas_incluidas` | Catálogo; `modalidade` limitado a individual/institucional; preço não negativo. `vagas_incluidas=NULL` representa a oferta institucional ilimitada. Só backend administra ofertas e preço vigente. |
 | `beneficios_plano` | `objeto` PK, `codigo_objeto_planos` FK, `texto_beneficio`, `ordem` | Benefícios de exibição do catálogo, ordenados por `ordem`. |
-| `contratos` | `objeto` PK, `codigo_objeto_contas` FK, `codigo_objeto_planos` FK, `situacao`, `quantidade_vagas`, `preco_centavos_contratado`, `moeda`, datas | Contratação/histórico de plano. `codigo_objeto_contas` referencia aluno para plano individual e instituição para plano institucional. Guardar preço contratado como registro histórico. `quantidade_vagas=1` para individual; institucional com capacidade positiva. A compatibilidade plano/conta é validada no backend. |
+| `contratos` | `objeto` PK, `codigo_objeto_contas` FK, `codigo_objeto_planos` FK, `situacao`, `quantidade_vagas`, `preco_centavos_contratado`, `moeda`, datas | Contratação/histórico de plano. `codigo_objeto_contas` referencia aluno para plano individual e instituição para plano institucional. Guardar preço contratado como registro histórico. `quantidade_vagas=1` para individual; institucional com capacidade positiva ou `NULL` quando ilimitado. A compatibilidade plano/conta é validada no backend. |
 | `vinculos_institucionais` | `objeto` PK, `codigo_objeto_contratos` FK, `codigo_objeto_perfis_aluno` FK, `situacao`, `vinculado_em`, `desvinculado_em`, `codigo_objeto_contas` FK (criador) | Histórico de vínculo do aluno a uma contratação institucional. Cada linha referencia o contrato institucional, do qual se deriva a instituição proprietária. Índice único parcial impede mais de um vínculo institucional ativo por aluno. |
 
-A quantidade de vagas usadas é a contagem de `vinculos_institucionais` ativos para o contrato. Vagas disponíveis = `contratos.quantidade_vagas` menos essa contagem. Não armazenar a quantidade de vagas usadas como valor independente, pois poderia divergir dos vínculos.
+A quantidade de vagas usadas é a contagem de `vinculos_institucionais` ativos para o contrato. Nos planos finitos, vagas disponíveis = `contratos.quantidade_vagas` menos essa contagem. No plano ilimitado, `quantidade_vagas` e vagas disponíveis são `NULL` na API, indicando ausência de teto. Não armazenar a quantidade de vagas usadas como valor independente, pois poderia divergir dos vínculos.
 
 ### Pagamentos
 
@@ -113,8 +113,12 @@ RF10 consulta sessões do aluno autenticado, nunca um identificador de conta de 
 
 | Tabela | Colunas principais | Regras e finalidade |
 |---|---|---|
-| `eventos_auditoria` | `objeto` PK, `codigo_objeto_contas` FK opcional, `codigo_objeto_contratos` FK opcional, `acao`, `resultado`, `tipo_recurso`, `ocorrido_em`, `detalhes` (JSONB restrito) | Eventos de contratação, pagamento e inclusão/remoção de vínculo (RF20). `codigo_objeto_contas` nulo apenas para ação automática sem ator humano identificável. A coluna do recurso referencia a tabela concreta auditada. Papel da aplicação sem permissão de alteração/remoção; acesso de leitura restrito. `detalhes` não deve guardar senha, token, PAN/CVV ou conteúdo completo da requisição. Aplicar retenção definida pelo RNF09. |
+| `eventos_auditoria` | `objeto` PK, `codigo_objeto_contas` FK opcional, `codigo_objeto_contratos` FK opcional, `acao`, `resultado`, `tipo_recurso`, `ocorrido_em`, `detalhes` (JSONB restrito) | Eventos de contratação, pagamento e inclusão/remoção de vínculo (RF20). `codigo_objeto_contas` nulo apenas para ação automática sem ator humano identificável. A coluna do recurso referencia a tabela concreta auditada. Papel da aplicação sem permissão de alteração/remoção; acesso de leitura restrito. `detalhes` não deve guardar senha, token, PAN/CVV ou conteúdo completo da requisição. Aplicar retenção mínima de 4 anos desde o evento, conforme RNF09. |
 
+### E-mail de demonstração
+
+| Tabela | Colunas principais | Regras e finalidade |
+|---|---|---|
 | `emails_simulados` | `objeto` PK, `codigo_objeto_contas` FK, `codigo_objeto_contratos` FK, `codigo_objeto_pagamentos` FK/único, destinatário, assunto, corpo e `criado_em` | Mensagem de confirmação fictícia gerada após aprovação do pagamento simulado. Não representa envio de e-mail real. |
 
 Mailpit captura mensagens SMTP fora do banco de domínio. Não criar tabela que replique seu conteúdo ou tokens de redefinição sem necessidade funcional e política de retenção definida.
@@ -125,11 +129,11 @@ Mailpit captura mensagens SMTP fora do banco de domínio. Não criar tabela que 
 2. **Propriedade do aluno:** habilidades, vagas, sessões e consultas de histórico sempre são escopadas ao aluno autenticado pelo backend. FK e índice ajudam integridade/performance, mas autorização é feita no servidor.
 3. **Propriedade institucional (RNF07):** o histórico deriva do contrato institucional; o `codigo_objeto_perfis_instituicao` do aluno representa a instituição do vínculo ativo. Toda leitura/escrita valida que o contrato pertence à instituição autenticada; códigos enviados pelo cliente não provam propriedade.
 4. **Plano e contrato:** um contrato pertence a uma única conta e referencia um plano. O backend valida a modalidade do plano contra o tipo de conta antes de gravar. Situação ativa, vigência e preço vêm dos dados do servidor, nunca de campos confiados ao navegador.
-5. **Vagas institucionais:** vínculo ativo só pode ser criado para um contrato institucional ativo e com capacidade livre. A checagem e inserção ocorrem em transação com bloqueio/concorrência apropriado; ao remover vínculo, encerrar linha histórica e liberar a capacidade. A soma de vínculos ativos não ultrapassa `quantidade_vagas`.
+5. **Vagas institucionais:** vínculo ativo só pode ser criado para um contrato institucional ativo e com capacidade livre. A checagem e inserção ocorrem em transação com bloqueio/concorrência apropriado; ao remover vínculo, encerrar linha histórica e liberar a capacidade. Nos planos finitos, a soma de vínculos ativos não ultrapassa `quantidade_vagas`; no ilimitado não se aplica teto numérico.
 6. **Vínculo único:** um aluno não pode ter mais de um vínculo institucional ativo por vez. A regra RF19 também impede contrato individual enquanto houver vínculo institucional ativo. Casos de transferência e coexistência ainda precisam de definição da equipe.
 7. **Pagamentos:** um pagamento pertence a um contrato; contrato pode ter múltiplas tentativas. Só backend cria ou atualiza estado. Notificação duplicada deve ser idempotente. Estado simulado não pode ser apresentado como cobrança real.
 8. **Histórico de treino:** sessão pertence a um aluno; pergunta pertence à sessão; resposta pertence à pergunta; feedback pertence a uma sessão. Sessões preservam snapshot e não são apagadas em cascata junto com vaga/perfil.
-9. **Auditoria e retenção (RNF09):** evento inclui quem/quando/o quê/resultado, é somente acrescentado, tem acesso restrito e segue prazo mínimo de retenção a definir. Não permitir edição pelo usuário ou remoção em cascata.
+9. **Auditoria e retenção (RNF09):** evento inclui quem/quando/o quê/resultado, é somente acrescentado, tem acesso restrito e segue prazo mínimo de retenção de 4 anos desde o evento. Não permitir edição pelo usuário ou remoção em cascata.
 10. **Chaves e exclusões:** FKs usam política restritiva por padrão. `SET NULL` só quando a relação for opcional e o histórico puder continuar inteligível; soft delete/arquivamento é preferível para entidades referenciadas.
 
 ## Índices e constraints recomendados

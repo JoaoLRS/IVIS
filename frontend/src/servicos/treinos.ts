@@ -19,7 +19,7 @@ export interface SessaoTreino {
   totalPerguntas: number;
 }
 
-async function configuracaoEscrita(timeout = 105_000) {
+async function configuracaoEscrita(timeout = 130_000) {
   const csrf = await obterTokenCsrf();
   return {
     withCredentials: true,
@@ -55,7 +55,7 @@ export async function enviarRespostaTreino(
 
 export async function concluirTreinoRemoto(treinoId: string): Promise<TreinoPersistido> {
   return (await clienteHttp.post<TreinoPersistido>(
-    `/v1/treinos/${treinoId}/concluir`, {}, await configuracaoEscrita(110_000),
+    `/v1/treinos/${treinoId}/concluir`, {}, await configuracaoEscrita(135_000),
   )).data;
 }
 

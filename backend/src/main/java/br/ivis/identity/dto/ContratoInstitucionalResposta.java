@@ -14,7 +14,7 @@ public final class ContratoInstitucionalResposta {
     }
 
     public record Capacidade(
-            UUID contratoId, int quantidadeVagas, long vagasUtilizadas, long vagasDisponiveis) {
+            UUID contratoId, Integer quantidadeVagas, long vagasUtilizadas, Long vagasDisponiveis) {
     }
 
     public record CriacaoVinculoRequisicao(@NotNull UUID contratoId, @NotNull UUID contaAlunoId) {

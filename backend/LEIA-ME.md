@@ -1,6 +1,6 @@
 # IVIS — Backend
 
-Etapa 1 da [Ordem de Entrega do MVP](../etc/plano/Ordem_de_Entrega_MVP.md): esqueleto executável com primeira integração da IA e identidade/sessão. Java 25 LTS, Spring Boot, Gradle, PostgreSQL e Flyway. O schema de identidade e domínio está nas migrations V2 e V3; controllers de conta, login e sessão estão disponíveis, enquanto os demais domínios continuam em implementação.
+Backend do IVIS em Java 25 LTS, Spring Boot, Gradle, PostgreSQL e Flyway. A identidade, os planos, vínculos institucionais, treinos e a integração com a IA estão implementados. A situação de aceite de cada requisito consta nos [requisitos](../etc/plano/IVIS_Requisitos.md) e no [plano de teste](../etc/plano%20de%20teste.md).
 
 As migrations Flyway já aplicadas em um banco persistente devem manter nome,
 versão e conteúdo. A sequência V7–V10 corresponde à padronização de objetos,

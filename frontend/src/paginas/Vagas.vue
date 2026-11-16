@@ -21,6 +21,7 @@ import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
 import ModalConfirmacao from "../componentes/ModalConfirmacao.vue";
 import ModalFormulario from "../componentes/ModalFormulario.vue";
+import EstadoVazio from "../componentes/EstadoVazio.vue";
 
 const estado = useEstadoAplicacao();
 const sessao = useEstadoSessao();
@@ -161,7 +162,12 @@ function treinarPara(titulo: string) {
   <div class="alert opportunity-alert d-flex align-items-center gap-3">
     <span class="alert-icon"><BriefcaseBusiness :size="19" /></span>
     <div>
-      <strong>{{ estado.vagas.length }} vagas cadastradas</strong>
+      <strong
+        >{{ estado.vagas.length }}
+        {{
+          estado.vagas.length === 1 ? "vaga cadastrada" : "vagas cadastradas"
+        }}</strong
+      >
       <p class="mb-0">
         As informações da vaga serão usadas como contexto de uma entrevista.
       </p>
@@ -206,11 +212,9 @@ function treinarPara(titulo: string) {
           </div>
           <h2 class="job-title">{{ vaga.titulo }}</h2>
           <div class="d-flex flex-wrap gap-2">
-            <Etiqueta
-              v-for="habilidade in vaga.requisitos"
-              :key="habilidade"
-              >{{ habilidade }}</Etiqueta
-            >
+            <Etiqueta v-for="habilidade in vaga.requisitos" :key="habilidade">{{
+              habilidade
+            }}</Etiqueta>
           </div>
           <div class="mt-auto">
             <button
@@ -223,8 +227,18 @@ function treinarPara(titulo: string) {
         </div>
       </article>
     </div>
-    <div v-if="!vagasFiltradas.length" class="col-12">
-      <div class="empty-state card card-body">Nenhuma vaga encontrada.</div>
+    <div v-if="!estado.vagas.length" class="col-12">
+      <EstadoVazio
+        titulo="Prepare-se para uma vaga de interesse"
+        descricao="Cadastre o cargo e os requisitos da vaga para orientar as perguntas do seu próximo treino."
+        acao="Adicionar primeira vaga"
+        @acionar="abrirNova"
+      >
+        <template #icone><BriefcaseBusiness :size="23" /></template>
+      </EstadoVazio>
+    </div>
+    <div v-else-if="!vagasFiltradas.length" class="col-12">
+      <div class="empty-state card card-body">Nenhuma vaga corresponde à busca.</div>
     </div>
   </div>
   <ModalFormulario

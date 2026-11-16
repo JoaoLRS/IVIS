@@ -21,7 +21,7 @@ interface Plano {
   expiraEm: string | null;
   beneficios: string[];
   condicoesTitular: {
-    quantidadeVagas: number;
+    quantidadeVagas: number | null;
     precoCentavosContratado: number;
     moeda: string;
   } | null;
@@ -126,8 +126,8 @@ onMounted(carregar);
           <section v-if="plano.condicoesTitular" class="plan-detail-tile">
             <span class="plan-detail-icon"><Users :size="17" /></span>
             <div>
-              <span class="plan-detail-label">Vadas de alunos </span>
-              <strong>{{ plano.condicoesTitular.quantidadeVagas }}</strong>
+              <span class="plan-detail-label">Vagas de alunos </span>
+              <strong>{{ plano.condicoesTitular.quantidadeVagas ?? "Ilimitadas" }}</strong>
             </div>
           </section>
           <section class="plan-detail-tile">

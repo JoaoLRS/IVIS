@@ -74,6 +74,6 @@ Estas mudanças são **trabalho futuro**, necessário antes do primeiro deploy; 
 | Domínio/subdomínio ou outra entrada HTTPS autorizada | Necessário para autenticação com cookie `Secure`. A consulta a domínios registrados foi negada; verificar zonas hospedadas e confirmar com a turma. |
 | Tamanho e arquitetura da EC2 permitidos | Determina se o Compose inteiro cabe na instância e se o build ocorre nela. |
 | Política de acesso administrativo (SSH ou Session Manager) | Determina regras de rede e permissões. |
-| Retenção de dados e acesso ao Mailpit | Define backup, descarte e se recuperação de senha pode ser demonstrada. |
+| Operação da retenção de dados e acesso ao Mailpit | A auditoria exige guarda mínima de 4 anos; definir backup, arquivamento, descarte posterior e se a recuperação de senha pode ser demonstrada. |
 
 **Próximo entregável técnico após essas decisões:** arquivo Compose de AWS, configuração do proxy TLS e ajuste do build do frontend, acompanhados de um roteiro de deploy e rollback reproduzível. Este plano não cria recursos nem publica a aplicação.

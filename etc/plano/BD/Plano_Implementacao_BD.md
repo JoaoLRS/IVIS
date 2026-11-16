@@ -16,7 +16,7 @@ Este plano transforma o [modelo relacional proposto](Modelo_Relacional_IVIS.md) 
 ### 1. Revisar o modelo de domínio
 
 - Validar com a equipe as tabelas, cardinalidades, campos obrigatórios e estados descritos em `Modelo_Relacional_IVIS.md`.
-- Fechar regras ainda pendentes: exclusão/anonimização, retenção, renovação de planos, transferência entre instituições, ciclo de cobrança e estados do pagamento simulado.
+- Fechar regras ainda pendentes: exclusão/anonimização de conta e treino, operação da retenção de auditoria por 4 anos, renovação/troca de planos, transferência entre instituições e ciclo de cobrança real.
 - Confirmar quais dados de perfil são necessários e se documentos fiscais serão coletados.
 - Registrar alterações aprovadas no ADR-0010 e neste modelo antes da primeira migração.
 
@@ -40,7 +40,7 @@ Este plano transforma o [modelo relacional proposto](Modelo_Relacional_IVIS.md) 
 
 ### 4. Implementar repositórios e regras transacionais no backend
 
-- **Pendente para a fatia Q&A:** entidades, repositórios e operações de domínio para iniciar treino, persistir pergunta e resposta, concluir com avaliação e consultar histórico.
+- **Implementado:** entidades, repositórios e operações de domínio iniciam treino, persistem perguntas e respostas, concluem com avaliação e consultam histórico. Manter testes de regressão para essas operações.
 
 - Criar entidades e repositórios com nomes em português brasileiro; classes em `PascalCase`, métodos em `camelCase`, identificadores sem acentos.
 - Derivar a conta autenticada no servidor; não aceitar do frontend IDs como prova de titularidade.
@@ -65,6 +65,6 @@ Este plano transforma o [modelo relacional proposto](Modelo_Relacional_IVIS.md) 
 
 ## Dependências e pendências
 
-- Aprovação do modelo relacional e das políticas de retenção.
+- Aprovação do modelo relacional e dos procedimentos operacionais de retenção; o mínimo de 4 anos para auditoria já foi definido.
 - Implementação do módulo backend e definição do ambiente de desenvolvimento.
 - Definição final das regras de ciclo de vida de planos, vínculos e pagamentos.

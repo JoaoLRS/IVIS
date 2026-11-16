@@ -1,29 +1,45 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import roteador, { navegacaoEmAndamento } from "./roteador/roteador";
 import MenuLateral from "./componentes/MenuSuperior.vue";
 import BarraSuperior from "./componentes/BarraSuperior.vue";
 import { useEstadoAplicacao } from "./estados/estadoAplicacao";
 import { useEstadoSessao } from "./estados/estadoSessao";
+import { requisicoesEmAndamento } from "./servicos/clienteHttp";
 
 const rota = useRoute();
+const carregandoGlobal = computed(() => requisicoesEmAndamento.value > 0 || navegacaoEmAndamento.value);
 const menuAberto = ref(false);
+const navegacaoPronta = ref(false);
+void roteador.isReady().then(() => {
+  navegacaoPronta.value = true;
+});
 const sessao = useEstadoSessao();
+onMounted(() => {
+  void sessao.restaurar();
+});
 const estado = useEstadoAplicacao();
 watch(
-  () => [sessao.conta?.id, sessao.accessToken] as const,
+  () => [sessao.conta?.id, sessao.accessToken, sessao.temPlano] as const,
   ([contaId, token], anterior) => {
     const contaAnterior = anterior?.[0];
     if (contaId !== contaAnterior) estado.limparDadosDaConta();
     const conta = sessao.conta;
     if (conta) {
       estado.atualizarDadosAluno({ nome: conta.nome, email: conta.email });
-      if (token && conta.tipoConta === "ALUNO") {
-        void estado
-          .carregarPerfil(token, conta.id, () => sessao.conta?.id ?? null)
-          .catch(() => {
-            // Cada tela apresenta seu próprio estado vazio se a API estiver indisponível.
-          });
+      if (token && conta.tipoConta === "ALUNO" && sessao.temPlano !== null) {
+        void (
+          sessao.temPlano
+            ? estado.carregarPerfil(
+                token,
+                conta.id,
+                () => sessao.conta?.id ?? null,
+              )
+            : estado.carregarHistorico(conta.id, () => sessao.conta?.id ?? null)
+        ).catch(() => {
+          // Cada tela apresenta seu próprio estado vazio se a API estiver indisponível.
+        });
       }
     }
   },
@@ -42,23 +58,31 @@ const titulos = computed<Record<string, string>>(() => ({
       : "Dados do aluno",
   "alterar-senha": "Alterar senha",
   planos: "Planos disponíveis",
+  "meu-plano": "Meu plano",
+  instituicao: "Área da instituição",
 }));
 </script>
 
 <template>
-  <RouterView v-if="rota.meta.layout === 'autenticacao'" />
-  <div v-else class="app-shell">
-    <MenuLateral :aberto="menuAberto" @fechar="menuAberto = false" />
-    <main class="main-area">
-      <BarraSuperior
-        :titulo="titulos[String(rota.name)] ?? 'IVIS'"
-        @abrir-menu="menuAberto = true"
-      />
-      <div class="page-content container-fluid">
-        <RouterView v-slot="{ Component }">
-          <component :is="Component" />
-        </RouterView>
-      </div>
-    </main>
+  <div :inert="carregandoGlobal" :aria-busy="carregandoGlobal">
+    <RouterView v-if="navegacaoPronta && rota.meta.layout === 'autenticacao'" />
+    <div v-else-if="navegacaoPronta" class="app-shell">
+      <MenuLateral :aberto="menuAberto" @fechar="menuAberto = false" />
+      <main class="main-area">
+        <BarraSuperior
+          :titulo="titulos[String(rota.name)] ?? 'IVIS'"
+          @abrir-menu="menuAberto = true"
+        />
+        <div class="page-content container-fluid">
+          <RouterView v-slot="{ Component }">
+            <component :is="Component" />
+          </RouterView>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div v-if="carregandoGlobal" class="global-loading-overlay" role="status" aria-live="polite">
+    <span class="global-loading-spinner" aria-hidden="true" />
+    <span>Carregando...</span>
   </div>
 </template>

@@ -13,7 +13,7 @@ import br.ivis.identity.service.LimiteTentativasLogin;
 class LimiteTentativasLoginTest {
 
     @Test
-    void limitaTentativasPorContaEOrigemSemGuardarEmailEmClaro() {
+    void limitaTentativasPorContaSemBloquearOutraContaNaMesmaOrigem() {
         LimiteTentativasLogin limite = new LimiteTentativasLogin(2, Duration.ofMinutes(15));
 
         limite.verificar("aluno@exemplo.test", "127.0.0.1");
@@ -25,10 +25,11 @@ class LimiteTentativasLoginTest {
                 ExcecaoNegocio.class, () -> limite.verificar("aluno@exemplo.test", "127.0.0.1"));
         assertEquals(HttpStatus.TOO_MANY_REQUESTS, excecao.getStatus());
         assertEquals("limite_excedido", excecao.getCodigo());
+        limite.verificar("outro@exemplo.test", "127.0.0.1");
     }
 
     @Test
-    void sucessoLiberaOsContadoresDaContaEOrigem() {
+    void sucessoLiberaOsContadoresDaConta() {
         LimiteTentativasLogin limite = new LimiteTentativasLogin(1, Duration.ofMinutes(15));
         limite.registrarFalha("aluno@exemplo.test", "127.0.0.1");
         limite.registrarSucesso("aluno@exemplo.test", "127.0.0.1");

@@ -23,7 +23,7 @@ defineProps<{ senha: string; id: string }>();
 <style scoped>
 .password-requirements {
   margin: 10px 0 18px;
-  color: #667085;
+  color: var(--requirements-text, #667085);
   font-size: 12px;
 }
 
@@ -53,7 +53,7 @@ defineProps<{ senha: string; id: string }>();
 }
 
 .password-requirements .password-requirement-met {
-  color: #198754;
+  color: var(--requirements-met, #198754);
   font-weight: 600;
 }
 

@@ -1,6 +1,9 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { listarHistorico, type TreinoPersistido } from "../../src/servicos/historico";
+import {
+  listarHistorico,
+  type TreinoPersistido,
+} from "../../src/servicos/historico";
 import {
   cancelarTreinoRemoto,
   concluirTreinoRemoto,
@@ -58,19 +61,28 @@ describe("sessão de treino", () => {
   it("envia apenas o ID da vaga e usa a pergunta registrada pelo servidor", async () => {
     const estado = useEstadoAplicacao();
     const vaga = {
-      id: "vaga-1", titulo: "Desenvolvedora Vue", empresa: "Empresa",
-      senioridade: "Pleno", descricao: "Interfaces", requisitos: ["Vue.js"],
-      criadoEm: "2026-11-02T12:00:00Z", atualizadoEm: "2026-11-02T12:00:00Z",
+      id: "vaga-1",
+      titulo: "Desenvolvedora Vue",
+      empresa: "Empresa",
+      senioridade: "Pleno",
+      descricao: "Interfaces",
+      requisitos: ["Vue.js"],
+      criadoEm: "2026-11-02T12:00:00Z",
+      atualizadoEm: "2026-11-02T12:00:00Z",
     };
     vi.mocked(iniciarTreinoRemoto).mockResolvedValue({
-      ...sessao(), tipoContexto: "VAGA", contexto: "Vaga: Desenvolvedora Vue · Empresa",
+      ...sessao(),
+      tipoContexto: "VAGA",
+      contexto: "Vaga: Desenvolvedora Vue · Empresa",
       vagaId: "vaga-1",
     });
 
     await estado.iniciarTreino(vaga);
 
     expect(iniciarTreinoRemoto).toHaveBeenCalledWith({
-      tipoContexto: "VAGA", vagaId: "vaga-1", habilidades: [],
+      tipoContexto: "VAGA",
+      vagaId: "vaga-1",
+      habilidades: [],
     });
     expect(estado.perguntasDoTreino).toEqual(["Pergunta 1"]);
     expect(estado.sessaoTreino?.perguntas[0].id).toBe("pergunta-1");
@@ -80,7 +92,9 @@ describe("sessão de treino", () => {
     vi.mocked(listarHabilidades).mockResolvedValue([]);
     vi.mocked(listarVagas).mockResolvedValue([]);
     vi.mocked(listarHistorico).mockResolvedValue([]);
-    vi.mocked(consultarTreinoEmAndamento).mockResolvedValue(sessao(["Resposta 1", null]));
+    vi.mocked(consultarTreinoEmAndamento).mockResolvedValue(
+      sessao(["Resposta 1", null]),
+    );
     const estado = useEstadoAplicacao();
 
     await estado.carregarPerfil("token", "conta-1", () => "conta-1");
@@ -91,6 +105,31 @@ describe("sessão de treino", () => {
     expect(estado.perguntasDoTreino).toEqual(["Pergunta 1", "Pergunta 2"]);
   });
 
+  it("carrega o histórico sem exigir dados de treino de um plano ativo", async () => {
+    vi.mocked(listarHistorico).mockResolvedValue([
+      {
+        id: "treino-antigo",
+        titulo: "Entrevista por habilidades",
+        contexto: "Java",
+        nota: 80,
+        data: "2026-11-02T12:00:00Z",
+        pontosFortes: ["Clareza"],
+        pontosMelhoria: ["Profundidade"],
+      },
+    ]);
+    const estado = useEstadoAplicacao();
+
+    await estado.carregarHistorico("conta-1", () => "conta-1");
+
+    expect(estado.historico[0]).toMatchObject({
+      id: "treino-antigo",
+      nota: 80,
+    });
+    expect(listarHabilidades).not.toHaveBeenCalled();
+    expect(listarVagas).not.toHaveBeenCalled();
+    expect(consultarTreinoEmAndamento).not.toHaveBeenCalled();
+  });
+
   it("preserva uma resposta se a chamada falhar e repete pelo mesmo ID", async () => {
     vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
     vi.mocked(enviarRespostaTreino)
@@ -99,24 +138,33 @@ describe("sessão de treino", () => {
     const estado = useEstadoAplicacao();
     await estado.iniciarTreino(undefined, ["Vue.js"]);
 
-    await expect(estado.responder("  Resposta 1  ")).rejects.toThrow("IA indisponível");
+    await expect(estado.responder("  Resposta 1  ")).rejects.toThrow(
+      "IA indisponível",
+    );
     expect(estado.respostaPendente).toBe("Resposta 1");
     await estado.responder("");
 
     expect(enviarRespostaTreino).toHaveBeenCalledTimes(2);
     expect(enviarRespostaTreino).toHaveBeenLastCalledWith(
-      "treino-1", "pergunta-1", "Resposta 1",
+      "treino-1",
+      "pergunta-1",
+      "Resposta 1",
     );
     expect(estado.respostas).toEqual(["Resposta 1"]);
   });
 
   it("conclui pelo ID sem reenviar perguntas ou respostas", async () => {
     const estado = useEstadoAplicacao();
-    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao(["Resposta 1", "Resposta 2", "Resposta 3"]));
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(
+      sessao(["Resposta 1", "Resposta 2", "Resposta 3"]),
+    );
     const salvo: TreinoPersistido = {
-      id: "treino-1", titulo: "Entrevista por habilidades",
-      contexto: "Habilidades: Vue.js", nota: 88,
-      data: "2026-11-02T12:00:00Z", pontosFortes: ["Boa comunicação"],
+      id: "treino-1",
+      titulo: "Entrevista por habilidades",
+      contexto: "Habilidades: Vue.js",
+      nota: 88,
+      data: "2026-11-02T12:00:00Z",
+      pontosFortes: ["Boa comunicação"],
       pontosMelhoria: ["Detalhar alternativas"],
     };
     vi.mocked(concluirTreinoRemoto).mockResolvedValue(salvo);
@@ -132,7 +180,9 @@ describe("sessão de treino", () => {
   it("cancela a sessão no servidor antes de limpar o treino local", async () => {
     const estado = useEstadoAplicacao();
     vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
-    vi.mocked(cancelarTreinoRemoto).mockRejectedValueOnce(new Error("Falha de rede"));
+    vi.mocked(cancelarTreinoRemoto).mockRejectedValueOnce(
+      new Error("Falha de rede"),
+    );
     await estado.iniciarTreino(undefined, ["Vue.js"]);
 
     await expect(estado.cancelarTreino()).rejects.toThrow("Falha de rede");
@@ -152,7 +202,11 @@ describe("sessão de treino", () => {
     vi.mocked(consultarTreinoEmAndamento).mockResolvedValue(sessao());
     const estado = useEstadoAplicacao();
 
-    await estado.carregarPerfil("token-antigo", "aluno-antigo", () => "aluno-novo");
+    await estado.carregarPerfil(
+      "token-antigo",
+      "aluno-antigo",
+      () => "aluno-novo",
+    );
 
     expect(estado.treinoAtivo).toBe(false);
     expect(estado.sessaoTreino).toBeNull();
@@ -161,7 +215,9 @@ describe("sessão de treino", () => {
 
   it("impede resposta sem sessão e conclusão antes das três respostas", async () => {
     const estado = useEstadoAplicacao();
-    await expect(estado.responder("Resposta")).rejects.toThrow("Não há uma resposta pendente");
+    await expect(estado.responder("Resposta")).rejects.toThrow(
+      "Não há uma resposta pendente",
+    );
     await expect(estado.concluirTreino()).rejects.toThrow("Responda a todas");
     vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
     await estado.iniciarTreino(undefined, ["Vue.js"]);
@@ -170,8 +226,12 @@ describe("sessão de treino", () => {
   });
 
   it("mantém o treino ativo quando a avaliação da IA falha", async () => {
-    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao(["R1", "R2", "R3"]));
-    vi.mocked(concluirTreinoRemoto).mockRejectedValue(new Error("IA indisponível"));
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(
+      sessao(["R1", "R2", "R3"]),
+    );
+    vi.mocked(concluirTreinoRemoto).mockRejectedValue(
+      new Error("IA indisponível"),
+    );
     const estado = useEstadoAplicacao();
     await estado.iniciarTreino(undefined, ["Vue.js"]);
 

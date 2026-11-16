@@ -5,6 +5,7 @@ import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import RequisitosSenha from "../componentes/RequisitosSenha.vue";
 import BootstrapCheck from "../componentes/BootstrapCheck.vue";
+import VisualEntrevista from "../componentes/VisualEntrevista.vue";
 import { senhaValida } from "../validacao/senha";
 
 type PerfilCadastro = "aluno" | "instituicao";
@@ -58,8 +59,16 @@ async function sairDaConta() {
 
 function mensagemErro(erro: unknown) {
   if (typeof erro === "object" && erro !== null && "response" in erro) {
-    const resposta = (erro as { response?: { data?: { mensagem?: string } } })
-      .response;
+    const resposta = (
+      erro as {
+        response?: {
+          status?: number;
+          data?: { mensagem?: string; codigo?: string };
+        };
+      }
+    ).response;
+    if (resposta?.status === 403 && resposta.data?.codigo === "acesso_negado")
+      return "Não foi possível validar sua sessão. Atualize a página e tente novamente.";
     return resposta?.data?.mensagem ?? "Não foi possível criar a conta.";
   }
   return "Não foi possível conectar ao IVIS. Tente novamente.";
@@ -125,8 +134,9 @@ async function continuarAposCadastro() {
 
 <template>
   <main class="cadastro-page">
+    <section class="cadastro-panel">
     <header class="cadastro-top">
-      <RouterLink class="cadastro-brand" to="/planos">IVIS</RouterLink>
+      <RouterLink class="cadastro-brand" to="/">IVIS<span>.</span></RouterLink>
       <div class="cadastro-top-actions">
         <RouterLink class="cadastro-back" to="/planos">Ver planos</RouterLink>
         <button
@@ -146,10 +156,17 @@ async function continuarAposCadastro() {
           <span class="cadastro-success-mark" aria-hidden="true">✓</span>
           <h2>Conta criada com sucesso</h2>
           <p>
-            Seu cadastro foi concluído. A mensagem de boas-vindas foi encaminhada
-            ao serviço de e-mail de demonstração.
+            Seu cadastro foi concluído. A mensagem de boas-vindas foi
+            encaminhada ao serviço de e-mail de demonstração.
           </p>
-          <a v-if="mailpitLocal" class="btn cadastro-email-button" href="http://localhost:8025" target="_blank" rel="noopener noreferrer">Abrir Mailpit</a>
+          <a
+            v-if="mailpitLocal"
+            class="btn cadastro-email-button"
+            href="http://localhost:8025"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Abrir Mailpit</a
+          >
           <button
             class="btn btn-primary cadastro-submit"
             type="button"
@@ -421,7 +438,18 @@ async function continuarAposCadastro() {
       </template>
     </section>
 
-    <p class="cadastro-demo">Sua conta é protegida pelo IVIS.</p>
+    </section>
 
+    <aside class="login-visual cadastro-visual" aria-label="Conheça o IVIS">
+      <div class="login-visual-content">
+        <div class="login-visual-brand">IVIS<span>.</span></div>
+        <p>Pratique para sua próxima entrevista.</p>
+        <VisualEntrevista />
+        <div v-if="!cadastroConcluido" class="login-promo">
+          <strong>Já tem uma conta?</strong>
+          <RouterLink :to="{ name: 'login', query: rota.query }">Entrar</RouterLink>
+        </div>
+      </div>
+    </aside>
   </main>
 </template>

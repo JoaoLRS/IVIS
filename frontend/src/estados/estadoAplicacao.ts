@@ -41,11 +41,14 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     treinoAtivo.value = true;
     contextoTreino.value = sessao.contexto;
     vagaIdEmTreinamento.value = sessao.vagaId;
-    vagaEmTreinamento.value = sessao.tipoContexto === "VAGA"
-      ? sessao.contexto.replace(/^Vaga: /, "").split(" · ")[0]
-      : null;
+    vagaEmTreinamento.value =
+      sessao.tipoContexto === "VAGA"
+        ? sessao.contexto.replace(/^Vaga: /, "").split(" · ")[0]
+        : null;
     habilidadesDoTreino.value = sessao.habilidades;
-    perguntasDoTreino.value = sessao.perguntas.map((pergunta) => pergunta.texto);
+    perguntasDoTreino.value = sessao.perguntas.map(
+      (pergunta) => pergunta.texto,
+    );
     respostas.value = sessao.perguntas
       .filter((pergunta) => pergunta.resposta !== null)
       .map((pergunta) => pergunta.resposta as string);
@@ -76,8 +79,17 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     sessaoTreino.value = null;
   }
 
-  async function carregarPerfil(token: string, contaId: string, contaAtual: () => string | null) {
-    const [habilidadesPersistidas, vagasPersistidas, treinosPersistidos, treinoPendente] = await Promise.all([
+  async function carregarPerfil(
+    token: string,
+    contaId: string,
+    contaAtual: () => string | null,
+  ) {
+    const [
+      habilidadesPersistidas,
+      vagasPersistidas,
+      treinosPersistidos,
+      treinoPendente,
+    ] = await Promise.all([
       listarHabilidades(token),
       listarVagas(token),
       listarHistorico(),
@@ -94,6 +106,21 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       melhorias: treino.pontosMelhoria.join(" "),
     }));
     if (treinoPendente) aplicarSessaoTreino(treinoPendente);
+  }
+
+  async function carregarHistorico(
+    contaId: string,
+    contaAtual: () => string | null,
+  ) {
+    const treinosPersistidos = await listarHistorico();
+    if (contaAtual() !== contaId) return;
+    historico.value = treinosPersistidos.map((treino) => ({
+      ...treino,
+      data: new Date(treino.data).toLocaleString("pt-BR"),
+      duracao: "Entrevista concluída",
+      pontosFortes: treino.pontosFortes.join(" "),
+      melhorias: treino.pontosMelhoria.join(" "),
+    }));
   }
 
   function adicionarVaga(vaga: VagaInteressePerfil) {
@@ -121,7 +148,10 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     const sessao = await iniciarTreinoRemoto({
       tipoContexto: vaga ? "VAGA" : "HABILIDADES",
       vagaId: vaga?.id ?? null,
-      habilidades: vaga ? [] : (habilidadesSelecionadas ?? habilidades.value.map((item) => item.nome)),
+      habilidades: vaga
+        ? []
+        : (habilidadesSelecionadas ??
+          habilidades.value.map((item) => item.nome)),
     });
     respostaPendente.value = null;
     aplicarSessaoTreino(sessao);
@@ -138,7 +168,9 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
       throw new Error("Não há uma pergunta ativa para receber a resposta.");
     }
     const sessao = await enviarRespostaTreino(
-      sessaoTreino.value.id, pergunta.id, respostaPendente.value,
+      sessaoTreino.value.id,
+      pergunta.id,
+      respostaPendente.value,
     );
     aplicarSessaoTreino(sessao);
     respostaPendente.value = null;
@@ -157,7 +189,9 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
   }
   async function concluirTreino() {
     if (!sessaoTreino.value || respostas.value.length !== totalPerguntas) {
-      throw new Error("Responda a todas as perguntas antes de finalizar o treino.");
+      throw new Error(
+        "Responda a todas as perguntas antes de finalizar o treino.",
+      );
     }
     const salvo = await concluirTreinoRemoto(sessaoTreino.value.id);
     const treino: Treino = {
@@ -192,6 +226,7 @@ export const useEstadoAplicacao = defineStore("aplicacao", () => {
     respostaPendente,
     sessaoTreino,
     carregarPerfil,
+    carregarHistorico,
     limparDadosDaConta,
     atualizarDadosAluno,
     perguntasDoTreino,

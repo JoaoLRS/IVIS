@@ -38,7 +38,7 @@ public class LimiteTentativasLogin {
     public void verificar(String emailNormalizado, String enderecoOrigem) {
         Instant agora = Instant.now();
         if (bloqueado(chave("conta", emailNormalizado), agora)
-                || bloqueado(chave("origem", enderecoOrigem), agora)) {
+                || bloqueado(chave("conta-origem", emailNormalizado + ":" + enderecoOrigem), agora)) {
             throw limiteExcedido();
         }
     }
@@ -46,12 +46,12 @@ public class LimiteTentativasLogin {
     public void registrarFalha(String emailNormalizado, String enderecoOrigem) {
         Instant agora = Instant.now();
         incrementar(chave("conta", emailNormalizado), agora);
-        incrementar(chave("origem", enderecoOrigem), agora);
+        incrementar(chave("conta-origem", emailNormalizado + ":" + enderecoOrigem), agora);
     }
 
     public void registrarSucesso(String emailNormalizado, String enderecoOrigem) {
         contadores.invalidate(chave("conta", emailNormalizado));
-        contadores.invalidate(chave("origem", enderecoOrigem));
+        contadores.invalidate(chave("conta-origem", emailNormalizado + ":" + enderecoOrigem));
     }
 
     private boolean bloqueado(String chave, Instant agora) {

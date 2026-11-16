@@ -13,8 +13,12 @@ public final class ContratoRecuperacaoSenha {
     public record SolicitacaoRequisicao(@NotBlank @Email @Size(max = 254) String email) {
     }
 
+    public record ValidacaoCodigoRequisicao(
+            @NotBlank @Email @Size(max = 254) String email,
+            @NotBlank @Pattern(regexp = "[0-9]{8}") String codigo) {
+    }
+
     public record RedefinicaoRequisicao(
-            @NotBlank @Size(max = 128) String token,
             @NotBlank @Size(min = 8, max = 128)
             @Pattern(regexp = PoliticaSenha.EXPRESSAO, message = PoliticaSenha.MENSAGEM) String novaSenha) {
     }

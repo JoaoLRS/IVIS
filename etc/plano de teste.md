@@ -1,9 +1,10 @@
 # Plano de teste do IVIS
 
 **Ciclo:** 2026-11, de 02/11/2026 a 06/11/2026  
-**Versão deste plano:** 0.2, revisão técnica de 04/11/2026  
+**Versão deste plano:** 0.3, revisão técnica de 11/11/2026
 **Situação:** em revisão; aceite do ciclo ainda não registrado  
-**Código verificado:** commit `215a183` (antes das alterações documentais desta revisão)  
+**Código verificado na revisão atual:** árvore local de 11/11/2026, ainda sem commit de referência; registrar o commit antes da execução formal.
+**Revisão exploratória anterior:** commit `a0635f9`, ambiente Docker Compose local, em 09/11/2026; os achados estão no relatório externo de revisão. Esta referência não representa aprovação do ciclo nem reteste visual de todas as correções.
 **Base:** plano de teste em PDF fornecido pela equipe (versão 0.1, de 28/10/2026), [requisitos](plano/IVIS_Requisitos.md), [casos de uso](cdu/IVIS_Casos_de_Uso.md) e código do repositório. Antes de executar um ciclo formal, registrar commit, ambiente, executor e data.
 
 ## 1. Objetivo e limites
@@ -12,7 +13,7 @@ Verificar os requisitos implementados do IVIS com cenários válidos, inválidos
 
 O escopo inclui os 20 requisitos funcionais RF01–RF20 e os quatro não funcionais aprovados RNF01, RNF03, RNF07 e RNF09. O [CDU-16](cdu/CDU-16-validar-requisitos-senha.md) especifica a política transversal de senha. A limpeza de dados restrita a desenvolvimento/homologação é uma verificação técnica, fora dos casos de uso do usuário final.
 
-Este plano **não declara todos os RFs aprovados**. A escolha de quantidade de vagas na contratação institucional (parte do RF14), um gateway de pagamento real (RF15 fora do modo acadêmico), a meta mensurável de latência (RNF03) e o prazo de retenção (RNF09) continuam pendentes. A qualidade semântica de perguntas e feedback da NVIDIA requer avaliação própria; mocks e testes de contrato não a comprovam.
+Este plano **não declara todos os RFs aprovados**. O RF14 agora oferece três capacidades institucionais predefinidas (50, 100 e ilimitada) no simulador; a troca de plano durante um contrato ativo ainda não existe. Um gateway de pagamento real permanece fora do modo acadêmico. As metas de RNF03 (p95 até 10 s para pergunta e avaliação, separadamente) e RNF09 (guarda mínima de 4 anos) estão definidas, mas faltam, respectivamente, medição com provedor real e política operacional de backup, arquivamento e descarte. A qualidade semântica de perguntas e feedback da NVIDIA requer avaliação própria.
 
 ## 2. Ambiente, dados e segurança
 
@@ -58,20 +59,20 @@ Esta tabela aponta a evidência automatizada principal. A presença de um teste 
 | RF10 | Consulta do histórico | CDU-08; `FluxosAplicacaoIntegracaoTest` e spec CDU-08. Isolamento coberto no backend. |
 | RF11–RF12 | Catálogo público | CDU-09; `ConsultaPlanosIntegracaoTest` e spec CDU-09. Cobertura automatizada. |
 | RF13 | Contratação individual | CDU-10/12; `FluxosAplicacaoIntegracaoTest` e checkout. Cobertura do simulador acadêmico. |
-| RF14 | Contratação institucional | CDU-11/12; fluxo simulado coberto. **Parcial:** a capacidade vem da oferta; o usuário não escolhe N vagas. |
+| RF14 | Contratação institucional | CDU-11/12; três ofertas selecionáveis de 50, 100 e alunos ilimitados com pagamento simulado. Não há quantidade arbitrária nem troca de plano ativo. |
 | RF15 | Pagamento | CDU-12; aprovação/recusa, idempotência e auditoria do simulador cobertas. Gateway real não implementado neste modo. |
 | RF16 | Gerenciar alunos vinculados | CDU-13; `VinculoInstitucionalServiceTest` e página Instituicao. Cobertura automatizada. |
 | RF17 | Acesso por modalidade | CDU-14; guarda do frontend e integração de autorização no backend. Cobertura automatizada. |
-| RF18 | Limite de vagas institucionais | CDU-13; `VinculoInstitucionalServiceTest` e integração de concorrência. Capacidade da oferta atual é fixa. |
+| RF18 | Capacidade institucional | CDU-13; `VinculoInstitucionalServiceTest` cobre limite finito, concorrência e ausência de teto no plano ilimitado. |
 | RF19 | Bloqueio da compra individual para aluno vinculado | CDU-10/14; `FluxosAplicacaoIntegracaoTest`. Cobertura automatizada. |
-| RF20 | Auditoria | CDU-15; gravação, idempotência e proteção contra alteração em `FluxosAplicacaoIntegracaoTest`. Retenção operacional pendente. |
+| RF20 | Auditoria | CDU-15; gravação, idempotência e proteção contra alteração em `FluxosAplicacaoIntegracaoTest`. Retenção mínima de 4 anos definida; operação de arquivo e descarte ainda precisa ser formalizada. |
 
 | RNF | Evidência e limite |
 | --- | --- |
 | RNF01 | Aplicação web validada nos testes de interface; registrar também navegadores, resoluções, teclado e resultado exploratório do ciclo. |
-| RNF03 | Medição com provedor real e payloads representativos ainda precisa de alvo p95 aprovado, amostra e ambiente registrados. Não declarar aprovação apenas por timeout configurado. |
+| RNF03 | Meta aprovada: p95 até 10 s para geração da próxima pergunta e p95 até 10 s para avaliação final, medidos separadamente. Registrar amostra, ambiente e medição com o provedor real; timeout configurado não comprova a meta. |
 | RNF07 | Isolamento entre instituições testado em `VinculoInstitucionalServiceTest` e `FluxosAplicacaoIntegracaoTest`; repetir na jornada real com duas instituições. |
-| RNF09 | Trigger das migrations V8/V10 e tentativa de alteração verificadas na integração. Prazo de retenção e operação de arquivamento/descarte ainda não definidos. |
+| RNF09 | Guarda mínima aprovada de 4 anos desde o evento. Triggers V8/V10 e tentativa de alteração verificadas na integração. Definir e testar procedimento operacional de backup, arquivamento e descarte; a aplicação não apaga automaticamente eventos em produção. |
 
 ## 5. Casos prioritários do ciclo
 
@@ -91,15 +92,21 @@ Os IDs abaixo preservam e corrigem os casos do PDF. Cada execução formal preci
 | CT-COMPRA-10 | RF13/RF14/RF15 | Cartão fictício aprovado ativa acesso; recusado não concede acesso nem realiza cobrança real. | CDU-10/11/12; integração de contratação. |
 | CT-COMPRA-11 | RF19 | Aluno com vínculo institucional ativo não contrata plano individual. | CDU-10/14; integração de contratação. |
 | CT-SEG-12 | RF01/RF02/RNF07 | Sem sessão, token inválido ou perfil incompatível: API recusa sem expor dados; frontend não reutiliza estado antigo. | CDU-14; integração e testes do estado de sessão. |
-| CT-AUD-13 | RF20/RNF09 | Ação coberta gera evento com ator/data; alteração comum de evento é recusada. Retenção fica pendente. | CDU-15; integração de auditoria. |
+| CT-AUD-13 | RF20/RNF09 | Ação coberta gera evento com ator/data; alteração comum é recusada. Confirmar que nenhuma rotina de produção descarta eventos antes de 4 anos e registrar política de backup. | CDU-15; integração de auditoria e verificação operacional. |
 | CT-SENHA-14 | RF01/RF02/RF04 | Nova senha exige 8–128 caracteres, maiúscula, minúscula, número e especial; feedback visual acompanha digitação. | CDU-16; `PoliticaSenhaTest`; testes Vue. |
 | CT-REC-15 | RF04 | Solicitação de recuperação não revela existência do e-mail; token é de uso único e expira. | CDU-04; `RecuperacaoSenhaServiceTest`. |
 | CT-ISOL-16 | RF07/RF09/RF17 | Aluno B com plano ativo tenta responder, concluir e cancelar treino de A; API retorna 404, sem alterar o treino nem acionar a IA. | `FluxosAplicacaoIntegracaoTest.outroAlunoNaoRespondeConcluiNemCancelaTreinoDoTitular`. |
 | CT-VINC-17 | RF16/RF17/RF18 | Remover vínculo bloqueia início, retomada, resposta e conclusão de treino com o token já emitido; respostas e avaliações permanecem intactas e a vaga permite vincular outro aluno que inicia seu próprio treino. | `FluxosAplicacaoIntegracaoTest.removerVinculoBloqueiaTreinoComTokenExistenteELiberaVagaParaOutroAluno`. |
+| CT-PERFIL-18 | RF03 | Aluno cria, edita e remove habilidade; categoria longa permanece legível no desktop e no celular. | CDU-03; `PerfilAlunoServiceTest`; revisão visual. |
+| CT-PLANO-19 | RF05 | Aluno e instituição consultam plano, validade e benefícios; vagas institucionais aparecem com rótulo correto. | CDU-05; `ConsultaPlanosIntegracaoTest`; revisão visual. |
+| CT-VAGA-20 | RF06 | Aluno cria, edita e remove vaga; requisito longo permanece dentro do card em 360 px e 1920 px; contador usa singular com uma vaga. | CDU-06; `PerfilAlunoServiceTest`; revisão visual. |
+| CT-CATALOGO-21 | RF11/RF12 | Visitante consulta preços e benefícios sem login, inclusive com API de sessão lenta; página de planos não apresenta rolagem horizontal em 360 px. | CDU-09; `ConsultaPlanosIntegracaoTest`; revisão visual. |
+| CT-PLANO-22 | RF14/RF16/RF18 | Catálogo oferece planos de 50, 100 e ilimitado por R$ 900, R$ 1.750 e R$ 5.000; a compra simulada grava capacidade e preço escolhidos. O limite finito bloqueia excedentes e o ilimitado aceita novos vínculos. | CDU-11/13; integração do catálogo e compra; `VinculoInstitucionalServiceTest`; jornada real a executar. |
+| CT-CARGA-23 | Usabilidade transversal | Durante navegação ou chamada visível, cursor de espera e indicador aparecem; cliques e teclado ficam inativos até a conclusão, inclusive em erro. Atividade de sessão em segundo plano não bloqueia. | `clienteHttp.test.ts`; revisão de interface a executar. |
 
 A limpeza de dados por CPF/CNPJ é verificada separadamente em [`LimpezaDadosIntegracaoTest.java`](../backend/src/test/java/br/ivis/LimpezaDadosIntegracaoTest.java): a rota só existe em dev/homologação e deve apagar apenas a conta identificada e seus dados vinculados.
 
-**Casos a especificar para fechamento:** RF14 com escolha de capacidade quando implementada; RNF03 com SLA/p95 aprovado; RNF09 com prazo de retenção; avaliação humana da adequação das perguntas por nível, da não repetição e da qualidade do feedback. Registrar essas pendências como bloqueio ou ressalva conforme o critério de saída, nunca como casos aprovados por inferência.
+**Casos a especificar para fechamento:** escolha e compra das três ofertas institucionais; limites de 50 e 100 e vínculo sem teto no plano ilimitado; eventual troca de plano institucional vigente conforme regra comercial futura; medição de RNF03 com a meta aprovada de 10 s no p95 para cada operação; procedimento de guarda de auditoria por no mínimo 4 anos; avaliação humana da adequação das perguntas por nível, da não repetição e da qualidade do feedback. Registrar as verificações não executadas como ressalva ou bloqueio, nunca como aprovadas por inferência.
 
 ## 6. Entrada, execução e saída
 
@@ -121,7 +128,7 @@ Pop-Location
 
 Para Cypress, a suíte usa o frontend do Compose em `http://localhost:8080`. A suíte completa inclui as jornadas reais e o CDU-15: preparar a stack Compose conforme o [README do Cypress](../cypress/e2e/README.md), então executar `npm run testar:e2e`. Registrar specs, ambiente, resultado, screenshots/vídeos e referência de defeito. Não converter a existência de um spec em resultado aprovado.
 
-**Saída proposta para o ciclo:** nenhuma falha aberta de severidade bloqueadora ou crítica nos fluxos prioritários; todos os casos executados com observado e evidência; falhas altas com decisão explícita; requisitos parciais e RNFs sem critério mensurável listados como ressalva; aceite registrado por responsável. Esta regra é proposta para revisão da equipe, não um aceite já concedido.
+**Saída proposta para o ciclo:** nenhuma falha aberta de severidade bloqueadora ou crítica nos fluxos prioritários; todos os casos executados com observado e evidência; falhas altas com decisão explícita; requisitos parciais e RNFs ainda sem evidência de conformidade listados como ressalva; aceite registrado por responsável. Esta regra é proposta para revisão da equipe, não um aceite já concedido.
 
 ### Registro de execução
 

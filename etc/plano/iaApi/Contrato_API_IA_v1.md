@@ -114,7 +114,7 @@ Formato: `{ "codigo": "…", "mensagem": "…" }`.
 
 ## Tempo de resposta (RNF03)
 
-Proposta inicial de SLA para discussão: **pergunta em até 10 s e avaliação em até 20 s** no percentil 95. O backend usa timeout um pouco acima desses valores. Os números só podem ser confirmados com medições na Etapa 6 da [ordem de entrega](../Ordem_de_Entrega_MVP.md).
+Meta aprovada de RNF03: **p95 de até 10 s para gerar a próxima pergunta e p95 de até 10 s para a avaliação final**, medidos separadamente de ponta a ponta com o provedor real. Os timeouts de segurança configurados podem ser maiores e não comprovam a meta. Registrar as medições no [plano de teste](../../plano%20de%20teste.md).
 
 ## Provedor ativo
 
@@ -126,5 +126,5 @@ API responde `503/provedor_indisponivel`.
 
 - Modelo e endpoint específicos da NVIDIA NGC e limites de uso.
 - Escala final e critérios de avaliação (rubrica).
-- Política de retenção e diagnóstico de prompts e respostas (LGPD, RNF09).
+- Política de retenção e diagnóstico de prompts e respostas (privacidade/LGPD); a guarda mínima de 4 anos do RNF09 se aplica aos eventos de auditoria do backend, não ao conteúdo enviado à IA.
 - Mecanismo definitivo de autenticação serviço a serviço.

@@ -9,7 +9,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Aluno** | Pessoa que utiliza o IVIS para cadastrar habilidades e vagas de interesse, realizar treinamentos e consultar o próprio histórico. |
 | **Aluno Pagante** | Modalidade de acesso do aluno que possui um plano individual contratado diretamente. A modalidade e as permissões são determinadas pelo backend. |
 | **Aluno de Consórcio** | Modalidade de acesso do aluno que possui vínculo ativo a um contrato institucional. A instituição que administra o vínculo deriva do contrato; o aluno não define essa condição no cliente. Nos requisitos atuais também aparece o nome `AlunoConsórcio`. |
-| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às Vadas de alunos . |
+| **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às vagas de alunos. |
 | **Plano individual** | Oferta contratada diretamente por um aluno para obter os benefícios e o acesso correspondentes. |
 | **Plano institucional / plano de consórcio** | Oferta contratada por uma instituição, com capacidade de vagas para vincular alunos. “Consórcio” é o nome de negócio usado nos requisitos para essa modalidade. |
 | **Contrato** | Registro da contratação de um plano por uma conta. Mantém estado, vigência e o preço acordado, preservando o histórico mesmo que o catálogo de planos mude. |
@@ -24,7 +24,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Histórico de treinamentos** | Registros persistidos das sessões, perguntas, respostas, contexto e avaliações, consultáveis pelo aluno titular. |
 | **Pagamento simulado** | Resultado fictício produzido pelo simulador controlado pelo backend no ambiente de apresentação. Não gera cobrança nem encaminha os dados do cartão a um gateway real; PAN e CVV não são persistidos. |
 | **Cartão de teste** | Dados fictícios aceitos pelo simulador acadêmico para demonstrar a contratação. Não representam um meio de pagamento real. |
-| **Auditoria** | Registro protegido e rastreável de ações sensíveis, incluindo ator, ação, resultado e momento. A retenção mínima ainda precisa ser definida pela equipe. |
+| **Auditoria** | Registro protegido e rastreável de ações sensíveis, incluindo ator, ação, resultado e momento. A retenção mínima é de 4 anos desde o evento. |
 | **Autoridade do backend** | Princípio segundo o qual o servidor valida identidade, permissões, preço, modalidade, capacidade, estados e resultados de negócio. O frontend não pode alterar essas decisões. |
 
 ## Requisitos e documentação
@@ -35,9 +35,9 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **RNF** | Requisito Não Funcional: atributo ou restrição de qualidade do sistema. Os quatro RNF aprovados atualmente são RNF01, RNF03, RNF07 e RNF09. |
 | **RF01–RF20** | Identificadores dos requisitos funcionais aprovados; o texto de cada requisito está em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). |
 | **RNF01 — Aplicação Web** | O sistema é acessado por navegador, sem instalação obrigatória pelo usuário. |
-| **RNF03 — Tempo de resposta da IA** | A resposta durante a entrevista deve manter a fluidez da conversa; o limite/SLA ainda está pendente de definição. |
+| **RNF03 — Tempo de resposta da IA** | A próxima pergunta e a avaliação final têm meta separada de p95 até 10 segundos, sujeita a medição com provedor real. |
 | **RNF07 — Isolamento entre instituições** | Uma instituição só pode visualizar e gerenciar os alunos vinculados aos seus próprios contratos. |
-| **RNF09 — Proteção e retenção dos logs** | Os registros de auditoria devem ser protegidos contra alteração e mantidos pelo período mínimo a definir com a equipe jurídica. |
+| **RNF09 — Proteção e retenção dos logs** | Os registros de auditoria devem ser protegidos contra alteração e mantidos por no mínimo 4 anos desde o evento. |
 | **Caso de uso (CDU)** | Descrição de como um ator interage com o sistema para alcançar um objetivo. Os documentos estão em [`../cdu/`](../cdu/). |
 | **ADR** | *Architecture Decision Record*: documento que registra contexto, decisão arquitetural, consequências e alternativas. Os ADRs atuais estão em [`adr/`](adr/). |
 | **Em andamento** | Estado documental usado para indicar que uma decisão ou artefato está sendo revisado pela equipe; não significa necessariamente que a implementação já começou. |
@@ -74,7 +74,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Idempotência** | Propriedade de uma operação em que repetir a mesma solicitação não duplica seus efeitos, necessária, por exemplo, para tentativas repetidas de pagamento. |
 | **Mailpit** | Servidor SMTP de captura usado para simular e inspecionar e-mails de desenvolvimento/apresentação sem encaminhá-los a destinatários reais. Não é provedor de e-mail de produção. |
 | **Gateway de pagamento** | Serviço externo que processa cobranças reais. Não é utilizado pelo simulador acadêmico; uma integração real depende de decisão e configuração futuras. |
-| **SLA** | Acordo/limite mensurável de nível de serviço. O tempo máximo de resposta da IA previsto no RNF03 ainda está pendente de definição. |
+| **SLA** | Acordo/limite mensurável de nível de serviço. A meta de RNF03 é p95 até 10 segundos para pergunta e avaliação, cada uma medida separadamente. |
 
 ## Convenções de nomes no código
 

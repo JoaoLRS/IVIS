@@ -22,6 +22,8 @@ public class OpenApiConfig {
             "POST /v1/contas/instituicoes",
             "POST /v1/contas/alunos",
             "POST /v1/senhas/recuperacao",
+            "POST /v1/senhas/validacao-codigo",
+            "GET /v1/senhas/redefinicao/autorizacao",
             "POST /v1/senhas/redefinicao",
             "GET /v1/sessoes/csrf",
             "GET /v1/planos",

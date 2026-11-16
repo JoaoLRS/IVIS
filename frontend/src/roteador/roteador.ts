@@ -1,4 +1,9 @@
-import { createRouter, createWebHistory, type RouteLocationNormalized } from "vue-router";
+import {
+  createRouter,
+  createWebHistory,
+  type RouteLocationNormalized,
+} from "vue-router";
+import { ref } from "vue";
 import { useEstadoSessao } from "../estados/estadoSessao";
 
 declare module "vue-router" {
@@ -113,10 +118,15 @@ const roteador = createRouter({
   ],
 });
 
+export const navegacaoEmAndamento = ref(false);
+
 export default roteador;
 
 export async function verificarAcesso(to: RouteLocationNormalized) {
   const sessao = useEstadoSessao();
+  if (to.name === "apresentacao" || to.name === "planos") {
+    return true;
+  }
   const autenticado = await sessao.restaurar();
 
   if (to.meta.publico) {
@@ -139,10 +149,24 @@ export async function verificarAcesso(to: RouteLocationNormalized) {
         sessao.conta?.tipoConta === "INSTITUICAO" ? "instituicao" : "inicio",
     };
   }
-  if (to.meta.exigePlano !== false && !sessao.temPlano) {
+  if (
+    to.meta.exigePlano !== false &&
+    to.name !== "historico" &&
+    to.name !== "feedback" &&
+    !sessao.temPlano
+  ) {
     return { name: "planos", query: { acesso: "necessario" } };
   }
   return true;
 }
 
+roteador.beforeEach(() => {
+  navegacaoEmAndamento.value = true;
+});
 roteador.beforeEach(verificarAcesso);
+roteador.afterEach(() => {
+  navegacaoEmAndamento.value = false;
+});
+roteador.onError(() => {
+  navegacaoEmAndamento.value = false;
+});

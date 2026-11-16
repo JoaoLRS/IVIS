@@ -10,7 +10,6 @@ import {
   Code2,
   MessageSquareText,
   Plus,
-  Target,
 } from "lucide-vue-next";
 import { useRoute, useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
@@ -24,14 +23,8 @@ const vagaDaRota = typeof rota.query.vaga === "string" ? rota.query.vaga : "";
 const modo = ref<"habilidades" | "vaga">(
   estado.vagaEmTreinamento || vagaDaRota ? "vaga" : "habilidades",
 );
-const vagaSelecionada = ref(
-  estado.vagas.find((vaga) => vaga.id === vagaDaRota)?.titulo ??
-    estado.vagas[0]?.titulo ??
-    "",
-);
-const habilidadesSelecionadas = ref(
-  estado.habilidades.map((habilidade) => habilidade.nome),
-);
+const vagaSelecionada = ref(estado.vagas.find((vaga) => vaga.id === vagaDaRota)?.id ?? "");
+const habilidadesSelecionadas = ref<string[]>([]);
 const respostaEmEdicao = ref(estado.respostaPendente ?? "");
 const mensagemErro = ref("");
 const processando = ref(false);
@@ -41,28 +34,10 @@ watch(
   () => estado.vagaEmTreinamento,
   (vaga) => { if (estado.treinoAtivo) modo.value = vaga ? "vaga" : "habilidades"; },
 );
-watch(
-  () => estado.vagas,
-  (vagas) => {
-    if (!vagaSelecionada.value && vagas.length) {
-      vagaSelecionada.value = vagas.find((vaga) => vaga.id === vagaDaRota)?.titulo ?? vagas[0].titulo;
-    }
-  },
-  { deep: true },
-);
-watch(
-  () => estado.habilidades,
-  (habilidades) => {
-    if (!habilidadesSelecionadas.value.length && habilidades.length) {
-      habilidadesSelecionadas.value = habilidades.map((habilidade) => habilidade.nome);
-    }
-  },
-  { deep: true },
-);
 const resumoContexto = computed(() => {
   if (modo.value === "vaga") {
     const vaga = estado.vagas.find(
-      (item) => item.titulo === vagaSelecionada.value,
+      (item) => item.id === vagaSelecionada.value,
     );
     return vaga
       ? `${vaga.titulo} · ${vaga.empresa}`
@@ -73,18 +48,16 @@ const resumoContexto = computed(() => {
     : "Selecione pelo menos uma habilidade para continuar";
 });
 
-function alternarHabilidade(nome: string) {
+function alternarHabilidade(id: string) {
   modo.value = "habilidades";
-  habilidadesSelecionadas.value = habilidadesSelecionadas.value.includes(nome)
-    ? habilidadesSelecionadas.value.filter((habilidade) => habilidade !== nome)
-    : [...habilidadesSelecionadas.value, nome];
+  habilidadesSelecionadas.value = habilidadesSelecionadas.value.includes(id)
+    ? habilidadesSelecionadas.value.filter((habilidadeId) => habilidadeId !== id)
+    : [...habilidadesSelecionadas.value, id];
 }
 
 function selecionarTodasHabilidades() {
   modo.value = "habilidades";
-  habilidadesSelecionadas.value = estado.habilidades.map(
-    (habilidade) => habilidade.nome,
-  );
+  habilidadesSelecionadas.value = estado.habilidades.map((habilidade) => habilidade.id);
 }
 
 function limparSelecaoHabilidades() {
@@ -109,13 +82,16 @@ function mensagemDaFalha(erro: unknown, respostaPreservada: boolean) {
 async function iniciar() {
   const vaga =
     modo.value === "vaga"
-      ? estado.vagas.find((item) => item.titulo === vagaSelecionada.value)
+      ? estado.vagas.find((item) => item.id === vagaSelecionada.value)
       : undefined;
   if (modo.value === "vaga" && !vaga) return;
   processando.value = true;
   mensagemErro.value = "";
   try {
-    await estado.iniciarTreino(vaga, habilidadesSelecionadas.value);
+    const nomesHabilidades = estado.habilidades
+      .filter((habilidade) => habilidadesSelecionadas.value.includes(habilidade.id))
+      .map((habilidade) => habilidade.nome);
+    await estado.iniciarTreino(vaga, nomesHabilidades);
     if (rota.query.vaga) await roteador.replace({ path: "/treinos" });
   } catch (erro) {
     mensagemErro.value = mensagemDaFalha(erro, false);
@@ -215,18 +191,16 @@ async function cancelar() {
             <div class="skill-chip-list">
               <button
                 v-for="habilidade in estado.habilidades"
-                :key="habilidade.nome"
+                :key="habilidade.id"
                 type="button"
                 class="skill-chip"
                 :class="{
-                  'skill-chip-selected': habilidadesSelecionadas.includes(
-                    habilidade.nome,
-                  ),
+                  'skill-chip-selected': habilidadesSelecionadas.includes(habilidade.id),
                 }"
                 :aria-pressed="
-                  habilidadesSelecionadas.includes(habilidade.nome)
+                  habilidadesSelecionadas.includes(habilidade.id)
                 "
-                @click="alternarHabilidade(habilidade.nome)"
+                @click="alternarHabilidade(habilidade.id)"
               >
                 {{ habilidade.nome }}
                 <small>{{ habilidade.nivel }}/5</small>
@@ -270,17 +244,17 @@ async function cancelar() {
           <div v-if="estado.vagas.length" class="vacancy-picker">
             <label
               v-for="vaga in estado.vagas"
-              :key="vaga.titulo"
+              :key="vaga.id"
               class="vacancy-option"
               :class="{
-                'vacancy-option-selected': vagaSelecionada === vaga.titulo,
+                'vacancy-option-selected': vagaSelecionada === vaga.id,
               }"
             >
               <input
                 v-model="vagaSelecionada"
                 class="form-check-input"
                 type="radio"
-                :value="vaga.titulo"
+                :value="vaga.id"
                 @change="modo = 'vaga'"
               />
               <span class="vacancy-option-copy">
@@ -295,7 +269,6 @@ async function cancelar() {
                   </span>
                 </span>
               </span>
-              <Target :size="16" class="vacancy-target" />
             </label>
           </div>
           <div v-else class="context-empty">
@@ -307,7 +280,6 @@ async function cancelar() {
 
       <div class="training-setup-footer">
         <div class="training-context-summary">
-          <Target :size="17" />
           <span
             ><small>CONTEXTO DO TREINO</small
             ><strong>{{ resumoContexto }}</strong></span
@@ -480,7 +452,7 @@ async function cancelar() {
         <aside class="card">
           <div class="card-body">
             <h2 class="panel-title">
-              <Target :size="17" /> Contexto deste treino
+              Contexto deste treino
             </h2>
             <hr />
             <div class="interview-detail">

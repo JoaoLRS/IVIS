@@ -6,7 +6,7 @@ Este documento define o stack tecnológico do projeto, organizado pelos 3 módul
 
 ## Visão Geral da Arquitetura
 
-O IVIS será desenvolvido como **3 módulos independentes**, que se comunicam entre si via API. A API de IA será implementada em Python e utilizará NVIDIA NGC; o backend Java consumirá essa API pelo lado servidor. O frontend consome somente a API do backend.
+O IVIS está organizado em **3 módulos independentes**, que se comunicam por API. A API de IA é implementada em Python e usa NVIDIA NGC quando configurada; o backend Java a consome pelo lado servidor. O frontend consome somente a API do backend.
 
 | Módulo | Responsabilidade | Linguagem principal |
 |---|---|---|

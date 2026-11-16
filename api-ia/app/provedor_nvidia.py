@@ -111,8 +111,8 @@ class ProvedorNvidia:
         dados = entrada.model_dump(mode="json", exclude={"id_correlacao"})
         conteudo = await self._gerar_json(
             instrucao=(
-                "Avalie as respostas da entrevista em português do Brasil com uma "
-                "nota inteira de 0 a 100 e feedback objetivo, específico e respeitoso. "
+                "Avalie as respostas da entrevista em português do Brasil com "
+                "feedback objetivo, específico e respeitoso. "
                 "Considere a correção técnica, a pertinência à pergunta, a clareza "
                 "e a profundidade esperada para o nível da habilidade ou senioridade "
                 "da vaga. Não use o tamanho da resposta como critério de nota. "

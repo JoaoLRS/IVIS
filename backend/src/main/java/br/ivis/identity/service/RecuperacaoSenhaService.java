@@ -23,7 +23,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import br.ivis.identity.model.ContaModel;
 import br.ivis.identity.model.TokenRecuperacaoSenhaModel;
@@ -38,8 +37,9 @@ public class RecuperacaoSenhaService {
 
     private static final Duration DURACAO_TOKEN_MINIMA = Duration.ofMinutes(5);
     private static final Duration DURACAO_TOKEN_MAXIMA = Duration.ofHours(2);
+    private static final Duration DURACAO_AUTORIZACAO = Duration.ofMinutes(10);
     private static final String MENSAGEM_NEUTRA =
-            "Se existir uma conta para este e-mail, enviaremos as instruções de recuperação.";
+            "Se existir uma conta para este e-mail, enviaremos um código de recuperação.";
 
     private final ContaRepository contas;
     private final TokenRecuperacaoSenhaRepository tokens;
@@ -87,12 +87,12 @@ public class RecuperacaoSenhaService {
         if (conta != null) {
             Instant agora = Instant.now();
             tokens.consumirTodosAtivosDaConta(conta.getId());
-            String token = gerarToken();
+            String codigo = gerarCodigo();
             TokenRecuperacaoSenhaModel registro = new TokenRecuperacaoSenhaModel(
-                    UUID.randomUUID(), conta.getId(), hashToken(token), agora.plus(validadeToken), agora);
+                    UUID.randomUUID(), conta.getId(), codificadorSenha.encode(codigo), agora.plus(validadeToken), agora);
             registro = tokens.save(registro);
             try {
-                enviar(conta.getEmail(), token);
+                enviar(conta.getEmail(), codigo);
             } catch (MailException falha) {
                 registro.consumir(Instant.now());
                 log.error("Falha ao enviar mensagem de recuperação pelo SMTP. tipo={}",
@@ -103,29 +103,57 @@ public class RecuperacaoSenhaService {
     }
 
     @Transactional
-    public void redefinir(String token, String novaSenha, String enderecoOrigem) {
-        limite.verificarRedefinicao(enderecoOrigem);
-        if (!tokenFormatoValido(token)) {
+    public String validarCodigo(String email, String codigo, String enderecoOrigem) {
+        String normalizado = email.trim().toLowerCase(Locale.ROOT);
+        limite.verificarRedefinicao(normalizado, enderecoOrigem);
+        if (!codigoFormatoValido(codigo)) {
             throw tokenInvalido();
         }
         Instant agora = Instant.now();
-        TokenRecuperacaoSenhaModel registro = tokens.buscarPorHashParaAtualizacao(hashToken(token))
+        ContaModel conta = contas.findByEmailNormalizado(normalizado)
+                .filter(ContaModel::estaAtiva)
+                .orElseThrow(RecuperacaoSenhaService::tokenInvalido);
+        TokenRecuperacaoSenhaModel registro = tokens.buscarAtivosDaContaParaAtualizacao(conta.getId()).stream()
+                .filter(item -> item.estaValidoEm(agora) && codificadorSenha.matches(codigo, item.getHashToken()))
+                .findFirst()
+                .orElseThrow(RecuperacaoSenhaService::tokenInvalido);
+        registro.consumir(agora);
+        String autorizacao = gerarAutorizacao();
+        tokens.save(new TokenRecuperacaoSenhaModel(
+                UUID.randomUUID(), conta.getId(), hashToken(autorizacao), agora.plus(DURACAO_AUTORIZACAO), agora));
+        return autorizacao;
+    }
+
+    @Transactional
+    public void redefinir(String autorizacao, String novaSenha, String enderecoOrigem) {
+        limite.verificarRedefinicao("autorizacao:" + hashToken(autorizacao == null ? "" : autorizacao), enderecoOrigem);
+        if (autorizacao == null || !autorizacao.matches("[A-Za-z0-9_-]{43}")) {
+            throw tokenInvalido();
+        }
+        Instant agora = Instant.now();
+        TokenRecuperacaoSenhaModel registro = tokens.buscarPorHashParaAtualizacao(hashToken(autorizacao))
                 .filter(item -> item.estaValidoEm(agora))
                 .orElseThrow(RecuperacaoSenhaService::tokenInvalido);
-        ContaModel conta = contas.buscarPorIdParaAtualizacao(registro.getContaId())
-                .filter(contaEncontrada -> contaEncontrada.estaAtiva())
+        UUID contaId = registro.getContaId();
+        ContaModel conta = contas.buscarPorIdParaAtualizacao(contaId)
+                .filter(ContaModel::estaAtiva)
                 .orElseThrow(RecuperacaoSenhaService::tokenInvalido);
         conta.atualizarSenha(codificadorSenha.encode(novaSenha), agora);
         registro.consumir(agora);
         sessoes.revogarTodasDaConta(conta.getId(), agora);
     }
 
-    private void enviar(String destino, String token) {
-        String url = UriComponentsBuilder.fromUriString(urlRedefinicao)
-                .fragment("token=" + token)
-                .build()
-                .encode()
-                .toUriString();
+    @Transactional(readOnly = true)
+    public void verificarAutorizacao(String autorizacao) {
+        if (autorizacao == null || !autorizacao.matches("[A-Za-z0-9_-]{43}")) {
+            throw tokenInvalido();
+        }
+        tokens.findByHashToken(hashToken(autorizacao))
+                .filter(item -> item.estaValidoEm(Instant.now()))
+                .orElseThrow(RecuperacaoSenhaService::tokenInvalido);
+    }
+
+    private void enviar(String destino, String codigo) {
         SimpleMailMessage mensagem = new SimpleMailMessage();
         mensagem.setFrom(emailRemetente);
         mensagem.setTo(destino);
@@ -133,15 +161,22 @@ public class RecuperacaoSenhaService {
         mensagem.setText("""
                 Recebemos uma solicitação para redefinir a senha da sua conta IVIS.
 
-                Use o link a seguir em até %d minutos:
+                Use este código de 8 dígitos em até %d minutos:
+                %s
+
+                Acesse a página abaixo e informe seu e-mail e o código:
                 %s
 
                 Se você não solicitou a redefinição, ignore esta mensagem.""".formatted(
-                validadeToken.toMinutes(), url).stripTrailing());
+                validadeToken.toMinutes(), codigo, urlRedefinicao).stripTrailing());
         remetente.send(mensagem);
     }
 
-    private String gerarToken() {
+    private String gerarCodigo() {
+        return "%08d".formatted(aleatorio.nextInt(100_000_000));
+    }
+
+    private String gerarAutorizacao() {
         byte[] bytes = new byte[32];
         aleatorio.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
@@ -156,8 +191,8 @@ public class RecuperacaoSenhaService {
         }
     }
 
-    private static boolean tokenFormatoValido(String token) {
-        return token != null && token.matches("^[A-Za-z0-9_-]{43}$");
+    private static boolean codigoFormatoValido(String codigo) {
+        return codigo != null && codigo.matches("[0-9]{8}");
     }
 
     private static void validarEndereco(String endereco) {
@@ -170,7 +205,7 @@ public class RecuperacaoSenhaService {
     }
 
     private static ExcecaoNegocio tokenInvalido() {
-        return new ExcecaoNegocio(HttpStatus.BAD_REQUEST, "token_recuperacao_invalido",
-                "O token de recuperação é inválido ou expirou.");
+        return new ExcecaoNegocio(HttpStatus.BAD_REQUEST, "codigo_recuperacao_invalido",
+                "O código de recuperação é inválido ou expirou.");
     }
 }

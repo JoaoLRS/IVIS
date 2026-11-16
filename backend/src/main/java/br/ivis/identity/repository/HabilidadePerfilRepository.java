@@ -13,7 +13,8 @@ public interface HabilidadePerfilRepository extends JpaRepository<HabilidadePerf
 
     Optional<HabilidadePerfilModel> findByIdAndContaAlunoId(UUID id, UUID contaAlunoId);
 
-    boolean existsByContaAlunoIdAndNomeNormalizado(UUID contaAlunoId, String nomeNormalizado);
+    boolean existsByContaAlunoIdAndNomeNormalizadoAndNivel(UUID contaAlunoId, String nomeNormalizado, short nivel);
 
-    boolean existsByContaAlunoIdAndNomeNormalizadoAndIdNot(UUID contaAlunoId, String nomeNormalizado, UUID id);
+    boolean existsByContaAlunoIdAndNomeNormalizadoAndNivelAndIdNot(
+            UUID contaAlunoId, String nomeNormalizado, short nivel, UUID id);
 }

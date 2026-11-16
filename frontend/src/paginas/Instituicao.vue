@@ -32,9 +32,12 @@ const carregando = ref(true);
 const processando = ref(false);
 const erro = ref("");
 const sucesso = ref("");
-const vagasTotais = computed(() => capacidades.value.reduce((soma, item) => soma + item.quantidadeVagas, 0));
+const vagasTotais = computed(() => capacidades.value.some((item) => item.quantidadeVagas === null)
+  ? null : capacidades.value.reduce((soma, item) => soma + (item.quantidadeVagas ?? 0), 0));
 const vagasUsadas = computed(() => capacidades.value.reduce((soma, item) => soma + item.vagasUtilizadas, 0));
-const vagasLivres = computed(() => capacidades.value.reduce((soma, item) => soma + item.vagasDisponiveis, 0));
+const vagasLivres = computed(() => capacidades.value.some((item) => item.vagasDisponiveis === null)
+  ? null : capacidades.value.reduce((soma, item) => soma + (item.vagasDisponiveis ?? 0), 0));
+const haVagas = computed(() => vagasLivres.value === null || vagasLivres.value > 0);
 const contratoId = computed(() => capacidades.value[0]?.contratoId ?? "");
 
 async function carregar() {
@@ -75,7 +78,7 @@ async function adicionarAluno() {
 }
 
 async function cadastrarAluno() {
-  if (!contratoId.value || !vagasLivres.value) return;
+  if (!contratoId.value || !haVagas.value) return;
   erro.value = "";
   sucesso.value = "";
   if (!senhaValida(novoAluno.value.senha)) {
@@ -163,16 +166,16 @@ onMounted(carregar);
 
     <div class="institution-stats">
       <article><Users :size="20" /><span>Alunos vinculados<strong>{{ alunos.length }}</strong></span></article>
-      <article><Building2 :size="20" /><span>Vadas de alunos <strong>{{ vagasTotais }}</strong></span></article>
-      <article><UserPlus :size="20" /><span>Vagas disponíveis<strong>{{ vagasLivres }}</strong></span></article>
+      <article><Building2 :size="20" /><span>Vagas de alunos <strong>{{ vagasTotais ?? "Ilimitadas" }}</strong></span></article>
+      <article><UserPlus :size="20" /><span>Vagas disponíveis<strong>{{ vagasLivres ?? "Ilimitadas" }}</strong></span></article>
     </div>
 
     <section class="institution-card">
       <header><div><h2>Alunos participantes</h2><p>Vincule uma conta existente ou cadastre um novo aluno.</p></div><button type="button" class="institution-refresh" :disabled="carregando" @click="carregar"><RefreshCw :size="16" /> Atualizar</button></header>
       <form v-if="contratoId" class="institution-add-form" @submit.prevent="adicionarAluno">
         <label for="email-aluno">E-mail da conta do aluno</label>
-        <div><input id="email-aluno" v-model="emailAluno" type="email" autocomplete="email" placeholder="aluno@exemplo.com" required /><button type="submit" :disabled="processando || !vagasLivres"><UserPlus :size="16" /> {{ processando ? "Salvando..." : "Vincular aluno" }}</button></div>
-        <small>{{ vagasUsadas }} de {{ vagasTotais }} vagas ocupadas. Remover um aluno libera uma vaga.</small>
+        <div><input id="email-aluno" v-model="emailAluno" type="email" autocomplete="email" placeholder="aluno@exemplo.com" required /><button type="submit" :disabled="processando || !haVagas"><UserPlus :size="16" /> {{ processando ? "Salvando..." : "Vincular aluno" }}</button></div>
+        <small>{{ vagasUsadas }} {{ vagasTotais === null ? "alunos vinculados, sem limite de vagas." : `de ${vagasTotais} vagas ocupadas. Remover um aluno libera uma vaga.` }}</small>
       </form>
       <form v-if="contratoId" class="institution-register-form" @submit.prevent="cadastrarAluno">
         <div class="institution-register-heading"><h3>Cadastrar novo aluno</h3><p>Crie a conta com os dados do aluno. O vínculo será feito com esta instituição.</p></div>
@@ -186,7 +189,7 @@ onMounted(carregar);
           <label>Confirmar senha<input v-model="novoAluno.confirmarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label>
         </div>
         <RequisitosSenha id="requisitos-senha-aluno" :senha="novoAluno.senha" />
-        <button type="submit" :disabled="processando || !vagasLivres"><UserPlus :size="16" /> {{ processando ? "Salvando..." : "Cadastrar e vincular" }}</button>
+        <button type="submit" :disabled="processando || !haVagas"><UserPlus :size="16" /> {{ processando ? "Salvando..." : "Cadastrar e vincular" }}</button>
       </form>
       <p v-else class="institution-empty">Nenhum plano institucional ativo foi encontrado. Contrate um plano para liberar as vagas para seus alunos.</p>
       <p v-if="erro" class="institution-alert error" role="alert">{{ erro }}</p>

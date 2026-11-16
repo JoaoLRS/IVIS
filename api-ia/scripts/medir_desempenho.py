@@ -14,7 +14,7 @@ import httpx
 
 ALVOS_P95_MS = {
     "perguntas": 10_000,
-    "avaliacoes": 20_000,
+    "avaliacoes": 10_000,
 }
 MAXIMO_AMOSTRAS = 1000
 MAXIMA_CONCORRENCIA = 10
@@ -246,9 +246,9 @@ def _resumir(
     if erros or aquecimentos_com_erro:
         situacao = "INCOMPLETO"
     elif atingiu_alvo:
-        situacao = "DENTRO_DO_ALVO_PROPOSTO"
+        situacao = "DENTRO_DA_META"
     else:
-        situacao = "ACIMA_DO_ALVO_PROPOSTO"
+        situacao = "ACIMA_DA_META"
 
     return {
         "amostras_solicitadas": len(resultados),
@@ -261,7 +261,7 @@ def _resumir(
         "maximo_ms": round(max(duracoes), 2) if duracoes else None,
         "versoes_modelo": versoes_modelo,
         "versoes_prompt": versoes_prompt,
-        "alvo_p95_proposto_ms": alvo_ms,
+        "meta_p95_ms": alvo_ms,
         "situacao": situacao,
     }
 
@@ -425,7 +425,7 @@ async def _executar(argumentos: argparse.Namespace) -> int:
             "timeout_segundos": argumentos.timeout_segundos,
         },
         "nota": (
-            "Medição técnica da camada indicada. Os alvos p95 são propostas; "
+            "Medição técnica da camada indicada. A meta p95 está definida; "
             "a medição não avalia qualidade semântica."
         ),
         "operacoes": series,
@@ -433,7 +433,7 @@ async def _executar(argumentos: argparse.Namespace) -> int:
     print(json.dumps(relatorio, ensure_ascii=True, indent=2))
     return int(
         any(
-            resultado["situacao"] != "DENTRO_DO_ALVO_PROPOSTO"
+            resultado["situacao"] != "DENTRO_DA_META"
             for resultado in series.values()
         )
     )

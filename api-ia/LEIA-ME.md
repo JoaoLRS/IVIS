@@ -66,7 +66,7 @@ $env:IVIS_IA_CHAVE_SERVICO = "chave-local-com-pelo-menos-32-caracteres"
 
 O script mede a API de IA por padrão. Use `--camada backend
 --base-url http://127.0.0.1:8081/api` para medir a rota integrada. A medição
-não avalia qualidade semântica. Os alvos p95 do relatório são propostas, não um SLA aprovado.
+não avalia qualidade semântica. A meta aprovada é p95 até 10 s para pergunta e avaliação, medidas separadamente; o resultado exige execução com o provedor real.
 
 ## Configuração
 

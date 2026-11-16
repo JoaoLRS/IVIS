@@ -8,7 +8,7 @@
 
 **Grupo:** Rafael Melo (lucifer-son), Mariana Oliveira (Mari-olima), João Lucas Ribeiro (JoaoLRS), João Lucas Cosme (joaoluc90)
 
-**Situação:** esperando aprovação
+**Situação:** proposta histórica; a arquitetura vigente foi definida no [ADR-0012](adr/ADR-0012-hospedagem-aws.md). Valores e serviços abaixo não representam uma implantação aprovada.
 
 ## 1. Problema
 

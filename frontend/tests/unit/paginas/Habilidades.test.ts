@@ -44,6 +44,15 @@ describe("página Habilidades", () => {
     expect(pagina.emitted("notificar")?.[0]).toEqual(["Habilidade adicionada ao perfil."]);
   });
 
+  it("abre o cadastro pelo estado vazio", async () => {
+    const pagina = mount(Habilidades);
+    expect(pagina.text()).toContain("Comece pelo que você sabe fazer");
+
+    await pagina.get(".profile-empty-action").trigger("click");
+
+    expect(pagina.get('[role="dialog"]').text()).toContain("Adicionar habilidade");
+  });
+
   it("só remove a habilidade local após confirmação e sucesso da API", async () => {
     const estado = useEstadoAplicacao();
     estado.adicionarHabilidade(habilidade);

@@ -24,4 +24,16 @@ class LimiteRecuperacaoSenhaTest {
         assertThatThrownBy(() -> limite.registrarSolicitacao("outro@example.com", "127.0.0.1"))
                 .isInstanceOf(ExcecaoNegocio.class);
     }
+
+    @Test
+    void limitaTentativasDeCodigoPorEmailEIp() {
+        LimiteRecuperacaoSenha limite = new LimiteRecuperacaoSenha(2, Duration.ofMinutes(15));
+        limite.verificarRedefinicao("aluno@example.com", "127.0.0.1");
+        limite.verificarRedefinicao("aluno@example.com", "127.0.0.1");
+
+        assertThatThrownBy(() -> limite.verificarRedefinicao("aluno@example.com", "127.0.0.1"))
+                .isInstanceOf(ExcecaoNegocio.class);
+        assertThatThrownBy(() -> limite.verificarRedefinicao("outro@example.com", "127.0.0.1"))
+                .isInstanceOf(ExcecaoNegocio.class);
+    }
 }

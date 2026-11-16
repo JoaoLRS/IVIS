@@ -64,6 +64,21 @@ class ConsultaPlanosIntegracaoTest {
     }
 
     @Test
+    void catalogoOfereceTresCapacidadesInstitucionaisComPrecosAprovados() throws Exception {
+        var lista = json.readTree(obter("/planos", null).body());
+        var ofertas = new java.util.HashMap<String, tools.jackson.databind.JsonNode>();
+        for (var oferta : lista) ofertas.put(oferta.get("codigo").asString(), oferta);
+
+        assertFalse(ofertas.containsKey("IVIS-DEMO-ACADEMICO"));
+        assertEquals(50, ofertas.get("IVIS-DEMO-INSTITUCIONAL-50").get("vagasIncluidas").asInt());
+        assertEquals(90000, ofertas.get("IVIS-DEMO-INSTITUCIONAL-50").get("precoCentavos").asLong());
+        assertEquals(100, ofertas.get("IVIS-DEMO-INSTITUCIONAL-100").get("vagasIncluidas").asInt());
+        assertEquals(175000, ofertas.get("IVIS-DEMO-INSTITUCIONAL-100").get("precoCentavos").asLong());
+        assertTrue(ofertas.get("IVIS-DEMO-INSTITUCIONAL-ILIMITADO").get("vagasIncluidas").isNull());
+        assertEquals(500000, ofertas.get("IVIS-DEMO-INSTITUCIONAL-ILIMITADO").get("precoCentavos").asLong());
+    }
+
+    @Test
     void planoProprioUsaPrincipalEPrecoContratadoMesmoComOfertaInativa() throws Exception {
         UUID aluno = conta("ALUNO");
         UUID outro = conta("ALUNO");

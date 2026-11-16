@@ -16,9 +16,9 @@ const emit = defineEmits<{ abrirMenu: [] }>();
       </button>
       <div class="breadcrumb-line d-flex align-items-center gap-2">
         <RouterLink class="breadcrumb-home" to="/inicio" aria-label="Início">
-          <House :size="15" />
+          <House :size="18" />
         </RouterLink>
-        <ChevronRight :size="14" /><strong>{{
+        <ChevronRight :size="17" /><strong>{{
           titulo
         }}</strong>
       </div>

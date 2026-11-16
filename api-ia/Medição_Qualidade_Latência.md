@@ -6,8 +6,8 @@ Este roteiro prepara a demonstração da integração do fluxo de treino com a A
 de IA com o provedor NVIDIA. A validação do contrato e as medições de latência
 não substituem uma avaliação humana da qualidade das perguntas e do feedback.
 
-Os alvos p95 de 10 s para pergunta e 20 s para avaliação são propostas a medir,
-não SLAs aprovados. A execução integrada de Compose requer Docker e as medições
+As metas aprovadas são p95 de até 10 s para pergunta e p95 de até 10 s para avaliação,
+medidas separadamente. A conformidade ainda depende de execução com o provedor real. A execução integrada de Compose requer Docker e as medições
 devem registrar camada, ambiente, provedor/modelo, tamanho da amostra,
 concorrência e resultado. Não usar respostas ou dados pessoais reais.
 
@@ -29,7 +29,7 @@ concorrência e resultado. Não usar respostas ou dados pessoais reais.
    sem incluir segredos.
 5. Abra `http://localhost:8080/treinos`, inicie uma entrevista demonstrativa,
    responda às perguntas e confirme que o feedback aparece. O navegador deve
-   chamar apenas o backend (`localhost:8081/api`); não deve chamar a API de IA
+   chamar apenas o backend pela mesma origem (`/api`); não deve chamar a API de IA
    ou NVIDIA diretamente.
 6. Para conferir os comportamentos de falha e preservação de respostas, rode o
    teste Cypress existente do fluxo de treinos. Esse teste simula 503/504 e não
@@ -71,14 +71,14 @@ Se o ambiente exigir token de usuário, forneça-o em
 comando nem o inclua no relatório. Para ambiente diferente do local, confirme
 autorização, representatividade, provedor/modelo e carga com a equipe antes de
 executar. O código de saída é diferente de zero se houver falhas, resposta
-inválida ou p95 acima do alvo proposto.
+inválida ou p95 acima da meta aprovada.
 
 Registre junto ao JSON, sem segredos:
 
 - data/hora, commit, ambiente e camada medida;
 - provedor/modelo e versão de prompt (quando disponíveis);
 - amostras, aquecimento, concorrência e demais condições da carga;
-- p50, p95, máximo, falhas e comparação com os alvos propostos;
+- p50, p95, máximo, falhas e comparação com as metas aprovadas;
 - limitações da amostra e do modelo medido.
 
 Não compare medições de ambientes, modelos ou cargas diferentes como se fossem

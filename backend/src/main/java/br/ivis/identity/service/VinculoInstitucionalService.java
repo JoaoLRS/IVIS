@@ -99,7 +99,8 @@ public class VinculoInstitucionalService {
         ContratoInstitucionalModel contrato = contratos.buscarAtivoParaVinculacao(
                         requisicao.contratoId(), instituicao.getId())
                 .orElseThrow(VinculoInstitucionalService::contratoNaoEncontrado);
-        if (vinculos.countByContratoIdAndSituacao(contrato.getId(), VINCULO_ATIVO)
+        if (contrato.getQuantidadeVagas() != null
+                && vinculos.countByContratoIdAndSituacao(contrato.getId(), VINCULO_ATIVO)
                 >= contrato.getQuantidadeVagas()) {
             throw capacidadeEsgotada();
         }
@@ -131,7 +132,7 @@ public class VinculoInstitucionalService {
             throw alunoJaVinculado();
         }
         long utilizados = vinculos.countByContratoIdAndSituacao(contrato.getId(), VINCULO_ATIVO);
-        if (utilizados >= contrato.getQuantidadeVagas()) {
+        if (contrato.getQuantidadeVagas() != null && utilizados >= contrato.getQuantidadeVagas()) {
             throw capacidadeEsgotada();
         }
 
@@ -200,14 +201,14 @@ public class VinculoInstitucionalService {
 
     private Capacidade resumirCapacidade(ContratoInstitucionalModel contrato) {
         long utilizados = vinculos.countByContratoIdAndSituacao(contrato.getId(), VINCULO_ATIVO);
-        if (utilizados > contrato.getQuantidadeVagas()) {
+        if (contrato.getQuantidadeVagas() != null && utilizados > contrato.getQuantidadeVagas()) {
             throw new IllegalStateException("A quantidade de vínculos ativos excede a capacidade contratada.");
         }
         return new Capacidade(
                 contrato.getId(),
                 contrato.getQuantidadeVagas(),
                 utilizados,
-                contrato.getQuantidadeVagas() - utilizados);
+                contrato.getQuantidadeVagas() == null ? null : contrato.getQuantidadeVagas() - utilizados);
     }
 
     private static boolean violacaoVinculoAtivoUnico(DataIntegrityViolationException excecao) {

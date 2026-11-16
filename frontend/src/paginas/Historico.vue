@@ -9,13 +9,18 @@ import {
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
+import { useEstadoSessao } from "../estados/estadoSessao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 const estado = useEstadoAplicacao();
+const sessao = useEstadoSessao();
 const roteador = useRouter();
 const mediaNotas = computed(() => {
   const avaliados = estado.historico.filter((treino) => treino.nota !== null);
   if (!avaliados.length) return null;
-  const total = avaliados.reduce((soma, treino) => soma + (treino.nota ?? 0), 0);
+  const total = avaliados.reduce(
+    (soma, treino) => soma + (treino.nota ?? 0),
+    0,
+  );
   return Math.round(total / avaliados.length);
 });
 </script>
@@ -25,7 +30,11 @@ const mediaNotas = computed(() => {
     eyebrow="SUA JORNADA"
     titulo="Histórico de treinos"
     descricao="Acompanhe suas práticas e veja sua evolução ao longo do tempo."
-    ><button class="btn btn-primary" @click="roteador.push('/treinos')">
+    ><button
+      v-if="sessao.temPlano"
+      class="btn btn-primary"
+      @click="roteador.push('/treinos')"
+    >
       <Plus :size="16" /> Novo treino
     </button></CabecalhoPagina
   >
@@ -42,14 +51,18 @@ const mediaNotas = computed(() => {
       <div class="history-stat card">
         <TrendingUp /><span
           ><small>PONTUAÇÃO MÉDIA</small
-          ><strong>{{ mediaNotas ?? "—" }} <small v-if="mediaNotas !== null">/100</small></strong></span
+          ><strong
+            >{{ mediaNotas ?? "—" }}
+            <small v-if="mediaNotas !== null">/100</small></strong
+          ></span
         >
       </div>
     </div>
     <div class="col-md-4">
       <div class="history-stat card">
         <Zap /><span
-          ><small>REGISTROS</small><strong>{{ estado.historico.length }}</strong></span
+          ><small>REGISTROS</small
+          ><strong>{{ estado.historico.length }}</strong></span
         >
       </div>
     </div>
@@ -78,7 +91,10 @@ const mediaNotas = computed(() => {
           ><small class="d-block">{{ treino.contexto }}</small></span
         ><span class="history-result"
           ><small>RESULTADO</small
-          ><strong>{{ treino.nota ?? "—" }}<small v-if="treino.nota !== null">/100</small></strong></span
+          ><strong
+            >{{ treino.nota ?? "—"
+            }}<small v-if="treino.nota !== null">/100</small></strong
+          ></span
         ><span class="result-label">{{
           treino.nota === null
             ? "Avaliação qualitativa indisponível"

@@ -27,8 +27,8 @@ public class ContratoInstitucionalModel {
     @Column(nullable = false, length = 20)
     private String situacao;
 
-    @Column(name = "quantidade_vagas", nullable = false)
-    private int quantidadeVagas;
+    @Column(name = "quantidade_vagas")
+    private Integer quantidadeVagas;
 
     @Column(name = "iniciado_em", nullable = false)
     private Instant iniciadoEm;
@@ -39,7 +39,7 @@ public class ContratoInstitucionalModel {
     @Column(name = "expira_em")
     private Instant expiraEm;
 public ContratoInstitucionalModel(
-            UUID id, UUID contaTitularId, UUID planoId, String situacao, int quantidadeVagas,
+            UUID id, UUID contaTitularId, UUID planoId, String situacao, Integer quantidadeVagas,
             Instant iniciadoEm, Instant encerradoEm) {
         this.id = id;
         this.contaTitularId = contaTitularId;
@@ -66,7 +66,7 @@ public ContratoInstitucionalModel(
         return situacao;
     }
 
-    public int getQuantidadeVagas() {
+    public Integer getQuantidadeVagas() {
         return quantidadeVagas;
     }
 

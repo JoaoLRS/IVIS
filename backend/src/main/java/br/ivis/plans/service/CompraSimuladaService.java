@@ -39,16 +39,22 @@ public class CompraSimuladaService {
                 .filter(contaEncontrada -> contaEncontrada.estaAtiva())
                 .orElseThrow(() -> new ExcecaoNegocio(HttpStatus.FORBIDDEN,
                         "acesso_negado", "A conta não está habilitada para esta operação."));
+        String chave = validarChave(contaId, chaveIdempotencia);
+        Resposta anterior = buscarCompraAnterior(chave);
+        if (anterior != null) {
+            if (!anterior.planoId().equals(requisicao.planoId())) {
+                throw new ExcecaoNegocio(HttpStatus.CONFLICT, "chave_idempotencia_reutilizada",
+                        "Esta chave de compra já foi usada para outro plano.");
+            }
+            return comReprocessada(anterior);
+        }
+
         OfertaCompra oferta = buscarOferta(requisicao.planoId());
         String tipoContaEsperado = "INDIVIDUAL".equals(oferta.modalidade()) ? "ALUNO" : "INSTITUICAO";
         if (!tipoContaEsperado.equals(conta.getTipoConta())) {
             throw new ExcecaoNegocio(HttpStatus.FORBIDDEN, "modalidade_invalida",
                     "O tipo de conta não pode contratar esta modalidade de plano.");
         }
-
-        String chave = validarChave(contaId, chaveIdempotencia);
-        Resposta anterior = buscarCompraAnterior(chave);
-        if (anterior != null) return comReprocessada(anterior);
 
         if ("INDIVIDUAL".equals(oferta.modalidade()) && temVinculoInstitucionalAtivo(contaId)) {
             throw new ExcecaoNegocio(HttpStatus.CONFLICT, "aluno_vinculado_a_instituicao",
@@ -186,5 +192,5 @@ public class CompraSimuladaService {
     }
 
     private record OfertaCompra(UUID id, String codigo, String nome, String modalidade, long precoCentavos,
-                                String moeda, int duracaoDias, int vagasIncluidas) { }
+                                String moeda, int duracaoDias, Integer vagasIncluidas) { }
 }

@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  ArrowRight,
   ArrowUpRight,
-  BrainCircuit,
-  Building2,
   LogOut,
   MessageSquareText,
-  Sparkles,
   UserRound,
 } from "lucide-vue-next";
 import { RouterLink } from "vue-router";
@@ -20,12 +16,14 @@ async function sairDaConta() {
 }
 
 const destinoPrincipal = computed(() => {
+  if (sessao.conta?.tipoConta === "INSTITUICAO") return "/instituicao";
   if (sessao.temPlano) return "/treinos";
   if (sessao.conta) return "/planos?acesso=necessario";
   return "/cadastro";
 });
 
 const rotuloPrincipal = computed(() => {
+  if (sessao.conta?.tipoConta === "INSTITUICAO") return "Gerenciar instituição";
   if (sessao.temPlano) return "Iniciar treinamento";
   if (sessao.conta) return "Ver opções de acesso";
   return "Começar agora";
@@ -97,9 +95,6 @@ const rotuloPrincipal = computed(() => {
     <section id="como-funciona" class="public-benefits">
       <div class="public-benefits-inner">
         <div class="public-benefit-card">
-          <span class="public-benefit-icon public-benefit-icon-purple"
-            ><BrainCircuit :size="23"
-          /></span>
           <h2>Perguntas contextualizadas</h2>
           <p>
             Use suas habilidades ou uma vaga de interesse como contexto para
@@ -107,18 +102,12 @@ const rotuloPrincipal = computed(() => {
           </p>
         </div>
         <div class="public-benefit-card">
-          <span class="public-benefit-icon public-benefit-icon-blue"
-            ><MessageSquareText :size="23"
-          /></span>
           <h2>Entrevista por texto</h2>
           <p>
             Responda às perguntas no seu tempo e mantenha o foco no conteúdo.
           </p>
         </div>
         <div class="public-benefit-card">
-          <span class="public-benefit-icon public-benefit-icon-green"
-            ><Sparkles :size="23"
-          /></span>
           <h2>Feedback ao final</h2>
           <p>
             Receba uma avaliação com pontos fortes e aspectos que pode
@@ -127,40 +116,23 @@ const rotuloPrincipal = computed(() => {
         </div>
       </div>
 
-      <div class="public-benefits-actions">
-        <RouterLink class="public-secondary-cta" to="/planos">
-          Conhecer planos <ArrowRight :size="16" />
-        </RouterLink>
-        <RouterLink class="public-outline-cta" :to="destinoPrincipal">
-          {{ rotuloPrincipal }}
-        </RouterLink>
-      </div>
     </section>
 
     <section class="public-audience">
       <div>
-        <span class="public-section-kicker">ACESSO PARA CADA JORNADA</span>
-        <h2>Treine individualmente ou com sua instituição</h2>
+        <span class="public-section-kicker">FORMAS DE ACESSO</span>
+        <h2>Escolha entre acesso individual e institucional</h2>
         <p>
-          O IVIS oferece acesso por plano individual e por vínculo
-          institucional. Consulte as modalidades disponíveis e veja qual se
-          aplica a você.
+          No plano individual, você contrata seu próprio acesso. No plano
+          institucional, a instituição contrata e vincula os alunos que poderão
+          treinar.
         </p>
-      </div>
-      <div class="public-audience-actions">
-        <RouterLink to="/planos"
-          ><UserRound :size="18" /> Planos individuais</RouterLink
-        >
-        <RouterLink to="/planos"
-          ><Building2 :size="18" /> Acesso institucional</RouterLink
-        >
       </div>
     </section>
 
     <footer class="public-footer">
       <RouterLink class="public-brand" to="/">IVIS<span>.</span></RouterLink>
       <span>Pratique. Aprenda. Evolua.</span>
-      <RouterLink to="/login">Acessar minha conta</RouterLink>
     </footer>
   </main>
 </template>
@@ -176,8 +148,8 @@ const rotuloPrincipal = computed(() => {
 .public-header {
   position: relative;
   z-index: 2;
-  background: #fff;
-  border-bottom: 1px solid #ececf2;
+  background: #141830;
+  border-bottom: 1px solid #ffffff1f;
 }
 
 .public-header-inner {
@@ -191,7 +163,7 @@ const rotuloPrincipal = computed(() => {
 }
 
 .public-brand {
-  color: #15172e;
+  color: #fff;
   font:
     800 27px/1 Manrope,
     sans-serif;
@@ -200,26 +172,28 @@ const rotuloPrincipal = computed(() => {
 }
 
 .public-brand span {
-  color: #7768ec;
+  color: #c4f474;
 }
 
 .public-nav {
   display: flex;
   align-items: center;
   gap: clamp(18px, 3vw, 42px);
+  height: auto;
+  border: 0;
+  background: transparent;
 }
 
 .public-nav > a {
-  color: #4a4c61;
-  font-size: 13px;
+  color: #e2e5f5;
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   transition: color 0.18s ease;
 }
 
-.public-nav > a:hover,
-.public-footer > a:last-child:hover {
-  color: #6757df;
+.public-nav > a:hover {
+  color: #c4f474;
 }
 
 .public-nav .public-login {
@@ -229,19 +203,24 @@ const rotuloPrincipal = computed(() => {
   padding: 10px 17px;
   border: 0;
   border-radius: 0;
-  color: #4d43a4;
+  color: #fff;
   background: transparent;
   text-decoration: none;
 }
 
 .public-nav .public-login:hover {
-  color: #6757df;
+  color: #c4f474;
 }
 
 .public-nav .public-logout {
-  background: #fff;
+  background: transparent;
   font: inherit;
   cursor: pointer;
+}
+.public-header a:focus-visible,
+.public-header button:focus-visible {
+  outline: 2px solid #c4f474;
+  outline-offset: 4px;
 }
 
 .public-hero {
@@ -400,35 +379,13 @@ const rotuloPrincipal = computed(() => {
 }
 
 .public-benefit-card {
-  min-height: 190px;
+  min-height: 140px;
   padding: 27px 25px;
   border: 1px solid #e4e7f3;
   border-radius: 16px;
   background: #fff;
   text-align: center;
   box-shadow: 0 5px 18px #15172e08;
-}
-
-.public-benefit-icon {
-  width: 46px;
-  height: 46px;
-  margin: 0 auto 15px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-}
-
-.public-benefit-icon-purple {
-  color: #6757df;
-  background: #f0edff;
-}
-.public-benefit-icon-blue {
-  color: #4385e8;
-  background: #eaf2ff;
-}
-.public-benefit-icon-green {
-  color: #3f8c68;
-  background: #edf8e2;
 }
 
 .public-benefit-card h2 {
@@ -499,29 +456,6 @@ const rotuloPrincipal = computed(() => {
   line-height: 1.8;
 }
 
-.public-audience-actions {
-  display: grid;
-  gap: 11px;
-  min-width: 235px;
-}
-.public-audience-actions a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid #e6e7ef;
-  border-radius: 12px;
-  color: #3c3e54;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-.public-audience-actions a:hover {
-  border-color: #c9c2ff;
-  color: #5142c5;
-}
-
 .public-footer {
   min-height: 82px;
   padding: 20px max(24px, calc((100vw - 1120px) / 2));
@@ -539,6 +473,9 @@ const rotuloPrincipal = computed(() => {
   font-weight: 700;
   text-decoration: none;
 }
+.public-footer .public-brand span {
+  color: #6757df;
+}
 
 @media (max-width: 760px) {
   .public-header-inner {
@@ -549,7 +486,7 @@ const rotuloPrincipal = computed(() => {
     gap: 15px;
   }
   .public-nav > a {
-    font-size: 11px;
+    font-size: 12px;
   }
   .public-nav > a:first-child {
     display: none;
@@ -586,9 +523,6 @@ const rotuloPrincipal = computed(() => {
     align-items: stretch;
     flex-direction: column;
   }
-  .public-audience-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .public-footer {
     flex-wrap: wrap;
   }
@@ -599,7 +533,7 @@ const rotuloPrincipal = computed(() => {
     gap: 10px;
   }
   .public-nav > a {
-    font-size: 10px;
+    font-size: 11px;
   }
   .public-nav .public-login {
     gap: 5px;
@@ -611,9 +545,6 @@ const rotuloPrincipal = computed(() => {
   }
   .public-hero-content > p {
     font-size: 13px;
-  }
-  .public-audience-actions {
-    grid-template-columns: 1fr;
   }
   .public-footer {
     align-items: flex-start;

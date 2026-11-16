@@ -1,22 +1,33 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { Eye, EyeOff } from "lucide-vue-next";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import { clienteHttp } from "../servicos/clienteHttp";
+import VisualEntrevista from "../componentes/VisualEntrevista.vue";
 
 const email = ref("");
 const senha = ref("");
-const modoRecuperacao = ref(false);
+const mostrarSenha = ref(false);
+const rota = useRoute();
+const modoRecuperacao = ref(rota.query.recuperar === "1");
 const mensagem = ref("");
 const processando = ref(false);
 const sessao = useEstadoSessao();
-const rota = useRoute();
 const roteador = useRouter();
 
 function mensagemErro(erro: unknown) {
   if (typeof erro === "object" && erro !== null && "response" in erro) {
-    const resposta = (erro as { response?: { data?: { mensagem?: string } } })
-      .response;
+    const resposta = (
+      erro as {
+        response?: {
+          status?: number;
+          data?: { mensagem?: string; codigo?: string };
+        };
+      }
+    ).response;
+    if (resposta?.status === 403 && resposta.data?.codigo === "acesso_negado")
+      return "Não foi possível validar sua sessão. Atualize a página e tente novamente.";
     return (
       resposta?.data?.mensagem ?? "Não foi possível concluir a solicitação."
     );
@@ -43,8 +54,10 @@ async function enviarFormulario() {
           headers: { "X-XSRF-TOKEN": csrf.data.token },
         },
       );
-      mensagem.value =
-        "Se este e-mail estiver cadastrado, você receberá instruções para recuperar o acesso.";
+      await roteador.push({
+        name: "redefinir-senha",
+        state: { emailRecuperacao: email.value.trim() },
+      });
     } else {
       await sessao.entrar(email.value, senha.value);
       const destino =
@@ -78,23 +91,21 @@ function voltarAoLogin() {
 
 <template>
   <main class="login-page">
-    <header class="login-top">
-      <RouterLink class="login-brand" to="/planos">IVIS</RouterLink>
-      <RouterLink class="login-back" to="/planos">Ver planos</RouterLink>
-    </header>
+    <section class="login-panel">
+      <header class="login-top">
+        <RouterLink class="login-brand" to="/">IVIS<span>.</span></RouterLink>
+        <RouterLink class="login-back" to="/planos">Ver planos</RouterLink>
+      </header>
 
-    <section class="login-card">
+      <div class="login-card">
       <header class="login-heading">
-        <span class="login-eyebrow">
-          {{ modoRecuperacao ? "RECUPERE SEU ACESSO" : "BEM-VINDO(A)" }}
-        </span>
         <h1>
-          {{ modoRecuperacao ? "Esqueceu sua senha?" : "Acesse sua conta" }}
+          {{ modoRecuperacao ? "Recupere seu acesso" : "Entrar na conta" }}
         </h1>
         <p>
           {{
             modoRecuperacao
-              ? "Informe seu e-mail e enviaremos as instruções de recuperação."
+              ? "Informe seu e-mail e enviaremos um código de recuperação."
               : "Entre para acessar seus treinamentos e acompanhar seu desenvolvimento."
           }}
         </p>
@@ -125,15 +136,27 @@ function voltarAoLogin() {
               Esqueci minha senha
             </button>
           </div>
-          <input
-            id="login-senha"
-            v-model="senha"
-            class="form-control"
-            type="password"
-            placeholder="Digite sua senha"
-            autocomplete="current-password"
-            required
-          />
+          <div class="login-password-field">
+            <input
+              id="login-senha"
+              v-model="senha"
+              class="form-control"
+              :type="mostrarSenha ? 'text' : 'password'"
+              placeholder="Digite sua senha"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              class="login-password-toggle"
+              type="button"
+              :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
+              :aria-pressed="mostrarSenha"
+              @click="mostrarSenha = !mostrarSenha"
+            >
+              <EyeOff v-if="mostrarSenha" :size="18" />
+              <Eye v-else :size="18" />
+            </button>
+          </div>
         </div>
 
         <p v-if="mensagem" class="login-message" role="status">
@@ -149,10 +172,13 @@ function voltarAoLogin() {
             processando
               ? "Aguarde..."
               : modoRecuperacao
-                ? "Enviar instruções"
+                ? "Enviar código"
                 : "Entrar"
           }}
         </button>
+        <RouterLink v-if="modoRecuperacao" class="login-return" to="/redefinir-senha">
+          Já tenho o código
+        </RouterLink>
         <button
           v-if="modoRecuperacao"
           class="login-return"
@@ -169,8 +195,21 @@ function voltarAoLogin() {
           >Criar conta</RouterLink
         >
       </div>
+      </div>
     </section>
 
-    <p class="login-demo">Sua conta é protegida pelo IVIS.</p>
+    <aside class="login-visual" aria-label="Conheça o IVIS">
+      <div class="login-visual-content">
+        <div class="login-visual-brand">IVIS<span>.</span></div>
+        <p>Pratique para sua próxima entrevista.</p>
+        <VisualEntrevista />
+        <div v-if="!modoRecuperacao" class="login-promo">
+          <strong>Ainda não tem uma conta?</strong>
+          <RouterLink :to="{ name: 'cadastro', query: rota.query }"
+            >Criar conta</RouterLink
+          >
+        </div>
+      </div>
+    </aside>
   </main>
 </template>

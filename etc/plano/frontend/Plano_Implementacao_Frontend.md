@@ -22,7 +22,7 @@ O frontend é a interface web Vue 3 e TypeScript já presente no repositório. D
 
 - Definir cliente HTTP centralizado com URL configurável por ambiente, tratamento consistente de erros e cancelamento/timeout quando apropriado.
 - Consumir contratos de API versionados; mapear estados retornados pelo backend para apresentação, sem reimplementar suas regras.
-- Implementar estados de carregamento, vazio, sucesso e falha em cada fluxo.
+- Implementar estados de carregamento, vazio, sucesso e falha em cada fluxo. Durante operações visíveis, exibir indicador global e cursor de espera e impedir cliques e teclado até a conclusão; chamadas de manutenção da sessão em segundo plano não bloqueiam.
 - Aplicar estratégia de autenticação definida pelo backend sem expor tokens em locais inseguros; tratar expiração e encerramento de sessão.
 
 ### 3. Implementar os fluxos de usuário
