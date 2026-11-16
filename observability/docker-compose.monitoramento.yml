@@ -1,0 +1,46 @@
+# Monitoramento do IVIS: Prometheus (métricas) e Grafana (painéis).
+# O Loki entra na Etapa 2.
+# Uso local: copie .env.exemplo para .env e rode
+#   docker compose -f docker-compose.monitoramento.yml up -d
+name: ivis-monitoramento
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.13.5
+    container_name: ivis-prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=3d
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-dados:/prometheus
+    extra_hosts:
+      # Local: aponta para a máquina do desenvolvedor (host-gateway).
+      # AWS: o Rafael define IP_APP com o IP privado da EC2 app.
+      - "ivis-app:${IP_APP:-host-gateway}"
+
+  grafana:
+    image: grafana/grafana:13.3.1
+    container_name: ivis-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SENHA:?defina GRAFANA_SENHA no arquivo .env}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-dados:/var/lib/grafana
+
+volumes:
+  prometheus-dados:
+  grafana-dados:
