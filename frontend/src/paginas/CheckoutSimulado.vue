@@ -9,6 +9,7 @@ import {
   type ContratacaoSimulada,
 } from "../servicos/contratacoes";
 import { clienteHttp } from "../servicos/clienteHttp";
+import { novaChaveIdempotencia } from "../servicos/chaveIdempotencia";
 
 interface Oferta {
   id: string;
@@ -18,7 +19,7 @@ interface Oferta {
   precoCentavos: number;
   moeda: string;
   duracaoDias: number;
-  vagasIncluidas: number;
+  vagasIncluidas: number | null;
   beneficios: string[];
 }
 
@@ -33,7 +34,7 @@ const resultado = ref<ContratacaoSimulada | null>(null);
 const numeroCartao = ref("4242 4242 4242 4242");
 const validade = ref("12/30");
 const cvv = ref("123");
-const chaveIdempotencia = ref(crypto.randomUUID());
+const chaveIdempotencia = ref(novaChaveIdempotencia());
 
 async function sairDaConta() {
   await sessao.sair();
@@ -47,6 +48,12 @@ const valorFormatado = computed(() => {
     currency: oferta.value.moeda,
   }).format(oferta.value.precoCentavos / 100);
 });
+
+const descricaoExibida = computed(() =>
+  (oferta.value?.descricao ?? "")
+    .replace(/\s*[.;]\s*nenhuma cobrança real é realizada\./i, ".")
+    .trim(),
+);
 
 function erroDaResposta(erroApi: unknown) {
   if (
@@ -122,7 +129,7 @@ async function confirmarCompra() {
     if (resultado.value.situacaoPagamento === "APROVADO") {
       await sessao.consultarPlano();
     } else {
-      chaveIdempotencia.value = crypto.randomUUID();
+      chaveIdempotencia.value = novaChaveIdempotencia();
     }
   } catch (erroApi) {
     erro.value = erroDaResposta(erroApi);
@@ -139,7 +146,7 @@ onMounted(carregarOferta);
     <header class="checkout-header">
       <RouterLink class="checkout-brand" to="/">IVIS<span>.</span></RouterLink>
       <span class="checkout-step"
-        ><LockKeyhole :size="15" /> Checkout seguro de demonstração</span
+        ><LockKeyhole :size="15" /> Simulação de pagamento</span
       >
       <button class="checkout-logout" type="button" @click="sairDaConta">
         <LogOut :size="15" /> Sair
@@ -161,29 +168,25 @@ onMounted(carregarOferta);
       </div>
       <template v-else-if="oferta">
         <div class="checkout-heading">
-          <span class="checkout-kicker">ATIVAÇÃO DE ACESSO</span>
-          <h1>
-            {{
-              oferta.modalidade === "INSTITUCIONAL"
-                ? "Confirme o plano acadêmico"
-                : "Confirme seu plano"
-            }}
-          </h1>
-          <p>
-            Revise a oferta e use um cartão fictício para testar a simulação.
-          </p>
+          <span class="checkout-kicker">SEU PLANO</span>
+          <h1>Revise e confirme seu acesso</h1>
+          <p>Confira o resumo e escolha um cartão de teste para continuar.</p>
         </div>
 
         <div class="checkout-grid">
           <section class="checkout-form-card">
+            <div class="checkout-panel-heading">
+              <span aria-hidden="true">01</span>
+              <div>
+                <h2>Pagamento de teste</h2>
+                <p>Selecione um resultado para a simulação.</p>
+              </div>
+            </div>
             <div class="checkout-simulation-notice">
               <ShieldCheck :size="20" />
               <div>
-                <strong>Ambiente acadêmico: sem cobrança real</strong>
-                <p>
-                  O IVIS não se conecta a adquirentes. Use somente os cartões de
-                  teste exibidos abaixo.
-                </p>
+                <strong>Nenhum valor será cobrado</strong>
+                <p>Use somente os cartões fictícios desta página.</p>
               </div>
             </div>
 
@@ -192,27 +195,23 @@ onMounted(carregarOferta);
                 <button
                   type="button"
                   class="checkout-scenario"
+                  :class="{ 'checkout-scenario-active': numeroCartao === '4242 4242 4242 4242' }"
+                  :aria-pressed="numeroCartao === '4242 4242 4242 4242'"
                   @click="selecionarCenario('aprovado')"
                 >
-                  Preencher cartão aprovado
+                  <strong>Aprovação</strong>
+                  <small>4242 4242 4242 4242</small>
                 </button>
                 <button
                   type="button"
                   class="checkout-scenario"
+                  :class="{ 'checkout-scenario-active': numeroCartao === '4000 0000 0000 0002' }"
+                  :aria-pressed="numeroCartao === '4000 0000 0000 0002'"
                   @click="selecionarCenario('recusado')"
                 >
-                  Preencher cartão recusado
+                  <strong>Recusa</strong>
+                  <small>4000 0000 0000 0002</small>
                 </button>
-              </div>
-
-              <div class="checkout-test-cards">
-                <p>
-                  <strong>Aprovação:</strong> 4242 4242 4242 4242 · 12/30 · CVV
-                  123
-                </p>
-                <p>
-                  <strong>Recusa:</strong> 4000 0000 0000 0002 · 12/30 · CVV 123
-                </p>
               </div>
 
               <form autocomplete="off" @submit.prevent="confirmarCompra">
@@ -299,7 +298,7 @@ onMounted(carregarOferta);
               <p v-if="resultado.situacaoPagamento === 'APROVADO'">
                 {{
                   oferta.modalidade === "INSTITUCIONAL"
-                    ? `O plano acadêmico está ativo para até ${oferta.vagasIncluidas} alunos até`
+                    ? `O plano institucional está ativo ${oferta.vagasIncluidas === null ? "sem limite de alunos" : `para até ${oferta.vagasIncluidas} alunos`} até`
                     : "Seu plano está ativo até"
                 }}
                 {{
@@ -336,9 +335,9 @@ onMounted(carregarOferta);
           </section>
 
           <aside class="checkout-summary">
-            <span class="checkout-kicker">RESUMO DO PEDIDO</span>
+            <span class="checkout-kicker">RESUMO DO PLANO</span>
             <h2>{{ oferta.nome }}</h2>
-            <p>{{ oferta.descricao }}</p>
+            <p>{{ descricaoExibida }}</p>
             <ul>
               <li v-for="beneficio in oferta.beneficios" :key="beneficio">
                 {{ beneficio }}
@@ -353,14 +352,11 @@ onMounted(carregarOferta);
               class="checkout-summary-duration"
             >
               <span>Capacidade incluída</span
-              ><strong>{{ oferta.vagasIncluidas }} alunos</strong>
+              ><strong>{{ oferta.vagasIncluidas === null ? "Alunos ilimitados" : `${oferta.vagasIncluidas} alunos` }}</strong>
             </div>
             <div class="checkout-total">
               <span>Total simulado</span><strong>{{ valorFormatado }}</strong>
             </div>
-            <p class="checkout-no-charge">
-              Valor ilustrativo. A simulação não movimenta dinheiro.
-            </p>
           </aside>
         </div>
       </template>
@@ -371,35 +367,32 @@ onMounted(carregarOferta);
 <style scoped>
 .checkout-page {
   min-height: 100vh;
-  color: #27283a;
-  background: #f7f7fb;
-  font-family: Manrope, Inter, sans-serif;
+  color: #171b39;
+  background: #f2f5fc;
 }
 .checkout-header {
-  min-height: 76px;
-  padding: 0 max(24px, calc((100vw - 1080px) / 2));
+  min-height: 80px;
+  padding: 0 max(24px, calc((100vw - 1160px) / 2));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #e8e8ef;
-  background: #fff;
+  background: #141830;
 }
 .checkout-brand {
-  color: #15172e;
-  font:
-    800 25px Manrope,
-    sans-serif;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
   letter-spacing: -1px;
   text-decoration: none;
 }
 .checkout-brand span {
-  color: #6757df;
+  color: #c4f474;
 }
 .checkout-step {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #656779;
+  color: #c8cce3;
   font-size: 12px;
 }
 .checkout-logout {
@@ -408,22 +401,22 @@ onMounted(carregarOferta);
   gap: 6px;
   border: 0;
   background: transparent;
-  color: #5142c5;
+  color: #fff;
   font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 .checkout-content {
-  width: min(100% - 40px, 1080px);
+  width: min(100% - 48px, 1160px);
   margin: 0 auto;
-  padding: 30px 0 64px;
+  padding: 34px 0 80px;
 }
 .checkout-back {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 26px;
-  color: #5c5e70;
+  margin-bottom: 34px;
+  color: #505875;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -432,47 +425,73 @@ onMounted(carregarOferta);
   color: #5142c5;
 }
 .checkout-heading {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 .checkout-kicker {
-  color: #6757df;
-  font-size: 10px;
+  color: #5d50d8;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.4px;
 }
 .checkout-heading h1 {
-  margin: 7px 0 5px;
-  color: #21233a;
-  font:
-    800 30px Manrope,
-    sans-serif;
-  letter-spacing: -0.8px;
+  margin: 9px 0 8px;
+  color: #151a36;
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
 }
 .checkout-heading p {
   margin: 0;
-  color: #747687;
-  font-size: 13px;
+  color: #626b84;
+  font-size: 15px;
 }
 .checkout-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+  gap: 24px;
   align-items: start;
 }
 .checkout-form-card,
 .checkout-summary {
-  padding: 24px;
-  border: 1px solid #e7e7ef;
-  border-radius: 16px;
+  padding: 30px;
+  border: 1px solid #e0e5f0;
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 8px 26px #1b1b3c08;
+  box-shadow: 0 12px 32px #1b25400a;
+}
+.checkout-panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.checkout-panel-heading > span {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
+  background: #5951d4;
+  font-size: 13px;
+  font-weight: 800;
+}
+.checkout-panel-heading h2 {
+  margin: 0 0 3px;
+  font-size: 19px;
+}
+.checkout-panel-heading p {
+  margin: 0;
+  color: #68718a;
+  font-size: 13px;
 }
 .checkout-simulation-notice {
   display: flex;
   gap: 12px;
   padding: 15px;
   border: 1px solid #d9ebbd;
-  border-radius: 12px;
+  border-radius: 8px;
   color: #354b2b;
   background: #f5fbe9;
 }
@@ -481,60 +500,74 @@ onMounted(carregarOferta);
   color: #568137;
 }
 .checkout-simulation-notice strong {
-  font-size: 13px;
+  font-size: 14px;
 }
 .checkout-simulation-notice p {
   margin: 4px 0 0;
   color: #5e6b55;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 .checkout-scenarios {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 20px 0 11px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 24px 0;
 }
 .checkout-scenario {
-  padding: 8px 11px;
-  border: 1px solid #d9d5ff;
-  border-radius: 999px;
-  color: #5045a4;
+  min-height: 72px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #d7dbea;
+  border-radius: 8px;
+  color: #242a48;
   background: #fff;
-  font-size: 11px;
-  font-weight: 700;
+  text-align: left;
   cursor: pointer;
 }
-.checkout-scenario:hover {
-  background: #f5f3ff;
+.checkout-scenario strong {
+  font-size: 14px;
 }
-.checkout-test-cards {
-  margin-bottom: 18px;
-  padding: 11px 13px;
-  border-radius: 10px;
-  background: #f5f5fa;
+.checkout-scenario small {
+  color: #68718b;
+  font-size: 12px;
 }
-.checkout-test-cards p {
-  margin: 3px 0;
-  color: #66687a;
-  font-size: 10px;
+.checkout-scenario:hover,
+.checkout-scenario-active {
+  border-color: #6255e0;
+  background: #f4f2ff;
+}
+.checkout-scenario:focus-visible,
+.checkout-submit:focus-visible,
+.checkout-logout:focus-visible,
+.checkout-back:focus-visible {
+  outline: 3px solid #7970ef;
+  outline-offset: 3px;
 }
 .checkout-card-form form {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .checkout-card-form .form-label {
-  margin: 5px 0 0;
-  color: #4e5063;
-  font-size: 11px;
+  margin: 8px 0 0;
+  color: #303651;
+  font-size: 13px;
   font-weight: 700;
 }
 .checkout-card-form .form-control {
-  min-height: 43px;
-  border-color: #9298a7;
-  border-radius: 9px;
-  font-size: 13px;
+  min-height: 50px;
+  border-color: #b8bfd0;
+  border-radius: 6px;
+  font-size: 14px;
   box-shadow: none;
+}
+.checkout-card-form .form-control:focus {
+  border-color: #6255e0;
+  box-shadow: 0 0 0 3px #6255e026;
 }
 .checkout-card-fields {
   display: grid;
@@ -543,16 +576,16 @@ onMounted(carregarOferta);
 }
 .checkout-submit {
   width: 100%;
-  min-height: 46px;
-  margin-top: 10px;
+  min-height: 52px;
+  margin-top: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: 7px;
   color: #202238;
   background: #c5f477;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   text-align: center;
   text-decoration: none;
@@ -569,21 +602,26 @@ onMounted(carregarOferta);
 .checkout-summary {
   position: sticky;
   top: 20px;
+  border-color: #232a54;
+  color: #fff;
+  background: linear-gradient(150deg, #171b3b, #252667);
+}
+.checkout-summary .checkout-kicker {
+  color: #c4f474;
 }
 .checkout-summary h2 {
-  margin: 10px 0 7px;
-  color: #292a3c;
-  font:
-    700 19px Manrope,
-    sans-serif;
+  margin: 16px 0 8px;
+  color: #fff;
+  font-size: 23px;
+  font-weight: 800;
 }
 .checkout-summary > p {
-  color: #737586;
-  font-size: 11px;
-  line-height: 1.7;
+  color: #cbd0e8;
+  font-size: 13px;
+  line-height: 1.6;
 }
 .checkout-summary ul {
-  margin: 18px 0;
+  margin: 24px 0;
   padding: 0;
   list-style: none;
   display: grid;
@@ -591,16 +629,16 @@ onMounted(carregarOferta);
 }
 .checkout-summary li {
   position: relative;
-  padding-left: 18px;
-  color: #56586b;
-  font-size: 11px;
+  padding-left: 22px;
+  color: #e2e5f5;
+  font-size: 13px;
   line-height: 1.5;
 }
 .checkout-summary li:before {
   content: "✓";
   position: absolute;
   left: 0;
-  color: #568137;
+  color: #c4f474;
   font-weight: 800;
 }
 .checkout-summary-duration,
@@ -610,27 +648,24 @@ onMounted(carregarOferta);
   justify-content: space-between;
   gap: 12px;
   padding: 13px 0;
-  border-top: 1px solid #eeeef3;
-  color: #696b7d;
-  font-size: 11px;
+  border-top: 1px solid #ffffff2b;
+  color: #cbd0e8;
+  font-size: 12px;
 }
 .checkout-summary-duration strong {
-  color: #34364a;
+  color: #fff;
+  text-align: right;
+}
+.checkout-total {
+  margin-top: 8px;
+  padding-top: 20px;
+  font-size: 14px;
 }
 .checkout-total strong {
-  color: #25263b;
-  font:
-    800 22px Manrope,
-    sans-serif;
-}
-.checkout-summary .checkout-no-charge {
-  margin: 0;
-  padding: 10px;
-  border-radius: 8px;
-  color: #59634d;
-  background: #f5fbe9;
-  font-size: 10px;
-  text-align: center;
+  color: #c4f474;
+  font-size: 28px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 .checkout-error-message,
 .checkout-error {
@@ -670,9 +705,8 @@ onMounted(carregarOferta);
 }
 .checkout-result h2 {
   margin: 0 0 7px;
-  font:
-    800 21px Manrope,
-    sans-serif;
+  font-size: 21px;
+  font-weight: 800;
 }
 .checkout-result p {
   max-width: 550px;
@@ -710,14 +744,20 @@ onMounted(carregarOferta);
     padding: 0 18px;
   }
   .checkout-step {
-    font-size: 10px;
+    display: none;
   }
   .checkout-content {
     width: min(100% - 28px, 1080px);
   }
   .checkout-form-card,
   .checkout-summary {
-    padding: 18px;
+    padding: 22px;
+  }
+  .checkout-scenarios {
+    grid-template-columns: 1fr;
+  }
+  .checkout-total strong {
+    font-size: 23px;
   }
 }
 </style>

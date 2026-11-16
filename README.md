@@ -59,7 +59,7 @@ O aluno pode possuir dois perfis de acesso:
 
 ### Instituição de Ensino
 
-Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às Vadas de alunos .
+Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às vagas de alunos.
 
 ### Sistema de IA
 
@@ -100,7 +100,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Apresentação de preços e benefícios;
 * Contratação de plano individual;
 * Contratação de plano institucional/consórcio;
-* Processamento de pagamentos por gateway externo;
+* Processamento de pagamentos pelo simulador acadêmico; gateway externo é evolução futura;
 * Visualização de informações do plano contratado.
 
 ### 🏫 Gestão Institucional
@@ -108,7 +108,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Gerenciamento de alunos vinculados;
 * Cadastro/vinculação de alunos;
 * Remoção de alunos;
-* Controle de Vadas de alunos ;
+* Controle de vagas de alunos;
 * Visualização de vagas utilizadas e disponíveis;
 * Diferenciação entre alunos de consórcio e alunos pagantes.
 
@@ -124,7 +124,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 
 ## 📋 Requisitos do Sistema
 
-O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na lista de requisitos e 6 em andamento — e **4 Requisitos Não Funcionais (RNF)**.
+O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na lista de requisitos e 6 implementados em validação — e **4 Requisitos Não Funcionais (RNF)**.
 
 ### Requisitos Funcionais — lista de requisitos (14)
 
@@ -137,15 +137,15 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 | RF11 | Exibição dos planos disponíveis na Home | Apresentar planos individuais e institucionais, preços e benefícios. |
 | RF12 | Visualização dos planos sem autenticação | Permitir que visitantes consultem a Home e os planos antes de criar conta ou fazer login. |
 | RF13 | Contratação de plano individual | Permitir que o Aluno Pagante contrate um plano individual pela plataforma. |
-| RF14 | Contratação de plano institucional | Permitir que a Instituição de Ensino contrate um plano e defina a quantidade de vagas. |
-| RF15 | Processamento de pagamentos via gateway | Processar a contratação. Para a apresentação acadêmica, usar o simulador de pagamento controlado pelo backend, sem cobrança real; ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
-| RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos dentro do limite do plano institucional. |
+| RF14 | Contratação de plano institucional | Escolher entre três ofertas por 30 dias: 50 alunos (R$ 900), 100 alunos (R$ 1.750) ou alunos ilimitados (R$ 5.000), com valores ilustrativos. |
+| RF15 | Pagamento simulado acadêmico | Processar a contratação no simulador controlado pelo backend, sem cobrança real; gateway externo é evolução futura. Ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
+| RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos, respeitando o limite nos planos de 50 e 100 e sem teto no ilimitado. |
 | RF17 | Controle de acesso por tipo de aluno | Aplicar acesso conforme o plano individual ou o vínculo institucional. |
-| RF18 | Controle de vagas do plano institucional | Exibir Vadas de alunos , utilizadas e disponíveis. |
+| RF18 | Controle de vagas do plano institucional | Exibir alunos vinculados e capacidade; nos planos finitos, mostrar vagas restantes. |
 | RF19 | Restrição de contratação para AlunoConsórcio | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
 | RF20 | Registro de logs de auditoria | Registrar ações sensíveis com responsável e data/hora, protegendo os registros contra alteração indevida. |
 
-### Requisitos Funcionais — em andamento (6)
+### Requisitos Funcionais — implementados, em validação (6)
 
 | Código | Requisito | Descrição |
 | ------ | --------- | --------- |
@@ -161,11 +161,11 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 | Código | Requisito | Descrição |
 | ------ | --------- | --------- |
 | RNF01 | Aplicação Web | O sistema deve ser acessível por navegador web. |
-| RNF03 | Tempo de resposta da IA | A IA deve responder sem comprometer a fluidez do treino; o limite mensurável ainda precisa ser definido. |
+| RNF03 | Tempo de resposta da IA | Meta p95 até 10 s para pergunta e avaliação, medidas separadamente com o provedor real. |
 | RNF07 | Isolamento de dados entre instituições | Cada Instituição de Ensino só pode visualizar e gerenciar os próprios alunos vinculados. |
-| RNF09 | Proteção e retenção dos logs de auditoria | Proteger os registros contra alteração e mantê-los pelo período definido com a equipe responsável. |
+| RNF09 | Proteção e retenção dos logs de auditoria | Proteger os registros contra alteração e mantê-los por no mínimo 4 anos desde o evento. |
 
-> **Total:** 24 requisitos — 20 funcionais (14 na lista e 6 em andamento) e 4 não funcionais.
+> **Total:** 24 requisitos — 20 funcionais (14 na lista e 6 implementados em validação) e 4 não funcionais.
 
 ---
 
@@ -241,7 +241,7 @@ Entre as medidas previstas estão:
 * Controle de sessão;
 * Isolamento dos dados institucionais;
 * Não armazenamento direto de dados sensíveis de pagamento;
-* Utilização de gateway externo para pagamentos;
+* Uso de simulador acadêmico sem cobrança real; gateway externo depende de decisão futura;
 * Registro de ações sensíveis para auditoria.
 
 ---
@@ -320,7 +320,7 @@ etc/
 
 Esse documento contém a especificação inicial de visão, escopo, stakeholders, atores, casos de uso, histórias de usuário, requisitos e prototipação.
 
-A sequência de implementação dos requisitos em andamento (RF03 e RF06 a RF10) está em `etc/plano/Ordem_de_Entrega_MVP.md`.
+A situação dos requisitos RF03 e RF06 a RF10 e suas pendências de aceite estão em [`etc/plano/IVIS_Requisitos.md`](etc/plano/IVIS_Requisitos.md) e no [plano de teste](etc/plano%20de%20teste.md).
 
 ## Verificação de dependências
 

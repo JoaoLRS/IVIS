@@ -34,7 +34,7 @@ describe("página Meu plano", () => {
 
     expect(pagina.text()).toContain("Plano Acadêmico IVIS");
     expect(pagina.text()).toContain("Acesso por vínculo institucional");
-    expect(pagina.get(".plan-detail-tile:nth-child(2)").text()).toContain("Vadas de alunos ");
+    expect(pagina.get(".plan-detail-tile:nth-child(2)").text()).toContain("Vagas de alunos ");
     expect(pagina.get(".plan-detail-tile:nth-child(2)").text()).toContain("10");
     expect(pagina.text()).toContain("Treinos ilimitados");
     expect(pagina.text()).toContain("Histórico de entrevistas");

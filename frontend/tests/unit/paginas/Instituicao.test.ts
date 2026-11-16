@@ -64,4 +64,16 @@ describe("página Instituicao", () => {
     expect(pagina.get('[role="alert"]').text()).toBe("Vagas esgotadas");
     expect(pagina.text()).toContain("Ana");
   });
+
+  it("mantém a vinculação disponível no plano ilimitado", async () => {
+    vi.mocked(listarCapacidadeInstituicao).mockResolvedValue([
+      { ...capacidade, quantidadeVagas: null, vagasDisponiveis: null },
+    ]);
+    const pagina = mount(Instituicao);
+    await flushPromises();
+
+    expect(pagina.text()).toContain("Ilimitadas");
+    expect(pagina.get(".institution-add-form button").attributes("disabled")).toBeUndefined();
+    expect(pagina.get(".institution-register-form button").attributes("disabled")).toBeUndefined();
+  });
 });

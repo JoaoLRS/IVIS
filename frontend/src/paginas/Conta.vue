@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { CheckCircle2, X } from "lucide-vue-next";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import { useEstadoSessao } from "../estados/estadoSessao";
 import { atualizarMinhaConta } from "../servicos/conta";
@@ -14,8 +15,33 @@ const cpf = ref(sessao.conta?.cpf ?? "");
 const cnpj = ref(sessao.conta?.cnpj ?? "");
 const telefone = ref(sessao.conta?.telefone ?? "");
 const endereco = ref(sessao.conta?.endereco ?? "");
-const salvo = ref(false);
+const mostrarConfirmacao = ref(false);
 const erro = ref("");
+let temporizadorConfirmacao: ReturnType<typeof setTimeout> | undefined;
+
+const dadosAlterados = computed(() => {
+  const conta = sessao.conta;
+  if (!conta) return false;
+
+  return (
+    nome.value !== conta.nome ||
+    email.value !== conta.email ||
+    telefone.value !== (conta.telefone ?? "") ||
+    endereco.value !== (conta.endereco ?? "") ||
+    (conta.tipoConta === "INSTITUICAO"
+      ? nomeResponsavel.value !== (conta.nomeResponsavel ?? "") ||
+        cnpj.value !== (conta.cnpj ?? "")
+      : cpf.value !== (conta.cpf ?? ""))
+  );
+});
+
+function fecharConfirmacao() {
+  mostrarConfirmacao.value = false;
+  if (temporizadorConfirmacao) clearTimeout(temporizadorConfirmacao);
+  temporizadorConfirmacao = undefined;
+}
+
+onBeforeUnmount(fecharConfirmacao);
 
 watch(
   () => sessao.conta,
@@ -32,8 +58,9 @@ watch(
 );
 
 async function salvar() {
+  if (!dadosAlterados.value) return;
   erro.value = "";
-  salvo.value = false;
+  fecharConfirmacao();
   try {
     const conta = await atualizarMinhaConta({
       email: email.value,
@@ -56,7 +83,8 @@ async function salvar() {
     cnpj.value = conta.cnpj ?? "";
     telefone.value = conta.telefone ?? "";
     endereco.value = conta.endereco ?? "";
-    salvo.value = true;
+    mostrarConfirmacao.value = true;
+    temporizadorConfirmacao = setTimeout(fecharConfirmacao, 5000);
   } catch (falha) {
     const resposta = (falha as { response?: { data?: { mensagem?: string } } })
       .response;
@@ -68,6 +96,19 @@ async function salvar() {
 
 <template>
   <div class="account-page">
+    <Transition name="account-toast">
+      <div v-if="mostrarConfirmacao" class="account-toast-notice" role="status">
+        <CheckCircle2 :size="20" aria-hidden="true" />
+        <span>Dados atualizados.</span>
+        <button
+          type="button"
+          aria-label="Fechar aviso"
+          @click="fecharConfirmacao"
+        >
+          <X :size="16" />
+        </button>
+      </div>
+    </Transition>
     <CabecalhoPagina
       :eyebrow="
         sessao.conta?.tipoConta === 'INSTITUICAO'
@@ -189,12 +230,9 @@ async function salvar() {
         </div>
         <p v-if="erro" class="alert alert-danger" role="alert">{{ erro }}</p>
         <div class="d-flex align-items-center gap-3">
-          <button class="btn btn-primary" type="submit">
+          <button class="btn btn-primary" type="submit" :disabled="!dadosAlterados">
             Salvar alterações
           </button>
-          <span v-if="salvo" class="text-success small" role="status"
-            >Dados atualizados.</span
-          >
         </div>
       </form>
     </section>
@@ -214,6 +252,52 @@ async function salvar() {
 </template>
 
 <style scoped>
+.account-toast-notice {
+  position: fixed;
+  top: 72px;
+  right: 24px;
+  z-index: 1050;
+  width: min(360px, calc(100vw - 32px));
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #b8dbb0;
+  border-left: 4px solid #4f914d;
+  border-radius: 8px;
+  color: #244c2c;
+  background: #f5fbf1;
+  box-shadow: 0 14px 32px #151a3640;
+  font-size: 14px;
+  font-weight: 700;
+}
+.account-toast-notice > svg {
+  flex: none;
+  color: #4f914d;
+}
+.account-toast-notice button {
+  margin-left: auto;
+  padding: 4px;
+  display: inline-flex;
+  border: 0;
+  color: #45664b;
+  background: transparent;
+  cursor: pointer;
+}
+.account-toast-notice button:focus-visible {
+  outline: 2px solid #4f914d;
+  outline-offset: 2px;
+}
+.account-toast-enter-active,
+.account-toast-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.account-toast-enter-from,
+.account-toast-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
 .account-page {
   max-width: 980px;
 }

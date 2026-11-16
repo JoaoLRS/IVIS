@@ -6,9 +6,9 @@ O **IVIS (Intelligent Virtual Interview System)** foi criado para ajudar estudan
 
 Há duas formas de acesso: contratar um plano individual ou ser vinculado a uma instituição de ensino com plano ativo. As instituições têm uma área própria para acompanhar e administrar os alunos vinculados.
 
-Neste manual, você encontra os passos para instalar, iniciar e usar o IVIS. Durante a aula, a equipe também disponibilizará a aplicação pela AWS Academy. 
-Esse ambiente fica ativo por até quatro horas, então será iniciado pouco antes da aula. Se quiser rodar o projeto no seu computador, siga os passos a seguir.
-Além, disso a equipe disponibilizara dois notebook já configurado para realizar os testes. 
+Neste manual, você encontra os passos para instalar, iniciar e usar o IVIS. Durante a aula, a equipe poderá disponibilizar a aplicação pela AWS Academy durante a janela de laboratório confirmada para a turma. Se quiser rodar o projeto no seu computador, siga os passos a seguir. A equipe também poderá disponibilizar dois notebooks configurados para os testes.
+
+Durante operações que aguardam resposta, o sistema mostra um indicador de carregamento e o cursor de espera; a interface volta a aceitar cliques e teclado quando a operação termina.
 
 ## 2. Clonar o repositório
 
@@ -232,7 +232,7 @@ Visitantes podem consultar as modalidades na página **Planos**. Para contratar,
 
 **O checkout deste projeto é uma simulação acadêmica. Não há cobrança ou movimentação real de dinheiro.** No ambiente de demonstração, os dados de teste apresentados na própria tela permitem simular aprovação ou recusa. Após uma aprovação, o plano é ativado; em caso de recusa, use **Tentar novamente**.
 
-Depois de entrar, abra **Meu plano** no menu para consultar a modalidade, validade e benefícios do acesso. A conta da instituição também apresenta a quantidade de vagas incluídas no contrato. A capacidade disponível nas ofertas institucionais atuais é definida pela própria oferta.
+Depois de entrar, abra **Meu plano** no menu para consultar a modalidade, validade e benefícios do acesso. A conta da instituição também apresenta a quantidade de vagas incluídas no contrato. Há três ofertas institucionais de demonstração: até 50 alunos por R$ 900, até 100 por R$ 1.750 e alunos ilimitados por R$ 5.000, cada uma por 30 dias. A instituição escolhe uma oferta no catálogo; os valores são ilustrativos e não há cobrança real.
 
 ## 6. Usar a área do aluno
 
@@ -267,7 +267,7 @@ A nota e os comentários dependem da avaliação disponível para aquela sessão
 
 ## 7. Usar a área da instituição
 
-A área **Alunos e vagas** exibe os alunos vinculados, o total de vagas do plano e quantas ainda estão disponíveis.
+A área **Alunos e vagas** exibe os alunos vinculados e a capacidade do plano. Nos planos de 50 e 100 alunos, mostra quantas vagas ainda estão disponíveis; no ilimitado, indica **Ilimitadas**.
 
 Para adicionar um aluno, use uma das opções:
 

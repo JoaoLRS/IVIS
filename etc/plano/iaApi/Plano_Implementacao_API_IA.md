@@ -10,7 +10,7 @@ A API de IA será um módulo Python separado, integrado à NVIDIA NGC e consumid
 - Gerenciar credenciais NVIDIA por configuração segura no serviço, nunca no frontend ou repositório.
 - Usar nomes próprios de classes, funções e métodos em português brasileiro, sem acentos nos identificadores; classes em `PascalCase` e funções/métodos em `snake_case` conforme convenção Python.
 
-> **Contrato proposto:** a primeira versão das operações, limites e erros está em [`Contrato_API_IA_v1.md`](Contrato_API_IA_v1.md), pendente de validação da equipe.
+> **Contrato implementado:** a primeira versão das operações, limites e erros está em [`Contrato_API_IA_v1.md`](Contrato_API_IA_v1.md). A qualidade semântica e a meta de p95 até 10 s para pergunta e avaliação ainda exigem medição e avaliação com o provedor real.
 
 ## Etapas
 
@@ -60,7 +60,7 @@ A API de IA será um módulo Python separado, integrado à NVIDIA NGC e consumid
 
 ## Pendências de decisão
 
-- Framework Python e ferramenta de dependências.
-- Modelo/endpoint específico NVIDIA NGC e limites de uso.
-- Contrato de API, autenticação serviço a serviço e política de timeout/retentativa.
+- Aprovar a rubrica de qualidade semântica das perguntas e avaliações.
+- Medir separadamente pergunta e avaliação com o provedor real contra a meta p95 de 10 s.
+- Revisar limites de uso, custos e política de retentativa do provedor para o ambiente publicado.
 - Política de privacidade, retenção e diagnóstico de prompts/respostas.

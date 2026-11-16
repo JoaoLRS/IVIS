@@ -161,7 +161,12 @@ function treinarPara(titulo: string) {
   <div class="alert opportunity-alert d-flex align-items-center gap-3">
     <span class="alert-icon"><BriefcaseBusiness :size="19" /></span>
     <div>
-      <strong>{{ estado.vagas.length }} vagas cadastradas</strong>
+      <strong
+        >{{ estado.vagas.length }}
+        {{
+          estado.vagas.length === 1 ? "vaga cadastrada" : "vagas cadastradas"
+        }}</strong
+      >
       <p class="mb-0">
         As informações da vaga serão usadas como contexto de uma entrevista.
       </p>
@@ -206,11 +211,9 @@ function treinarPara(titulo: string) {
           </div>
           <h2 class="job-title">{{ vaga.titulo }}</h2>
           <div class="d-flex flex-wrap gap-2">
-            <Etiqueta
-              v-for="habilidade in vaga.requisitos"
-              :key="habilidade"
-              >{{ habilidade }}</Etiqueta
-            >
+            <Etiqueta v-for="habilidade in vaga.requisitos" :key="habilidade">{{
+              habilidade
+            }}</Etiqueta>
           </div>
           <div class="mt-auto">
             <button

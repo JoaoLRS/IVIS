@@ -8,7 +8,7 @@
 
 ## Contexto
 
-O [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md) adota Spring Security e cita JWT, mas deixa em aberto formato, duração, armazenamento e revogação de credenciais. A primeira fatia do MVP (RF01 para Aluno, RF03, RF06 a RF10; ver [`Ordem_de_Entrega_MVP.md`](../Ordem_de_Entrega_MVP.md)) precisa de identidade para associar habilidades, vagas e histórico a cada aluno.
+O [ADR-0004](ADR-0004-stack-do-backend-e-persistencia.md) adota Spring Security e cita JWT, mas deixa em aberto formato, duração, armazenamento e revogação de credenciais. A primeira fatia do MVP (RF01 para Aluno, RF03, RF06 a RF10; ver [requisitos](../IVIS_Requisitos.md)) precisa de identidade para associar habilidades, vagas e histórico a cada aluno.
 
 ## Decisão
 

@@ -30,8 +30,8 @@ public class PlanoModel {
     private long precoCentavos;
     @Column(name = "duracao_dias", nullable = false)
     private int duracaoDias;
-    @Column(name = "vagas_incluidas", nullable = false)
-    private int vagasIncluidas;
+    @Column(name = "vagas_incluidas")
+    private Integer vagasIncluidas;
     @Column(columnDefinition = "char(3)")
     @JdbcTypeCode(SqlTypes.CHAR)
     private String moeda;
@@ -43,7 +43,7 @@ public UUID getId() { return id; }
     public String getDescricao() { return descricao; }
     public long getPrecoCentavos() { return precoCentavos; }
     public int getDuracaoDias() { return duracaoDias; }
-    public int getVagasIncluidas() { return vagasIncluidas; }
+    public Integer getVagasIncluidas() { return vagasIncluidas; }
     public String getMoeda() { return moeda; }
     public boolean isAtivo() { return ativo; }
 }

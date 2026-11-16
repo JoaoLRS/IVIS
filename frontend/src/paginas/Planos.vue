@@ -8,6 +8,7 @@ import {
   GraduationCap,
   LogOut,
   ShieldCheck,
+  UserRound,
 } from "lucide-vue-next";
 import { RouterLink, useRoute } from "vue-router";
 import { clienteHttp } from "../servicos/clienteHttp";
@@ -22,7 +23,7 @@ interface Oferta {
   precoCentavos: number;
   moeda: string;
   duracaoDias: number;
-  vagasIncluidas: number;
+  vagasIncluidas: number | null;
   beneficios: string[];
 }
 
@@ -42,6 +43,12 @@ function preco(oferta: Oferta) {
     style: "currency",
     currency: oferta.moeda,
   }).format(oferta.precoCentavos / 100);
+}
+
+function descricaoExibida(descricao: string | null) {
+  return (descricao ?? "")
+    .replace(/\s*[.;]\s*nenhuma cobrança real é realizada\./i, ".")
+    .trim();
 }
 
 function destinoCompra(oferta: Oferta) {
@@ -77,15 +84,16 @@ onMounted(async () => {
     <header class="plans-header">
       <div class="plans-header-inner">
         <RouterLink class="plans-brand" to="/">IVIS<span>.</span></RouterLink>
-        <nav aria-label="Navegação da página de planos">
-          <RouterLink to="/">Início</RouterLink>
+        <nav aria-label="Navegação principal">
+          <a href="/#como-funciona">Como funciona</a>
+          <RouterLink to="/planos" aria-current="page">Planos</RouterLink>
           <RouterLink v-if="sessao.conta && sessao.temPlano" to="/inicio"
-            >Minha área</RouterLink
+            ><UserRound :size="16" /> Minha área</RouterLink
           >
           <RouterLink v-else-if="sessao.conta" to="/planos?acesso=necessario"
-            >Ativar acesso</RouterLink
+            ><UserRound :size="16" /> Ativar acesso</RouterLink
           >
-          <RouterLink v-else to="/login">Entrar</RouterLink>
+          <RouterLink v-else to="/login"><UserRound :size="16" /> Entrar</RouterLink>
           <button
             v-if="sessao.conta"
             class="plans-logout"
@@ -101,13 +109,20 @@ onMounted(async () => {
     <section class="plans-hero">
       <span class="plans-kicker">ACESSO IVIS</span>
       <h1>Um plano simples para começar a praticar</h1>
-      <p>
-        Escolha um acesso de demonstração, teste a contratação e explore o IVIS
-        sem cobrança real.
-      </p>
-      <div v-if="acessoNecessario" class="plans-access-notice" role="status">
+
+      <div
+        v-if="
+          acessoNecessario ||
+          (sessao.conta?.tipoConta === 'ALUNO' && sessao.temPlano === false)
+        "
+        class="plans-access-notice"
+        role="status"
+      >
         Sua conta precisa de um plano ativo ou de um vínculo institucional para
         abrir a área de treinamento.
+        <RouterLink v-if="sessao.conta?.tipoConta === 'ALUNO'" to="/historico"
+          >Seu histórico continua disponível.</RouterLink
+        >
       </div>
     </section>
 
@@ -117,10 +132,6 @@ onMounted(async () => {
           <span class="plans-section-kicker">OFERTA DE DEMONSTRAÇÃO</span>
           <h2>Escolha sua modalidade</h2>
         </div>
-        <p>
-          Os preços exibidos são ilustrativos e servem apenas para testar o
-          fluxo acadêmico.
-        </p>
       </div>
 
       <div v-if="carregando" class="plans-message">Carregando catálogo...</div>
@@ -136,7 +147,7 @@ onMounted(async () => {
         as migrations do catálogo.
       </div>
 
-      <div v-else class="plans-grid">
+      <div v-else class="plans-grid" aria-label="Planos disponíveis">
         <article v-for="oferta in ofertas" :key="oferta.id" class="plan-card">
           <div class="plan-card-top">
             <span class="plan-type"
@@ -154,27 +165,16 @@ onMounted(async () => {
             <span class="plan-demo-tag">DEMONSTRAÇÃO</span>
           </div>
           <h3>{{ oferta.nome }}</h3>
-          <p class="plan-description">{{ oferta.descricao }}</p>
+          <p class="plan-description">{{ descricaoExibida(oferta.descricao) }}</p>
 
           <div class="plan-price-line">
             <strong>{{ preco(oferta) }}</strong>
             <span v-if="oferta.modalidade === 'INSTITUCIONAL'">
-              até {{ oferta.vagasIncluidas }} alunos ·
+              {{ oferta.vagasIncluidas === null ? "Alunos ilimitados" : `Até ${oferta.vagasIncluidas} alunos` }} ·
               {{ oferta.duracaoDias }} dias
             </span>
             <span v-else>por {{ oferta.duracaoDias }} dias</span>
           </div>
-          <p class="plan-price-caption">
-            Pagamento simulado · nenhum valor será cobrado
-          </p>
-
-          <div class="plan-divider" />
-          <ul class="plan-benefits">
-            <li v-for="beneficio in oferta.beneficios" :key="beneficio">
-              <Check :size="16" /> <span>{{ beneficio }}</span>
-            </li>
-          </ul>
-
           <RouterLink
             v-if="sessao.temPlano"
             class="plan-action plan-action-secondary"
@@ -194,7 +194,7 @@ onMounted(async () => {
           >
             {{
               oferta.modalidade === "INSTITUCIONAL"
-                ? "Contratar plano acadêmico"
+                ? "Contratar plano institucional"
                 : "Continuar para pagamento simulado"
             }}
             <ArrowRight :size="16" />
@@ -218,6 +218,12 @@ onMounted(async () => {
                 : "O acesso por convênio é concedido por vínculo ativo criado pela instituição."
             }}
           </p>
+          <div class="plan-divider" />
+          <ul class="plan-benefits">
+            <li v-for="beneficio in oferta.beneficios" :key="beneficio">
+              <Check :size="16" /> <span>{{ beneficio }}</span>
+            </li>
+          </ul>
         </article>
       </div>
 
@@ -239,8 +245,6 @@ onMounted(async () => {
 
     <footer class="plans-footer">
       <RouterLink to="/">IVIS<span>.</span></RouterLink>
-      <span>Projeto acadêmico de Engenharia de Software</span>
-      <span>Sem cobrança real</span>
     </footer>
   </main>
 </template>
@@ -253,55 +257,73 @@ onMounted(async () => {
   font-family: Manrope, Inter, sans-serif;
 }
 .plans-header {
-  background: #fff;
-  border-bottom: 1px solid #e9e9f0;
+  background: #141830;
+  border-bottom: 1px solid #ffffff1f;
 }
 .plans-header-inner {
-  width: min(100% - 44px, 1120px);
-  min-height: 76px;
+  width: min(100% - 48px, 1120px);
+  min-height: 82px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 32px;
 }
 .plans-brand,
 .plans-footer > a {
-  color: #15172e;
+  color: #fff;
   font:
-    800 25px Manrope,
+    800 27px Manrope,
     sans-serif;
-  letter-spacing: -1px;
+  letter-spacing: -1.4px;
   text-decoration: none;
 }
 .plans-brand span,
 .plans-footer > a span {
-  color: #6757df;
+  color: #c4f474;
 }
 .plans-header nav {
   display: flex;
-  gap: 25px;
+  align-items: center;
+  gap: clamp(18px, 3vw, 42px);
 }
 .plans-header nav a {
-  color: #585a6c;
-  font-size: 12px;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2e5f5;
+  font-size: 15px;
+  font-weight: 600;
   text-decoration: none;
+}
+.plans-header nav a[aria-current="page"] {
+  color: #c4f474;
+}
+.plans-header nav a:last-of-type {
+  color: #fff;
 }
 .plans-logout {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border: 1px solid #dedbea;
-  background: #fff;
-  color: #585a6c;
+  border: 0;
+  background: transparent;
+  color: #fff;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
 }
 .plans-header nav a:hover {
-  color: #5142c5;
+  color: #c4f474;
+}
+.plans-logout:hover {
+  color: #c4f474;
+}
+.plans-header nav a:focus-visible,
+.plans-header nav button:focus-visible {
+  outline-color: #c4f474;
 }
 .plans-hero {
   padding: 53px 22px 45px;
@@ -325,13 +347,6 @@ onMounted(async () => {
     sans-serif;
   letter-spacing: -1.4px;
 }
-.plans-hero > p {
-  max-width: 590px;
-  margin: 0 auto;
-  color: #deddf0;
-  font-size: 13px;
-  line-height: 1.8;
-}
 .plans-access-notice {
   width: min(100%, 680px);
   margin: 20px auto 0;
@@ -343,7 +358,7 @@ onMounted(async () => {
   font-size: 11px;
 }
 .plans-content {
-  width: min(100% - 44px, 1040px);
+  width: min(100% - 48px, 1320px);
   margin: 0 auto;
   padding: 43px 0 55px;
 }
@@ -365,14 +380,6 @@ onMounted(async () => {
     sans-serif;
   letter-spacing: -0.6px;
 }
-.plans-section-heading > p {
-  max-width: 350px;
-  margin: 0;
-  color: #777988;
-  font-size: 11px;
-  line-height: 1.7;
-  text-align: right;
-}
 .plans-message {
   padding: 22px;
   border: 1px solid #e7e7ef;
@@ -387,16 +394,54 @@ onMounted(async () => {
 }
 .plans-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 430px));
-  justify-content: center;
-  gap: 18px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.plan-action:focus-visible,
+.plans-header a:focus-visible,
+.plans-header button:focus-visible {
+  outline: 2px solid #6757df;
+  outline-offset: 3px;
 }
 .plan-card {
-  padding: 25px;
-  border: 1px solid #e3e2f0;
-  border-radius: 17px;
-  background: #fff;
-  box-shadow: 0 12px 32px #1919340b;
+  --card-text: #202344;
+  --card-muted: #5b6079;
+  --card-accent: #5142c5;
+  --card-benefits: #e7ebff;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px 22px 0;
+  border: 1px solid #d8dcf0;
+  border-radius: 10px;
+  color: var(--card-text);
+  background: #f7f8ff;
+  overflow: hidden;
+}
+.plan-card:nth-child(2) {
+  --card-text: #fff;
+  --card-muted: #d9e2ff;
+  --card-accent: #e1e8ff;
+  --card-benefits: #3735a3;
+  border-color: #554fd1;
+  background: #4a40bb;
+}
+.plan-card:nth-child(3) {
+  --card-text: #fff;
+  --card-muted: #d7dcff;
+  --card-accent: #e6e8ff;
+  --card-benefits: #252a83;
+  border-color: #353d9c;
+  background: #292d91;
+}
+.plan-card:nth-child(4) {
+  --card-text: #fff;
+  --card-muted: #d1d9f5;
+  --card-accent: #e2e9ff;
+  --card-benefits: #171e5c;
+  border-color: #242b69;
+  background: #171b53;
 }
 .plan-card-top {
   display: flex;
@@ -408,93 +453,93 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #5146a5;
+  color: var(--card-accent);
   font-size: 11px;
   font-weight: 800;
 }
 .plan-demo-tag {
   padding: 6px 8px;
   border-radius: 999px;
-  color: #6959bb;
-  background: #f0edff;
+  color: #18321d;
+  background: #c5f477;
   font-size: 8px;
   font-weight: 900;
   letter-spacing: 0.6px;
 }
 .plan-card h3 {
-  margin: 20px 0 6px;
-  color: #22243a;
+  min-height: 65px;
+  margin: 28px 0 8px;
+  color: var(--card-text);
   font:
-    800 22px Manrope,
+    800 25px/1.22 Manrope,
     sans-serif;
 }
 .plan-description {
-  min-height: 40px;
+  min-height: 90px;
   margin: 0;
-  color: #747687;
-  font-size: 11px;
-  line-height: 1.7;
+  color: var(--card-muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .plan-price-line {
+  min-height: 85px;
   margin-top: 22px;
   display: flex;
-  align-items: baseline;
-  gap: 9px;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
 }
 .plan-price-line strong {
-  color: #24263a;
+  color: var(--card-text);
   font:
-    800 34px Manrope,
+    800 clamp(28px, 2.6vw, 38px)/1.1 Manrope,
     sans-serif;
   letter-spacing: -1.3px;
 }
 .plan-price-line span {
-  color: #777988;
+  color: var(--card-muted);
   font-size: 11px;
-}
-.plan-price-caption {
-  margin: 3px 0 0;
-  color: #568137;
-  font-size: 10px;
-  font-weight: 700;
 }
 .plan-divider {
   height: 1px;
-  margin: 19px 0;
-  background: #eeeef3;
+  margin: 24px -22px 0;
+  background: #ffffff30;
 }
 .plan-benefits {
-  min-height: 124px;
-  margin: 0 0 20px;
-  padding: 0;
+  flex: 1 0 auto;
+  min-height: 170px;
+  margin: 0 -22px;
+  padding: 21px 22px 25px;
   display: grid;
   align-content: start;
-  gap: 11px;
+  gap: 13px;
+  background: var(--card-benefits);
   list-style: none;
 }
 .plan-benefits li {
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  color: #535567;
-  font-size: 11px;
+  color: var(--card-text);
+  font-size: 12px;
   line-height: 1.5;
 }
 .plan-benefits li svg {
   flex: 0 0 auto;
-  color: #568137;
+  color: var(--card-accent);
 }
 .plan-action {
-  min-height: 46px;
+  min-height: 52px;
+  margin-top: 16px;
   padding: 0 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  border-radius: 999px;
+  border-radius: 7px;
   color: #202238;
   background: #c5f477;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   text-align: center;
   text-decoration: none;
@@ -508,21 +553,21 @@ onMounted(async () => {
   background: #d3ff8c;
 }
 .plan-action-secondary {
-  border: 1px solid #d9d5ff;
-  color: #5142c5;
-  background: #fff;
+  border: 1px solid #c5f477;
+  color: #202238;
+  background: #c5f477;
 }
 .plan-action-secondary:hover {
-  color: #5142c5;
-  background: #f5f3ff;
+  color: #202238;
+  background: #d3ff8c;
 }
 .plan-institution-note {
-  min-height: 46px;
-  margin: 0;
+  min-height: 52px;
+  margin: 16px 0 0;
   display: flex;
   align-items: center;
-  color: #777988;
-  font-size: 10px;
+  color: var(--card-muted);
+  font-size: 11px;
   line-height: 1.6;
 }
 .plans-simulation-panel {
@@ -557,7 +602,9 @@ onMounted(async () => {
 }
 .plans-test-card {
   margin-left: auto;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -570,14 +617,22 @@ onMounted(async () => {
   padding: 14px max(22px, calc((100vw - 1120px) / 2));
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   border-top: 1px solid #e9e9f0;
-  color: #777988;
-  font-size: 10px;
 }
 .plans-footer > a {
+  color: #15172e;
   font-size: 19px;
+}
+.plans-footer > a span {
+  color: #6757df;
+}
+@media (max-width: 1150px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plan-description {
+    min-height: 65px;
+  }
 }
 @media (max-width: 720px) {
   .plans-content {
@@ -589,16 +644,25 @@ onMounted(async () => {
     flex-direction: column;
     gap: 8px;
   }
-  .plans-section-heading > p {
-    text-align: left;
-  }
   .plans-simulation-panel {
     align-items: flex-start;
     flex-wrap: wrap;
   }
   .plans-test-card {
     width: 100%;
-    margin-left: 51px;
+    margin-left: 0;
+  }
+}
+@media (max-width: 680px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+  }
+  .plan-card h3,
+  .plan-description {
+    min-height: 0;
+  }
+  .plan-price-line {
+    min-height: 0;
   }
 }
 @media (max-width: 480px) {
@@ -607,10 +671,13 @@ onMounted(async () => {
     min-height: 66px;
   }
   .plans-header nav {
-    gap: 15px;
+    gap: 12px;
+  }
+  .plans-header nav a:first-child {
+    display: none;
   }
   .plans-header nav a {
-    font-size: 10px;
+    font-size: 12px;
   }
   .plans-hero {
     padding: 42px 18px 35px;
@@ -619,8 +686,6 @@ onMounted(async () => {
     padding: 21px;
   }
   .plans-footer {
-    align-items: flex-start;
-    flex-direction: column;
     padding: 18px;
   }
 }

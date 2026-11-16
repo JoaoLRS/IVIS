@@ -5,22 +5,21 @@ import {
   Code2,
   MessageSquareText,
   LogOut,
-  UserRound,
-  School,
 } from "lucide-vue-next";
 import { RouterLink, useRouter } from "vue-router";
 import type { Component } from "vue";
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { useEstadoAplicacao } from "../estados/estadoAplicacao";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useEstadoSessao } from "../estados/estadoSessao";
 
 defineProps<{ aberto: boolean }>();
 const emit = defineEmits<{ fechar: [] }>();
-const estado = useEstadoAplicacao();
 const sessao = useEstadoSessao();
+const primeiroNome = computed(
+  () => sessao.conta?.nome.trim().split(/\s+/)[0] || "Conta",
+);
 const roteador = useRouter();
 const menuRef = ref<HTMLElement | null>(null);
-type LinkMenu = { rota: string; rotulo: string; icone: Component };
+type LinkMenu = { rota: string; rotulo: string; icone?: Component };
 const grupos: { rotulo: string; links: LinkMenu[] }[] = [
   {
     rotulo: "Seu desenvolvimento",
@@ -35,7 +34,7 @@ const grupos: { rotulo: string; links: LinkMenu[] }[] = [
 const gruposInstituicao: { rotulo: string; links: LinkMenu[] }[] = [
   {
     rotulo: "Gestão institucional",
-    links: [{ rota: "instituicao", rotulo: "Alunos e vagas", icone: School }],
+    links: [{ rota: "instituicao", rotulo: "Gerenciar alunos" }],
   },
 ];
 
@@ -78,21 +77,26 @@ onBeforeUnmount(() =>
   >
     <RouterLink
       class="brand d-flex align-items-center text-decoration-none"
-      :to="sessao.conta?.tipoConta === 'INSTITUICAO' ? '/instituicao' : '/inicio'"
+      :to="
+        sessao.conta?.tipoConta === 'INSTITUICAO' ? '/instituicao' : '/inicio'
+      "
       @click="emit('fechar')"
     >
-      IVIS
+      IVIS<span class="brand-period">.</span>
     </RouterLink>
     <nav class="sidebar-nav">
       <RouterLink
+        v-if="sessao.conta?.tipoConta === 'ALUNO'"
         class="top-menu-text-link"
-        :to="sessao.conta?.tipoConta === 'INSTITUICAO' ? '/instituicao' : '/treinos'"
+        to="/treinos"
         @click="emit('fechar')"
       >
         Iniciar treinamento
       </RouterLink>
       <details
-        v-for="grupo in (sessao.conta?.tipoConta === 'INSTITUICAO' ? gruposInstituicao : grupos)"
+        v-for="grupo in sessao.conta?.tipoConta === 'INSTITUICAO'
+          ? gruposInstituicao
+          : grupos"
         :key="grupo.rotulo"
         class="nav-section nav-section-menu"
       >
@@ -105,38 +109,44 @@ onBeforeUnmount(() =>
             v-for="link in grupo.links"
             :key="link.rota"
             :to="`/${link.rota}`"
-            class="sidebar-link btn w-100 d-flex align-items-center gap-2 text-start"
+            :class="
+              link.icone
+                ? 'sidebar-link btn w-100 d-flex align-items-center gap-2 text-start'
+                : 'institution-menu-link'
+            "
             active-class="active"
             @click="emit('fechar')"
           >
-            <component :is="link.icone" :size="17" />
+            <component :is="link.icone" v-if="link.icone" :size="17" />
             <span>{{ link.rotulo }}</span>
           </RouterLink>
         </div>
       </details>
-    </nav>
-    <div class="top-menu-profile">
-      <RouterLink to="/meu-plano" @click="emit('fechar')">Meu plano</RouterLink>
-      <RouterLink
-        to="/conta"
-        aria-label="Editar dados da conta"
-        @click="emit('fechar')"
-      >
-        <UserRound :size="18" aria-hidden="true" />
-        <span
-          >{{
-            sessao.conta?.tipoConta === "INSTITUICAO" ? "Instituição" : "Aluno"
-          }}
-          - {{ estado.nomeAluno }}</span
+      <div class="mobile-profile-links">
+        <RouterLink to="/conta" @click="emit('fechar')">Meus dados</RouterLink>
+        <RouterLink to="/meu-plano" @click="emit('fechar')"
+          >Meu plano</RouterLink
         >
-      </RouterLink>
-      <button
-        type="button"
-        aria-label="Sair da conta"
-        title="Sair"
-        @click="sair"
-      >
-        <LogOut :size="16" aria-hidden="true" />
+        <RouterLink to="/alterar-senha" @click="emit('fechar')"
+          >Alterar senha</RouterLink
+        >
+        <button type="button" @click="sair">Sair</button>
+      </div>
+    </nav>
+    <div class="top-menu-account">
+      <details class="top-menu-profile">
+        <summary>
+          <span class="profile-label">Minha conta</span>
+          <strong class="profile-name">{{ primeiroNome }}</strong>
+        </summary>
+        <div class="top-menu-profile-options">
+          <RouterLink to="/conta">Meus dados</RouterLink>
+          <RouterLink to="/meu-plano">Meu plano</RouterLink>
+          <RouterLink to="/alterar-senha">Alterar senha</RouterLink>
+        </div>
+      </details>
+      <button class="top-menu-logout" type="button" @click="sair">
+        <LogOut :size="16" /> Sair
       </button>
     </div>
   </aside>

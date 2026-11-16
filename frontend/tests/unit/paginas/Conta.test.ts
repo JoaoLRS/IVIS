@@ -57,6 +57,26 @@ describe("página de conta", () => {
     );
   });
 
+  it.each(["ALUNO", "INSTITUICAO"] as const)(
+    "não envia o formulário de %s sem mudanças",
+    async (tipoConta) => {
+      const pagina = montarPagina(tipoConta);
+      const botaoSalvar = pagina.get('button[type="submit"]');
+
+      expect((botaoSalvar.element as HTMLButtonElement).disabled).toBe(true);
+      await pagina.findAll("form")[0].trigger("submit");
+      await flushPromises();
+      expect(atualizarMinhaConta).not.toHaveBeenCalled();
+      expect(pagina.find(".account-toast-notice").exists()).toBe(false);
+
+      const emailAtual = (pagina.get("#email-conta").element as HTMLInputElement).value;
+      await pagina.get("#email-conta").setValue("novo@ivis.dev");
+      expect((botaoSalvar.element as HTMLButtonElement).disabled).toBe(false);
+      await pagina.get("#email-conta").setValue(emailAtual);
+      expect((botaoSalvar.element as HTMLButtonElement).disabled).toBe(true);
+    },
+  );
+
   it("salva os campos de perfil de aluno e mostra confirmação", async () => {
     vi.mocked(atualizarMinhaConta).mockResolvedValue({
       id: "aluno-1",
@@ -82,7 +102,13 @@ describe("página de conta", () => {
       nome: "Ana Silva",
       cpf: "12345678900",
     });
-    expect(pagina.text()).toContain("Dados atualizados.");
+    expect(pagina.get('.account-toast-notice[role="status"]').text()).toContain(
+      "Dados atualizados.",
+    );
+    expect((pagina.get('button[type="submit"]').element as HTMLButtonElement).disabled).toBe(true);
+    expect(pagina.find('form [role="status"]').exists()).toBe(false);
+    await pagina.get('button[aria-label="Fechar aviso"]').trigger("click");
+    expect(pagina.find(".account-toast-notice").exists()).toBe(false);
   });
 
   it("envia os campos institucionais sem payload de aluno", async () => {

@@ -1,6 +1,16 @@
 import axios from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
+import { ref } from "vue";
 
 let tokenAcesso: string | null = null;
+export const requisicoesEmAndamento = ref(0);
+const requisicoesVisiveis = new WeakSet<InternalAxiosRequestConfig>();
+
+function concluirCarregamento(config?: InternalAxiosRequestConfig) {
+  if (config && requisicoesVisiveis.delete(config)) {
+    requisicoesEmAndamento.value = Math.max(0, requisicoesEmAndamento.value - 1);
+  }
+}
 
 export const clienteHttp = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "/api",
@@ -10,6 +20,10 @@ export const clienteHttp = axios.create({
 
 clienteHttp.interceptors.request.use((config) => {
   const caminho = (config.url ?? "").split("?")[0];
+  if (!["/v1/sessoes/csrf", "/v1/sessoes/renovacao", "/v1/sessoes/atividade"].includes(caminho)) {
+    requisicoesVisiveis.add(config);
+    requisicoesEmAndamento.value += 1;
+  }
   const endpointPublicoDeSessao =
     caminho === "/v1/sessoes" ||
     caminho === "/v1/sessoes/csrf" ||
@@ -30,6 +44,17 @@ clienteHttp.interceptors.request.use((config) => {
   }
   return config;
 });
+
+clienteHttp.interceptors.response.use(
+  (resposta) => {
+    concluirCarregamento(resposta.config);
+    return resposta;
+  },
+  (erro) => {
+    concluirCarregamento(erro?.config);
+    return Promise.reject(erro);
+  },
+);
 
 export function definirTokenAcesso(token: string | null) {
   tokenAcesso = token;

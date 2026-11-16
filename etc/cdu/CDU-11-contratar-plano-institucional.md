@@ -13,7 +13,7 @@
 ## Fluxo principal
 
 1. A instituição seleciona uma oferta institucional conforme CDU-09.
-2. O sistema verifica o tipo da conta e apresenta preço, duração, benefícios e capacidade incluída na oferta.
+2. O sistema verifica o tipo da conta e apresenta preço, duração, benefícios e capacidade incluída na oferta (50, 100 ou ilimitada).
 3. A instituição revisa as condições e segue ao checkout simulado conforme CDU-12.
 4. O backend valida o resultado do pagamento simulado.
 5. Se aprovado, o sistema registra contrato, preço e capacidade definidos pelo catálogo.
@@ -30,12 +30,12 @@
 
 ## Pós-condições
 
-- **Aprovado:** contrato institucional ativo, com validade e vagas definidas no catálogo.
+- **Aprovado:** contrato institucional ativo, com validade e capacidade definida na oferta escolhida.
 - **Recusado:** contrato não ativado e nenhuma vaga liberada.
 
 ## Situação atual no sistema
 
-Parcial em relação ao requisito de escolher a quantidade de vagas. A contratação e o pagamento simulado funcionam, mas a capacidade é definida pela oferta atual (Plano Acadêmico com 10 vagas); não há campo para escolher outra quantidade.
+Implementado para as três capacidades predefinidas: 50 alunos (R$ 900), 100 alunos (R$ 1.750) e alunos ilimitados (R$ 5.000), cada uma por 30 dias no simulador. A instituição escolhe a capacidade ao selecionar a oferta. Não há quantidade arbitrária nem troca de plano durante contrato vigente.
 
 ## Diagrama de ações do ator
 

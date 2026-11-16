@@ -10,7 +10,7 @@ public final class ContratoConsultaPlanos {
 
     public record Oferta(UUID id, String codigo, String modalidade, String nome, String descricao,
                          long precoCentavos, String moeda, int duracaoDias,
-                         int vagasIncluidas, List<String> beneficios) { }
+                         Integer vagasIncluidas, List<String> beneficios) { }
 
     public record PlanoVigente(UUID contratoId, UUID planoId, String nomePlano,
                               String origemAcesso, String situacao, Instant iniciadoEm,
@@ -21,7 +21,7 @@ public final class ContratoConsultaPlanos {
                               CondicoesTitular condicoesTitular,
                               List<String> beneficios) { }
 
-    public record CondicoesTitular(int quantidadeVagas, long precoCentavosContratado, String moeda) { }
+    public record CondicoesTitular(Integer quantidadeVagas, long precoCentavosContratado, String moeda) { }
 
     public record PlanoDaConta(String situacao, List<PlanoVigente> planos) { }
 }

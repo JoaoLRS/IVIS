@@ -102,11 +102,12 @@ describe("página Alterar senha", () => {
     ).toBe("NovaSenhaSegura123!");
   });
 
-  it("oferece retorno à página de dados da conta", () => {
+  it("mantém o cancelamento sem o botão de retorno no cabeçalho", () => {
     const pagina = montarPagina();
 
     expect(pagina.get('a[href="/conta"]').text()).toContain(
-      "Voltar para minha conta",
+      "Cancelar",
     );
+    expect(pagina.text()).not.toContain("Voltar para minha conta");
   });
 });

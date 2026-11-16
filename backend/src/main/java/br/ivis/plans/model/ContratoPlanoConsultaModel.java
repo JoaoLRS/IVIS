@@ -28,7 +28,7 @@ public class ContratoPlanoConsultaModel {
     private UUID planoId;
     private String situacao;
     @Column(name = "quantidade_vagas")
-    private int quantidadeVagas;
+    private Integer quantidadeVagas;
     @Column(name = "preco_centavos_contratado")
     private long precoCentavosContratado;
     @Column(columnDefinition = "char(3)")
@@ -44,7 +44,7 @@ public UUID getId() { return id; }
     public UUID getContaTitularId() { return contaTitularId; }
     public UUID getPlanoId() { return planoId; }
     public String getSituacao() { return situacao; }
-    public int getQuantidadeVagas() { return quantidadeVagas; }
+    public Integer getQuantidadeVagas() { return quantidadeVagas; }
     public long getPrecoCentavosContratado() { return precoCentavosContratado; }
     public String getMoeda() { return moeda; }
     public Instant getIniciadoEm() { return iniciadoEm; }

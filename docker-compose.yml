@@ -67,6 +67,7 @@ services:
     networks:
       - rede-banco
       - rede-ia
+      - rede-local
     depends_on:
       ivis-banco:
         condition: service_healthy
@@ -107,6 +108,11 @@ services:
     container_name: ivis-frontend
     ports:
       - "8080:80"
+    networks:
+      - rede-local
+    depends_on:
+      ivis-backend:
+        condition: service_started
     restart: unless-stopped
 
 volumes:

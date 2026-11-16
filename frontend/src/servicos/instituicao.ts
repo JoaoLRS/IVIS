@@ -11,9 +11,9 @@ export interface AlunoVinculado {
 
 export interface CapacidadeInstitucional {
   contratoId: string;
-  quantidadeVagas: number;
+  quantidadeVagas: number | null;
   vagasUtilizadas: number;
-  vagasDisponiveis: number;
+  vagasDisponiveis: number | null;
 }
 
 export interface CadastroAlunoInstituicao {

@@ -59,11 +59,7 @@ async function alterarSenha() {
       eyebrow="SEGURANÇA DA CONTA"
       titulo="Alterar senha"
       descricao="Confirme sua senha atual e escolha uma nova senha para acessar o IVIS."
-    >
-      <RouterLink class="btn btn-outline-secondary" to="/conta">
-        Voltar para minha conta
-      </RouterLink>
-    </CabecalhoPagina>
+    />
 
     <section class="card password-card">
       <form class="card-body" @submit.prevent="alterarSenha">

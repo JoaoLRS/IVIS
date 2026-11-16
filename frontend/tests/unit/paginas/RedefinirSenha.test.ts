@@ -16,7 +16,11 @@ vi.mock("../../../src/servicos/perfilAluno", () => ({
 function montarPagina(token: string) {
   vi.mocked(useRoute).mockReturnValue({ query: { token } } as never);
   return mount(RedefinirSenha, {
-    global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    global: {
+      stubs: {
+        RouterLink: { props: ["to"], template: "<a :href='to'><slot /></a>" },
+      },
+    },
   });
 }
 
@@ -41,8 +45,9 @@ describe("página de redefinição de senha", () => {
   it("bloqueia o envio quando o link não contém token", () => {
     const pagina = montarPagina("");
 
-    expect(pagina.get('[role="alert"]').text()).toContain("Link inválido");
-    expect(pagina.get("button").attributes("disabled")).toBeDefined();
+    expect(pagina.get('[role="alert"]').text()).toContain("Link de recuperação inválido");
+    expect(pagina.find("form").exists()).toBe(false);
+    expect(pagina.get('a[href="/login?recuperar=1"]').text()).toContain("Solicitar novo link");
   });
 
   it("não envia senhas diferentes para a API", async () => {

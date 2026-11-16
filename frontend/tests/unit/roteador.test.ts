@@ -26,7 +26,8 @@ describe("proteção das rotas", () => {
 
   it("preserva o destino ao enviar visitante para o login", async () => {
     expect(await acesso("/treinos?vaga=abc")).toEqual({
-      name: "login", query: { redirect: "/treinos?vaga=abc" },
+      name: "login",
+      query: { redirect: "/treinos?vaga=abc" },
     });
     expect(restaurar).toHaveBeenCalledOnce();
   });
@@ -50,17 +51,26 @@ describe("proteção das rotas", () => {
     expect(await acesso("/instituicao")).toEqual({ name: "inicio" });
     sessao.conta = { tipoConta: "INSTITUICAO" };
     expect(await acesso("/vagas")).toEqual({ name: "instituicao" });
+    expect(await acesso("/treinos")).toEqual({ name: "instituicao" });
   });
 
   it("exige plano nas áreas de trabalho, mas permite conta e checkout", async () => {
     restaurar.mockResolvedValue(true);
     sessao.conta = { tipoConta: "ALUNO" };
     expect(await acesso("/treinos")).toEqual({
-      name: "planos", query: { acesso: "necessario" },
+      name: "planos",
+      query: { acesso: "necessario" },
     });
     expect(await acesso("/conta")).toBe(true);
     expect(await acesso("/checkout/plano-1")).toBe(true);
+    expect(await acesso("/historico")).toBe(true);
+    expect(await acesso("/feedback")).toBe(true);
     sessao.temPlano = true;
     expect(await acesso("/treinos")).toBe(true);
+  });
+
+  it("mostra a apresentação sem esperar a API de sessão", async () => {
+    expect(await acesso("/")).toBe(true);
+    expect(restaurar).not.toHaveBeenCalled();
   });
 });

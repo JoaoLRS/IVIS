@@ -3,6 +3,7 @@ package br.ivis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -331,6 +332,11 @@ class FluxosAplicacaoIntegracaoTest {
                 resultadoReprocessado.get("contratoId").asString());
         assertEquals(resultadoInicial.get("pagamentoId").asString(),
                 resultadoReprocessado.get("pagamentoId").asString());
+        String outroPlano = corpo.replace(planoId.toString(), UUID.randomUUID().toString());
+        HttpResponse<String> chaveReutilizada = postarAutenticado(
+                "/v1/contratacoes/simuladas", outroPlano, csrf, accessToken, chaveIdempotencia);
+        assertEquals(409, chaveReutilizada.statusCode());
+        assertEquals("chave_idempotencia_reutilizada", json().readTree(chaveReutilizada.body()).get("codigo").asString());
 
         try (Connection conexao = fonteDeDados.getConnection();
                 var comando = conexao.prepareStatement("""
@@ -358,6 +364,43 @@ class FluxosAplicacaoIntegracaoTest {
                 assertFalse(resultado.next());
             }
         }
+    }
+
+    @Test
+    void compraInstitucionalIlimitadaPersisteCapacidadeSemTeto() throws Exception {
+        ProtecaoCsrf csrf = obterProtecaoCsrf();
+        String email = "ilimitado-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarInstituicao(email, csrf);
+        String accessToken = autenticar(email, csrf);
+        UUID planoId;
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement(
+                        "SELECT objeto FROM planos WHERE codigo = 'IVIS-DEMO-INSTITUCIONAL-ILIMITADO' AND ativo = true");
+                ResultSet resultado = comando.executeQuery()) {
+            assertTrue(resultado.next());
+            planoId = resultado.getObject("objeto", UUID.class);
+        }
+        YearMonth validade = YearMonth.now(ZoneOffset.UTC).plusMonths(1);
+        String corpo = """
+                {"planoId":"%s","numeroCartao":"4242424242424242","validade":"%02d/%02d","cvv":"123"}
+                """.formatted(planoId, validade.getMonthValue(), validade.getYear() % 100);
+        var resposta = postarAutenticado("/v1/contratacoes/simuladas", corpo, csrf, accessToken,
+                "ilimitado-" + UUID.randomUUID());
+        assertEquals(200, resposta.statusCode());
+        UUID contratoId = UUID.fromString(json().readTree(resposta.body()).get("contratoId").asString());
+
+        try (Connection conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement(
+                        "SELECT quantidade_vagas FROM contratos WHERE objeto = ?")) {
+            comando.setObject(1, contratoId);
+            try (ResultSet resultado = comando.executeQuery()) {
+                assertTrue(resultado.next());
+                assertNull(resultado.getObject("quantidade_vagas"));
+            }
+        }
+        var capacidade = json().readTree(obterAutenticado("/v1/instituicao/resumo-vagas", accessToken).body()).get(0);
+        assertTrue(capacidade.get("quantidadeVagas").isNull());
+        assertTrue(capacidade.get("vagasDisponiveis").isNull());
     }
 
     @Test
@@ -1026,6 +1069,23 @@ class FluxosAplicacaoIntegracaoTest {
         assertEquals(1, listaA.size()); assertEquals(1, listaB.size());
         assertEquals(treinoA.toString(), listaA.get(0).get("id").asString());
         assertEquals(treinoB.toString(), listaB.get(0).get("id").asString());
+    }
+
+    @Test
+    void historicoContinuaAcessivelDepoisDoEncerramentoDoPlano() throws Exception {
+        var csrf = obterProtecaoCsrf();
+        String email = "historico-expirado-" + UUID.randomUUID() + "@exemplo.test";
+        cadastrarAluno(email, csrf);
+        UUID aluno = idConta(email);
+        UUID treino = prepararHistorico(aluno);
+        try (var conexao = fonteDeDados.getConnection();
+                var comando = conexao.prepareStatement("UPDATE contratos SET situacao='ENCERRADO', encerrado_em=now() WHERE codigo_objeto_contas=?")) {
+            comando.setObject(1, aluno);
+            comando.executeUpdate();
+        }
+        var resposta = obterAutenticado("/v1/treinos", autenticar(email, csrf));
+        assertEquals(200, resposta.statusCode());
+        assertEquals(treino.toString(), json().readTree(resposta.body()).get(0).get("id").asString());
     }
 
     private UUID prepararHistorico(UUID aluno) throws Exception {

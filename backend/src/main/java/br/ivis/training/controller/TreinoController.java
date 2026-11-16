@@ -178,7 +178,8 @@ public class TreinoController {
     @GetMapping
     public List<Resumo> listar(@AuthenticationPrincipal Jwt jwt) {
         UUID contaId = contaId(jwt);
-        validarAlunoComAcesso(contaId);
+        if (!treinos.alunoAtivo(contaId)) throw new ExcecaoNegocio(HttpStatus.FORBIDDEN,
+                "acesso_negado", "O histórico está disponível apenas para alunos.");
         List<UUID> ids = treinos.concluidos(contaId);
         return ids.stream().map(id -> resumo(id, contaId)).toList();
     }

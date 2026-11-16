@@ -196,6 +196,12 @@ public interface TreinoRepository extends JpaRepository<TreinamentoModel, UUID> 
     }
 
     @Query(value = """
+            select exists (select 1 from contas c
+              where c.objeto=:contaId and c.tipo_conta='ALUNO' and c.situacao='ATIVA')
+            """, nativeQuery = true)
+    boolean alunoAtivo(@Param("contaId") UUID contaId);
+
+    @Query(value = """
             select exists (
                 select 1 from contas c
                 where c.objeto=:contaId and c.tipo_conta='ALUNO' and c.situacao='ATIVA'

@@ -39,8 +39,8 @@ Desenvolver uma aplicação web que permita a alunos treinarem entrevistas técn
 - Simulação de entrevista via IA (perguntas + respostas em texto) e feedback ao final.
 - Histórico de treinos por aluno.
 - Home com apresentação dos planos disponíveis (individual e institucional/consórcio).
-- Contratação de plano individual pelo Aluno Pagante, com pagamento via gateway externo.
-- Contratação de plano de consórcio pela Instituição de Ensino, com pagamento via gateway externo.
+- Contratação de plano individual pelo Aluno Pagante, com pagamento simulado no modo acadêmico.
+- Contratação de plano de consórcio pela Instituição de Ensino, com pagamento simulado no modo acadêmico e escolha entre capacidades de 50, 100 e alunos ilimitados.
 - Cadastro/vínculo de alunos pela Instituição de Ensino ao plano de consórcio contratado.
 - Diferenciação entre AlunoConsórcio e AlunoPagante para fins de acesso ao plano.
 
@@ -89,7 +89,7 @@ Link do diagrama original: https://canva.link/obupwdeokzl3ggs
 
 **Atores Secundários**
 - **Sistema de IA** — serviço externo responsável por processar as respostas do aluno e gerar as perguntas/feedback da entrevista.
-- **Sistema de Pagamento** — gateway externo responsável por processar a contratação (pagamento) de planos individuais e institucionais.
+- **Sistema de Pagamento** — simulador controlado pelo backend no modo acadêmico. Um gateway externo depende de decisão futura.
 
 > ⚠️ Sugestão: se Gestão Suporte e Gestão ADM forem operar telas no sistema (ex.: aprovar/cancelar um plano, dar suporte a um chamado), eles também devem entrar como atores do sistema — hoje o documento cobre apenas Aluno e Instituição de Ensino como atores de negócio.
 
@@ -221,7 +221,7 @@ Ator: Aluno Pagante / Instituição de Ensino. Seleção de um plano na Home e i
 Ator: Instituição de Ensino. Pré-condição: possuir um plano de consórcio ativo. A instituição cadastra ou remove alunos vinculados ao plano contratado, dentro do limite de vagas disponíveis.
 
 **UC12 — Efetuar Pagamento**
-Ator: Aluno Pagante / Instituição de Ensino / Sistema de Pagamento. Processamento do pagamento referente à contratação de um plano, via gateway externo.
+Ator: Aluno Pagante / Instituição de Ensino / Sistema de Pagamento. No modo acadêmico, o backend processa a contratação por pagamento simulado, sem cobrança real.
 
 **UC13 — Gerenciar Dados da Conta**
 Ator: Aluno / Instituição de Ensino. Controle de perfil da conta: edição de dados cadastrais (nome/razão social, e-mail, foto/logo), alteração de senha e visualização do plano vigente.
@@ -249,22 +249,22 @@ Ator: Aluno / Instituição de Ensino. Controle de perfil da conta: edição de 
 | US13 | Como Aluno, quero excluir uma vaga cadastrada que não uso mais, para manter minha lista de vagas organizada. | Dado que a vaga não está em um treino em andamento, quando o aluno confirma a exclusão, então a vaga é removida da sua lista. | Poderia ter |
 | US14 | Como Instituição de Ensino, quero criar uma conta na plataforma, para poder contratar um plano de consórcio. | Dado que a instituição preenche os dados obrigatórios (razão social, CNPJ, e-mail, senha), quando confirma o cadastro, então a conta é criada. | Deve ter |
 | US15 | Como Instituição de Ensino, quero fazer login na plataforma, para gerenciar meu plano e meus alunos. | Dado que a instituição informa e-mail e senha corretos, quando confirma, então acessa seu painel autenticado. | Deve ter |
-| US16 | Como Instituição de Ensino, quero visualizar a Home com os planos institucionais disponíveis, para escolher o mais adequado. | Dado que a instituição acessa a Home, quando a página carrega, então os planos de consórcio são exibidos com preço por aluno e quantidade de vagas. | Deve ter |
-| US17 | Como Instituição de Ensino, quero contratar um plano de consórcio, para oferecer o treinamento aos meus alunos. | Dado que a instituição seleciona um plano de consórcio, quando conclui o pagamento, então o plano é ativado com a quantidade de Vadas de alunos . | Deve ter |
-| US18 | Como Instituição de Ensino, quero cadastrar/vincular um aluno ao meu plano de consórcio, para que ele tenha acesso gratuito via consórcio. | Dado que a instituição tem um plano ativo com vagas disponíveis, quando cadastra o e-mail do aluno, então ele passa a ser AlunoConsórcio. | Deve ter |
-| US19 | Como Instituição de Ensino, quero remover um aluno vinculado ao meu plano, para liberar a vaga para outro aluno. | Dado que a instituição seleciona um aluno vinculado, quando confirma a remoção, então a vaga do plano volta a ficar disponível. | Deveria ter |
-| US20 | Como Instituição de Ensino, quero visualizar a quantidade de vagas do meu plano de consórcio já utilizadas e disponíveis, para controlar meus vínculos. | Dado que a instituição possui um plano ativo, quando acessa o painel de alunos, então vê o total de vagas, quantas estão em uso e quantas estão livres. | Deveria ter |
+| US16 | Como Instituição de Ensino, quero visualizar a Home com os planos institucionais disponíveis, para escolher o mais adequado. | Dado que a instituição acessa a Home, quando a página carrega, então os três planos institucionais são exibidos com preço total ilustrativo por 30 dias e capacidade de 50, 100 ou alunos ilimitados. | Deve ter |
+| US17 | Como Instituição de Ensino, quero contratar um plano de consórcio, para oferecer o treinamento aos meus alunos. | Dado que a instituição seleciona um plano de consórcio, quando conclui o pagamento, então o plano é ativado com a capacidade da oferta escolhida, inclusive sem teto no plano ilimitado. | Deve ter |
+| US18 | Como Instituição de Ensino, quero cadastrar/vincular um aluno ao meu plano de consórcio, para que ele tenha acesso gratuito via consórcio. | Dado que a instituição tem plano ativo com vaga disponível ou capacidade ilimitada, quando cadastra ou vincula o aluno, então ele recebe acesso pelo vínculo institucional. | Deve ter |
+| US19 | Como Instituição de Ensino, quero remover um aluno vinculado ao meu plano, para liberar a vaga para outro aluno. | Dado que a instituição seleciona um aluno vinculado, quando confirma a remoção, então o vínculo é encerrado e, em plano finito, a vaga volta a ficar disponível. | Deveria ter |
+| US20 | Como Instituição de Ensino, quero visualizar a quantidade de vagas do meu plano de consórcio já utilizadas e disponíveis, para controlar meus vínculos. | Dado que a instituição possui um plano ativo, quando acessa o painel de alunos, então vê a capacidade, quantos alunos estão vinculados e, nos planos finitos, quantas vagas restam. | Deveria ter |
 
 ---
 
 ## 9. Requisitos Funcionais (RF)
 
-Os códigos e descrições vigentes são mantidos em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). O planejamento aprovado contém 20 RF: 14 na lista de requisitos e 6 em andamento.
+Os códigos e descrições vigentes são mantidos em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). O planejamento aprovado contém 20 RF: 14 na lista de requisitos e 6 implementados em validação.
 
 | Situação no quadro | RF |
 |---|---|
 | Lista de requisitos (14) | RF01, RF02, RF04, RF05, RF11, RF12, RF13, RF14, RF15, RF16, RF17, RF18, RF19, RF20 |
-| Em andamento (6) | RF03, RF06, RF07, RF08, RF09, RF10 |
+| Implementados, em validação (6) | RF03, RF06, RF07, RF08, RF09, RF10 |
 
 No modo de apresentação acadêmica, o RF15 é atendido por um simulador de pagamento controlado pelo backend, sem cobrança real. Consulte o [ADR-0008](adr/ADR-0008-pagamento-simulado-para-demonstracao.md).
 
@@ -318,5 +318,5 @@ O conjunto aprovado contém **4 RNF**. Seus textos completos estão em [`IVIS_Re
 2. Revisar e priorizar as 20 Histórias de Usuário (seção 8) para os próximos Sprints.
 3. Definir critérios de aceite verificáveis para os RF e RNF aprovados em [`IVIS_Requisitos.md`](IVIS_Requisitos.md).
 4. Definir wireframes de baixa fidelidade para as telas mapeadas, priorizando Home, Contratação de Plano e Gerenciamento de Alunos Vinculados.
-5. Detalhar o contrato de integração entre o backend e a API de IA em Python/NVIDIA NGC e definir a meta de latência associada ao RNF03.
-6. Detalhar as regras de negócio do plano de consórcio (quantidade de vagas, o que ocorre ao esgotar/cancelar/renovar o plano).
+5. Medir o contrato de integração entre backend e API de IA com o provedor real e verificar a meta de p95 até 10 segundos para pergunta e avaliação, separadamente.
+6. Detalhar as regras de troca, cancelamento e renovação do plano institucional; as três capacidades e o bloqueio ao esgotar planos finitos já estão definidos.

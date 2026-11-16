@@ -104,6 +104,31 @@ class VinculoInstitucionalServiceTest {
     }
 
     @Test
+    void planoIlimitadoPermiteVinculoEInformaCapacidadeSemLimite() {
+        contrato = new ContratoInstitucionalModel(
+                contratoId, instituicaoId, UUID.randomUUID(), "ATIVO", null, Instant.now(), null);
+        when(contas.buscarPorIdParaAtualizacao(instituicaoId)).thenReturn(Optional.of(instituicao));
+        when(contratos.buscarAtivoParaVinculacao(contratoId, instituicaoId)).thenReturn(Optional.of(contrato));
+        when(contas.buscarPorIdParaAtualizacao(alunoId)).thenReturn(Optional.of(aluno));
+        when(perfis.existsById(alunoId)).thenReturn(true);
+        when(perfis.findByContaId(alunoId)).thenReturn(Optional.of(perfilAluno));
+        when(vinculos.existsByContaAlunoIdAndSituacao(alunoId, "ATIVO")).thenReturn(false);
+        when(vinculos.countByContratoIdAndSituacao(contratoId, "ATIVO")).thenReturn(100_000L, 100_001L);
+        when(vinculos.saveAndFlush(any(VinculoInstitucionalModel.class)))
+                .thenAnswer(invocacao -> invocacao.getArgument(0));
+        when(vinculos.buscarResumoAtivoDaInstituicao(any(), any()))
+                .thenAnswer(invocacao -> Optional.of(new VinculoInstitucionalResumo(
+                        invocacao.getArgument(0), contratoId, alunoId, "Aluno", "aluno@example.com", Instant.now())));
+
+        var resposta = servico.criarVinculo(
+                instituicaoId, new ContratoInstitucionalResposta.CriacaoVinculoRequisicao(contratoId, alunoId));
+
+        assertThat(resposta.capacidade().quantidadeVagas()).isNull();
+        assertThat(resposta.capacidade().vagasUtilizadas()).isEqualTo(100_001);
+        assertThat(resposta.capacidade().vagasDisponiveis()).isNull();
+    }
+
+    @Test
     void naoRevelaVinculoDeOutraInstituicaoDuranteRemocao() {
         UUID outroVinculo = UUID.randomUUID();
         when(contas.buscarPorIdParaAtualizacao(instituicaoId)).thenReturn(Optional.of(instituicao));

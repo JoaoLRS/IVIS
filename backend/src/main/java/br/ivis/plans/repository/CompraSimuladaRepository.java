@@ -17,7 +17,7 @@ public interface CompraSimuladaRepository extends Repository<ContratoPlanoConsul
               :inicio, :expiracao, :encerramento)
             """, nativeQuery = true)
     void inserirContrato(@Param("id") UUID id, @Param("contaId") UUID contaId,
-            @Param("planoId") UUID planoId, @Param("vagas") int vagas,
+            @Param("planoId") UUID planoId, @Param("vagas") Integer vagas,
             @Param("preco") long preco, @Param("moeda") String moeda,
             @Param("inicio") OffsetDateTime inicio, @Param("expiracao") OffsetDateTime expiracao,
             @Param("encerramento") OffsetDateTime encerramento);

@@ -5,7 +5,7 @@ import { useEstadoSessao } from "../../../src/estados/estadoSessao";
 import { clienteHttp } from "../../../src/servicos/clienteHttp";
 
 const substituir = vi.fn();
-const rota = { query: { redirect: "/treinos" } };
+const rota = { query: { redirect: "/treinos", recuperar: undefined as string | undefined } };
 vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("vue-router")>()),
   useRoute: () => rota,
@@ -31,6 +31,7 @@ describe("página Login", () => {
     vi.mocked(useEstadoSessao).mockReturnValue(sessao as never);
     sessao.temPlano = true;
     rota.query.redirect = "/treinos";
+    rota.query.recuperar = undefined;
   });
 
   it("retoma a página solicitada depois do login", async () => {
@@ -84,5 +85,12 @@ describe("página Login", () => {
     );
     expect(entrar).not.toHaveBeenCalled();
     expect(pagina.get('[role="status"]').text()).toContain("instruções para recuperar");
+  });
+
+  it("abre a recuperação diretamente ao solicitar outro link", () => {
+    rota.query.recuperar = "1";
+    const pagina = montar();
+    expect(pagina.text()).toContain("Recupere seu acesso");
+    expect(pagina.find("#login-senha").exists()).toBe(false);
   });
 });

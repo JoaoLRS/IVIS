@@ -28,7 +28,7 @@ Este caso de uso encadeia operações dos CDU-01, CDU-09, CDU-11, CDU-12, CDU-13
 
 1. Depois de confirmar o acesso do aluno, ele encerra a sessão.
 2. A instituição entra novamente e remove o vínculo do aluno (CDU-01 e CDU-13).
-3. Após recarregar a página, o aluno deixa de constar da lista e a vaga volta a ficar disponível.
+3. Após recarregar a página, o aluno deixa de constar da lista. No plano finito, a vaga volta a ficar disponível.
 
 ## Interrupções e exceções
 
@@ -45,7 +45,7 @@ Este caso de uso encadeia operações dos CDU-01, CDU-09, CDU-11, CDU-12, CDU-13
 
 ## Situação atual e cobertura
 
-O fluxo principal e o complementar são exercitados pelo Cypress contra frontend, backend e banco reais, sem interceptações que substituam respostas. A oferta institucional atual define uma capacidade fixa de 10 vagas; a interface não permite escolher outra quantidade, lacuna do RF14 descrita no CDU-11. O teste verifica o vínculo antes e depois de recarregar a página, o login do aluno e, depois, a remoção e a capacidade restaurada. Ele não faz um novo login do aluno após a remoção para verificar a perda de acesso nem consulta diretamente os registros de auditoria; essa última verificação pertence ao CDU-15.
+O fluxo principal e o complementar são exercitados pelo Cypress contra frontend, backend e banco reais, sem interceptações que substituam respostas. O catálogo oferece três capacidades institucionais predefinidas: 50, 100 e ilimitada. A jornada real usa uma oferta finita; o plano ilimitado requer cenário próprio para verificar vínculos sem teto. O teste verifica o vínculo antes e depois de recarregar a página, o login do aluno e, depois, a remoção e a capacidade restaurada. Ele não faz um novo login do aluno após a remoção para verificar a perda de acesso nem consulta diretamente os registros de auditoria; essa última verificação pertence ao CDU-15.
 
 ## Diagrama de ações dos atores
 

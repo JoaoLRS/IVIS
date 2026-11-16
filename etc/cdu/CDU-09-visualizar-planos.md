@@ -13,7 +13,7 @@
 ## Fluxo principal
 
 1. O usuário abre a página pública Planos.
-2. O sistema apresenta as ofertas ativas com modalidade, preço, duração, benefícios e vagas incluídas, quando aplicável.
+2. O sistema apresenta as ofertas ativas com modalidade, preço, duração, benefícios e capacidade de alunos (50, 100 ou ilimitada nas ofertas institucionais).
 3. O usuário compara as opções e seleciona uma oferta.
 4. Se não estiver autenticado, o sistema encaminha para login ou cadastro e preserva a oferta para continuar a compra.
 5. Se estiver autenticado, o sistema permite seguir ao checkout de uma modalidade compatível com o tipo de conta.
