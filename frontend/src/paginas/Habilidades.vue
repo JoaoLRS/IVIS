@@ -125,31 +125,36 @@ async function confirmarRemocao() {
       <article class="card skill-card h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center">
-            <span class="skill-icon"><Code2 :size="18" /></span>
+            <span class="skill-icon" aria-hidden="true"
+              ><Code2 :size="22"
+            /></span>
             <div class="d-flex gap-2">
               <button
                 class="btn btn-sm btn-outline-secondary"
                 :aria-label="`Editar ${habilidade.nome}`"
                 @click="abrirEdicao(indice)"
               >
-                <Pencil :size="15" /></button
-              ><button
+                <Pencil :size="18" />
+              </button>
+              <button
                 class="btn btn-sm btn-outline-danger"
                 :aria-label="`Remover ${habilidade.nome}`"
                 @click="indiceParaExcluir = indice"
               >
-                <Trash2 :size="15" />
+                <Trash2 :size="18" />
               </button>
             </div>
           </div>
           <h3 class="skill-title">{{ habilidade.nome }}</h3>
-          <Etiqueta>{{ habilidade.categoria }}</Etiqueta>
-          <div class="skill-level mt-4">
-            <div class="d-flex justify-content-between">
-              <span>Nível atual</span
-              ><strong>{{ niveis[habilidade.nivel] }}</strong>
+          <Etiqueta class="skill-category">
+            {{ habilidade.categoria }}
+          </Etiqueta>
+          <div class="skill-level">
+            <div class="d-flex flex-wrap justify-content-between gap-2">
+              <span>Nível atual</span>
+              <strong>{{ niveis[habilidade.nivel] }}</strong>
             </div>
-            <div class="level-bars">
+            <div class="level-bars" aria-hidden="true">
               <i
                 v-for="n in 5"
                 :key="n"

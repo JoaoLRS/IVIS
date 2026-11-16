@@ -163,6 +163,7 @@ async function cancelar() {
               v-model="modo"
               class="form-check-input"
               type="radio"
+              name="modo-treino"
               value="habilidades"
             />
             <span class="context-card-icon"><Code2 :size="18" /></span>
@@ -225,6 +226,7 @@ async function cancelar() {
               v-model="modo"
               class="form-check-input"
               type="radio"
+              name="modo-treino"
               value="vaga"
               :disabled="!estado.vagas.length"
             />
@@ -254,6 +256,7 @@ async function cancelar() {
                 v-model="vagaSelecionada"
                 class="form-check-input"
                 type="radio"
+                name="vaga-treino"
                 :value="vaga.id"
                 @change="modo = 'vaga'"
               />
