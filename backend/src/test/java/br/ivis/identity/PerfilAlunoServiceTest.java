@@ -59,7 +59,7 @@ class PerfilAlunoServiceTest {
 
     @Test
     void naoPermiteDuplicidadeDeHabilidadeIgnorandoMaiusculasEEspacos() {
-        when(habilidades.existsByContaAlunoIdAndNomeNormalizado(titular, "vue 3")).thenReturn(true);
+        when(habilidades.existsByContaAlunoIdAndNomeNormalizadoAndNivel(titular, "vue 3", (short) 4)).thenReturn(true);
 
         assertThatThrownBy(() -> servico.criarHabilidade(
                         titular, new ContratoPerfilAluno.HabilidadeRequisicao(" Vue 3 ", "Front-end", 4)))
