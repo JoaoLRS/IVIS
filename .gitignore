@@ -13,6 +13,7 @@ frontend/.vercel/
 .env
 .env.*
 !.env.example
+!.env.exemplo
 
 # Backend build output
 backend/build/
