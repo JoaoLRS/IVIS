@@ -46,28 +46,30 @@ O IVIS é direcionado principalmente para:
 
 ---
 
-## 👤 Atores do Sistema
+## 👤 Atores e componentes do sistema
 
 ### Aluno
 
 Usuário que utiliza a plataforma para realizar treinamentos de entrevistas.
 
-O aluno pode possuir dois perfis de acesso:
+O aluno usa uma conta do tipo `ALUNO`. O acesso ao treinamento pode vir de duas origens:
 
-* **AlunoPagante** — possui um plano individual contratado diretamente;
-* **AlunoConsórcio** — possui acesso por meio de um plano institucional contratado por uma Instituição de Ensino.
+* **Acesso individual** — contrato individual vigente do próprio aluno;
+* **Acesso institucional** — vínculo ativo com contrato institucional vigente de uma Instituição de Ensino.
 
 ### Instituição de Ensino
 
 Responsável pela contratação de planos institucionais/consórcio e pelo gerenciamento dos alunos vinculados às vagas de alunos.
 
-### Sistema de IA
+### Componentes técnicos
+
+#### API de IA
 
 Serviço responsável pelo processamento das respostas e pela geração das perguntas e avaliações da entrevista.
 
-### Sistema de Pagamento
+#### Simulador de pagamento
 
-Gateway externo responsável pelo processamento dos pagamentos relacionados à contratação dos planos.
+No modo acadêmico atual, o pagamento é simulado pelo backend, sem gateway externo ou cobrança real.
 
 ---
 
@@ -80,7 +82,6 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Gerenciamento de dados pessoais ou institucionais;
 * Alteração de senha;
 * Recuperação de acesso por e-mail;
-* Gerenciamento de foto ou logo;
 * Gerenciamento do perfil de habilidades técnicas;
 * Visualização do plano vigente.
 
@@ -110,7 +111,7 @@ Gateway externo responsável pelo processamento dos pagamentos relacionados à c
 * Remoção de alunos;
 * Controle de vagas de alunos;
 * Visualização de vagas utilizadas e disponíveis;
-* Diferenciação entre alunos de consórcio e alunos pagantes.
+* Controle de acesso conforme contrato individual ou vínculo institucional vigente.
 
 ### 🔎 Auditoria e Segurança
 
@@ -136,13 +137,13 @@ O quadro de requisitos registra **20 Requisitos Funcionais (RF)** — 14 na list
 | RF05 | Visualização do plano vigente | Exibir tipo, validade e benefícios do plano associado à conta. |
 | RF11 | Exibição dos planos disponíveis na Home | Apresentar planos individuais e institucionais, preços e benefícios. |
 | RF12 | Visualização dos planos sem autenticação | Permitir que visitantes consultem a Home e os planos antes de criar conta ou fazer login. |
-| RF13 | Contratação de plano individual | Permitir que o Aluno Pagante contrate um plano individual pela plataforma. |
+| RF13 | Contratação de plano individual | Permitir que um aluno elegível contrate um plano individual pela plataforma. |
 | RF14 | Contratação de plano institucional | Escolher entre três ofertas por 30 dias: 50 alunos (R$ 900), 100 alunos (R$ 1.750) ou alunos ilimitados (R$ 5.000), com valores ilustrativos. |
 | RF15 | Pagamento simulado acadêmico | Processar a contratação no simulador controlado pelo backend, sem cobrança real; gateway externo é evolução futura. Ver [ADR-0008](etc/plano/adr/ADR-0008-pagamento-simulado-para-demonstracao.md). |
 | RF16 | Gestão de alunos vinculados à instituição | Permitir visualizar, vincular e remover alunos, respeitando o limite nos planos de 50 e 100 e sem teto no ilimitado. |
-| RF17 | Controle de acesso por tipo de aluno | Aplicar acesso conforme o plano individual ou o vínculo institucional. |
+| RF17 | Controle de acesso por modalidade | Aplicar acesso conforme o contrato individual ou o vínculo institucional. |
 | RF18 | Controle de vagas do plano institucional | Exibir alunos vinculados e capacidade; nos planos finitos, mostrar vagas restantes. |
-| RF19 | Restrição de contratação para AlunoConsórcio | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
+| RF19 | Restrição de contratação com vínculo ativo | Impedir contratação individual enquanto o aluno possuir vínculo ativo com uma instituição. |
 | RF20 | Registro de logs de auditoria | Registrar ações sensíveis com responsável e data/hora, protegendo os registros contra alteração indevida. |
 
 ### Requisitos Funcionais — implementados, em validação (6)

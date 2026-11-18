@@ -21,7 +21,7 @@ function prepararCsrfEPlano(situacao = "COM_PLANO_VIGENTE", plano = "ATIVO") {
   vi.mocked(clienteHttp.get).mockImplementation(async (url) => {
     if (url === "/v1/sessoes/csrf") return { data: { token: "csrf-1" } } as never;
     if (url === "/v1/conta/plano") {
-      return { data: { situacao, planos: [{ situacao: plano, origemAcesso: "INDIVIDUAL" }] } } as never;
+      return { data: { situacao, planos: [{ situacao: plano, origemAcesso: "PROPRIO" }] } } as never;
     }
     throw new Error(`GET inesperado: ${url}`);
   });

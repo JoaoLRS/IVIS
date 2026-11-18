@@ -22,7 +22,7 @@
 4. Para uma conta nova, o usuário confirma a senha e solicita o cadastro. O sistema valida os campos, CPF/CNPJ, unicidade dos documentos e do e-mail e aplica a política de senha do CDU-16; então cria a conta e o perfil correspondente, armazenando a senha como hash.
 5. Para uma conta existente, o sistema verifica as credenciais e a situação da conta.
 6. Se o cadastro ou a autenticação for concluído, o sistema inicia uma sessão associada à conta e ao tipo de usuário.
-7. O sistema consulta o acesso vigente e direciona a Instituição à área institucional; direciona o Aluno com acesso ativo à área de treinos; e apresenta os planos disponíveis ao Aluno sem acesso ativo.
+7. O sistema consulta o acesso vigente. A conta com acesso ativo segue para a área correspondente ao seu tipo; sem acesso, aluno e instituição seguem para os planos. Quando o cadastro foi iniciado a partir de uma oferta, o usuário pode continuar no checkout escolhido.
 
 ## Fluxos alternativos e exceções
 
@@ -34,7 +34,7 @@
 - **A5 — Conta inexistente ou inativa:** o sistema não inicia sessão e apresenta mensagem genérica.
 - **A6 — Esqueceu a senha:** o usuário solicita a recuperação conforme CDU-04.
 - **A7 — Encerrar sessão:** o usuário aciona Sair; o sistema revoga a sessão de renovação, limpa os dados locais e retorna à área pública.
-- **A8 — Consultar a mensagem de boas-vindas simulada:** após criar a conta, o usuário pode abrir a caixa de entrada simulada na própria página de cadastro; nenhuma mensagem real é enviada por essa ação.
+- **A8 — Consultar a mensagem de boas-vindas no ambiente local:** se o envio de demonstração estiver habilitado, o backend envia a mensagem ao SMTP de teste; a página de sucesso oferece um link para abrir o Mailpit em `localhost:8025`. O envio pode estar desabilitado em outros ambientes.
 - **A9 — Inatividade por 20 minutos:** o sistema encerra a sessão na interface; a renovação do token é recusada pelo backend e o usuário precisa entrar novamente com suas credenciais.
 - **E1 — Serviço indisponível ou falha de persistência:** o sistema informa que não foi possível concluir o cadastro ou o login e não cria sessão parcial.
 
@@ -47,7 +47,7 @@
 
 ## Situação atual no sistema
 
-Implementado no frontend e backend. O cadastro de aluno ou instituição autentica a conta após a criação; o login usa e-mail e senha, com token de acesso e cookie de renovação protegido. A mensagem de boas-vindas mostrada no cadastro é simulada, sem envio de e-mail real.
+Implementado no frontend e backend. O cadastro de aluno ou instituição autentica a conta após a criação; o login usa e-mail e senha, com token de acesso e cookie de renovação protegido. O backend pode enviar uma mensagem de boas-vindas por SMTP quando configurado; no Compose local ela é capturada pelo Mailpit. A página de cadastro não exibe uma caixa de entrada própria.
 
 ## Diagrama de ações do ator
 

@@ -65,7 +65,7 @@ export function prepararAcessoEntreContas() {
     statusCode: codigosHttp.sucesso,
     body: {
       situacao: valoresSistema.plano.comVigente,
-      planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.modalidade.individual }],
+      planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.origemAcesso.proprio }],
     },
   });
   cy.intercept(metodosHttp.get, endpoints.habilidades, {
@@ -160,7 +160,7 @@ export function abrirDetalhesDoPlano({ semPlano = false } = {}) {
   cy.intercept("GET", "**/api/v1/conta/plano", { statusCode: 200, body: {
     situacao: semPlano ? "SEM_PLANO_VIGENTE" : "COM_PLANO_VIGENTE",
     planos: semPlano ? [] : [{ contratoId: "contrato-cdu", nomePlano: "Plano Individual IVIS", situacao: "ATIVO",
-      origemAcesso: "CONTRATO_PROPRIO", expiraEm: "2026-12-02T12:00:00Z", beneficios: ["Treinamentos técnicos"],
+      origemAcesso: valoresSistema.origemAcesso.proprio, expiraEm: "2026-12-02T12:00:00Z", beneficios: ["Treinamentos técnicos"],
       condicoesTitular: { quantidadeVagas: 1, precoCentavosContratado: 1990, moeda: "BRL" } }],
   }});
   cy.visit("/meu-plano");

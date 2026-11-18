@@ -12,7 +12,7 @@
 
 ## 1. Problema
 
-O IVIS (Intelligent Virtual Interview System) é uma plataforma web para treinar entrevistas técnicas de tecnologia, com perguntas e feedback gerados por IA, a partir das habilidades do aluno ou de uma vaga de interesse. A oferta é individual (aluno pagante) ou institucional (instituição de ensino que vincula seus alunos).
+O IVIS (Intelligent Virtual Interview System) é uma plataforma web para treinar entrevistas técnicas de tecnologia, com perguntas e feedback gerados por IA, a partir das habilidades do aluno ou de uma vaga de interesse. O acesso do aluno pode vir de contrato individual ou de vínculo com plano institucional contratado por uma instituição de ensino.
 
 A versão atual está publicada na Vercel, e o backend (Spring Boot) sofre **partida a frio**: depois de um período sem uso, a primeira requisição espera a inicialização da aplicação. Esse é o problema técnico que motiva a migração. Hospedar a pilha na AWS como processos permanentes elimina a partida a frio e permite aplicar, de ponta a ponta, infraestrutura como código, CI/CD, gestão de segredos, testes e observabilidade.
 

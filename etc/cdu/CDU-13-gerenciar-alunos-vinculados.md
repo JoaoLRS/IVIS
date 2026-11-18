@@ -8,7 +8,7 @@
 
 - A instituição está autenticada.
 - Para incluir aluno, possui contrato institucional ativo com vaga disponível nos planos de 50 ou 100, ou plano ilimitado ativo. A consulta e a remoção se limitam aos vínculos da própria instituição.
-- Para vincular, a instituição pode selecionar uma conta IVIS ativa de aluno ou cadastrar uma nova conta com nome, e-mail, CPF, telefone, endereço e senha.
+- Para vincular, a instituição pode informar o e-mail de uma conta IVIS ativa de aluno ou cadastrar uma nova conta com nome, e-mail, CPF, telefone, endereço e senha.
 
 ## Fluxo principal
 

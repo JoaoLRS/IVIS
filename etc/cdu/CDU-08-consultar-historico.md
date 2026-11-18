@@ -6,7 +6,7 @@
 
 ## Pré-condições
 
-- O aluno está autenticado e tem acesso aos recursos de treinamento.
+- O aluno está autenticado e possui perfil de aluno; um plano vigente não é exigido para consultar seu histórico.
 - O histórico é consultado para a conta autenticada.
 
 ## Fluxo principal
@@ -19,7 +19,8 @@
 
 ## Fluxos alternativos e exceções
 
-- **A1 — Histórico vazio:** o sistema informa que ainda não há treinos concluídos e permite iniciar um treino conforme CDU-07.
+- **A1 — Histórico vazio:** o sistema informa que ainda não há treinos concluídos. Iniciar novo treino exige acesso vigente conforme CDU-07.
+- **A1.1 — Plano vencido ou vínculo removido:** o aluno continua consultando treinos concluídos, mas não pode iniciar outro treino sem acesso vigente.
 - **A2 — Registro não encontrado ou fora da conta:** o sistema não apresenta os dados solicitados.
 - **A3 — Treino incompleto:** não é listado, pois o histórico inclui somente treinos finalizados com avaliação.
 - **E1 — Falha na consulta:** o sistema informa que não foi possível carregar o histórico.
@@ -31,7 +32,7 @@
 
 ## Situação atual no sistema
 
-Implementado para treinos concluídos. A API filtra pela identidade autenticada e a interface permite acessar o feedback associado a cada registro.
+Implementado para treinos concluídos. `GET /v1/treinos` exige perfil de aluno ativo e filtra pela identidade autenticada, sem exigir plano vigente. As rotas `/historico` e `/feedback` também permanecem disponíveis ao aluno autenticado sem plano. A interface só oferece Novo treino quando há acesso ativo.
 
 ## Diagrama de ações do ator
 

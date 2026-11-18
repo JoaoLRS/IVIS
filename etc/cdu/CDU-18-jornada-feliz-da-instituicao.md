@@ -1,6 +1,6 @@
 # CDU-18 - Jornada feliz da instituição e do aluno vinculado
 
-Este caso de uso encadeia operações dos CDU-01, CDU-09, CDU-11, CDU-12, CDU-13 e CDU-14. Ele documenta a jornada ponta a ponta exercitada por [`perfil_instituicao.cy.js`](../../cypress/e2e/caminho_feliz/perfil_instituicao.cy.js), sem criar um requisito funcional novo.
+Este caso de uso encadeia operações dos CDU-01, CDU-09, CDU-11, CDU-12, CDU-13, CDU-14 e CDU-16. Ele documenta a jornada ponta a ponta exercitada por [`perfil_instituicao.cy.js`](../../cypress/e2e/caminho_feliz/perfil_instituicao.cy.js), sem criar um requisito funcional novo.
 
 ## Atores
 
@@ -45,13 +45,13 @@ Este caso de uso encadeia operações dos CDU-01, CDU-09, CDU-11, CDU-12, CDU-13
 
 ## Situação atual e cobertura
 
-O fluxo principal e o complementar são exercitados pelo Cypress contra frontend, backend e banco reais, sem interceptações que substituam respostas. O catálogo oferece três capacidades institucionais predefinidas: 50, 100 e ilimitada. A jornada real usa uma oferta finita; o plano ilimitado requer cenário próprio para verificar vínculos sem teto. O teste verifica o vínculo antes e depois de recarregar a página, o login do aluno e, depois, a remoção e a capacidade restaurada. Ele não faz um novo login do aluno após a remoção para verificar a perda de acesso nem consulta diretamente os registros de auditoria; essa última verificação pertence ao CDU-15.
+O fluxo principal e o complementar são exercitados pelo Cypress contra frontend, backend e banco reais, sem interceptações que substituam respostas. O catálogo oferece três capacidades institucionais predefinidas: 50, 100 e ilimitada. A jornada real usa uma oferta finita; o plano ilimitado requer cenário próprio para verificar vínculos sem teto. O teste verifica o vínculo antes e depois de recarregar a página, o login do aluno, a remoção e a capacidade restaurada. Também consulta no Mailpit as mensagens de boas-vindas da instituição e do aluno e a confirmação da contratação simulada. Ele não faz um novo login do aluno após a remoção para verificar a perda de acesso nem consulta diretamente os registros de auditoria; essa última verificação pertence ao CDU-15.
 
 ## Diagrama de ações dos atores
 
 ```mermaid
 flowchart LR
-    instituicao(["🏫 Instituição"])
+    instituicao(["🧍 Instituição de Ensino"])
     aluno(["🧍 Aluno vinculado"])
     instituicao --> cadastro["Criar conta institucional"]
     cadastro --> plano["Contratar plano com pagamento simulado"]

@@ -56,11 +56,7 @@ export function prepararSessao({
     tipoConta === valoresSistema.conta.instituicao
       ? valoresCdu.tokenInstituicao
       : valoresCdu.tokenAluno;
-  const origem =
-    origemAcesso ??
-    (tipoConta === valoresSistema.conta.instituicao
-      ? valoresSistema.modalidade.institucional
-      : valoresSistema.modalidade.individual);
+  const origem = origemAcesso ?? valoresSistema.origemAcesso.proprio;
 
   cy.intercept(metodosHttp.get, endpoints.csrf, {
     statusCode: codigosHttp.sucesso,

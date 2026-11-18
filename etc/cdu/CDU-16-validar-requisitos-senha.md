@@ -9,7 +9,7 @@
 ## Pré-condições
 
 - O usuário está em um formulário de criação, alteração ou redefinição de senha.
-- Na alteração de senha, a conta está autenticada; na redefinição, o usuário possui um token de recuperação válido.
+- Na alteração de senha, a conta está autenticada; na redefinição, o usuário validou o código recebido e possui autorização temporária em cookie.
 
 ## Fluxo principal
 

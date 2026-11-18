@@ -52,7 +52,7 @@ export function prepararPlanoAtivo(origemAcesso) {
 export function confirmarPlanoIndividualAtivo() {
   cy.wait(aliases.aguardar(aliases.consultarPlanoVigente)).its("response.body").should("deep.equal", {
     situacao: valoresSistema.plano.comVigente,
-    planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.modalidade.individual }],
+    planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.origemAcesso.proprio }],
   });
   cy.location(parametrosUrl.caminho).should("eq", rotas.inicioAluno);
 }
@@ -225,7 +225,7 @@ export function prepararInstituicaoSemAlunos() {
 export function prepararLoginPerfilAluno() {
   const aluno = dadosTeste.aluno;
   prepararVisitanteSemSessao();
-  prepararPlanoAtivo(valoresSistema.modalidade.individual);
+  prepararPlanoAtivo(valoresSistema.origemAcesso.proprio);
   prepararPerfilAlunoVazio();
   cy.intercept(metodosHttp.post, endpoints.sessao, {
     statusCode: codigosHttp.sucesso,
@@ -246,7 +246,7 @@ export function prepararLoginPerfilAluno() {
 export function prepararLoginPerfilInstituicao() {
   const instituicao = dadosTeste.instituicao;
   prepararVisitanteSemSessao();
-  prepararPlanoAtivo(valoresSistema.modalidade.institucional);
+  prepararPlanoAtivo(valoresSistema.origemAcesso.proprio);
   prepararInstituicaoSemAlunos();
   cy.intercept(metodosHttp.post, endpoints.sessao, {
     statusCode: codigosHttp.sucesso,
@@ -328,7 +328,7 @@ export function prepararCheckoutPlanoIndividual({ atualizarPlanoAposCompra = tru
         body: planoAtivo
           ? {
               situacao: valoresSistema.plano.comVigente,
-              planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.modalidade.individual }],
+              planos: [{ situacao: valoresSistema.plano.ativo, origemAcesso: valoresSistema.origemAcesso.proprio }],
             }
           : { situacao: valoresSistema.plano.semVigente, planos: [] },
       });
@@ -552,7 +552,7 @@ export function continuarParaPlanos() {
 export function prepararCaminhoFelizPerfilInstituicao() {
   const instituicao = dadosTeste.instituicao;
   prepararVisitanteSemSessao();
-  prepararPlanoAtivo(valoresSistema.modalidade.institucional);
+  prepararPlanoAtivo(valoresSistema.origemAcesso.proprio);
   prepararInstituicaoSemAlunos();
 
   cy.intercept(metodosHttp.post, endpoints.criarInstituicao, {

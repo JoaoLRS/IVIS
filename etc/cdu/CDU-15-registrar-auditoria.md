@@ -33,7 +33,7 @@
 
 ## Situação atual no sistema
 
-O backend registra aprovações e recusas de contratação/pagamento simulados e inclusões/remoções de vínculos na mesma transação da operação. Os eventos incluem ator, contrato, resultado, horário e identificadores do vínculo/aluno, sem senha ou dados de cartão. A migration V8 impede UPDATE e DELETE dos eventos por comandos comuns; a V10 permite DELETE quando a transação define o sinalizador de limpeza controlada. A API que define esse sinalizador está disponível somente em desenvolvimento ou homologação. Administradores do banco ainda precisam de controles operacionais próprios. Não há visualizador. O prazo mínimo do RNF09 é de 4 anos desde o evento. Não há descarte automático em produção; backup, arquivamento e descarte após esse prazo exigem procedimento operacional.
+O backend registra um evento `CONTRATACAO_PAGAMENTO_SIMULADO` por tentativa de contratação, com resultado de aprovação ou recusa, e eventos separados para inclusão/remoção de vínculos, na mesma transação da operação. Os eventos incluem ator, contrato, resultado, horário e, nos vínculos, identificadores do vínculo/aluno, sem senha ou dados de cartão. A migration V8 impede UPDATE e DELETE dos eventos por comandos comuns; a V10 permite DELETE quando a transação define o sinalizador de limpeza controlada. A API que define esse sinalizador está disponível somente em desenvolvimento ou homologação. Administradores do banco ainda precisam de controles operacionais próprios. Não há visualizador. O prazo mínimo do RNF09 é de 4 anos desde o evento. Não há descarte automático em produção; backup, arquivamento e descarte após esse prazo exigem procedimento operacional.
 
 ## Diagrama de ações do ator
 
