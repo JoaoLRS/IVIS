@@ -50,7 +50,7 @@ Implementado no frontend e no backend. O formulário institucional aceita o e-ma
 
 ```mermaid
 flowchart LR
-    instituicao(["🏫 Instituição"])
+    instituicao(["🧍 Instituição de Ensino"])
     aluno(["🧍 Aluno existente"])
     instituicao --> consultar["Consultar alunos e vagas"]
     consultar --> informar["Informar e-mail do aluno"]

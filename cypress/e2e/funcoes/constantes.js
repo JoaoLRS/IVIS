@@ -443,6 +443,10 @@ export const valoresSistema = {
     individual: "INDIVIDUAL",
     institucional: "INSTITUCIONAL",
   },
+  origemAcesso: {
+    proprio: "PROPRIO",
+    vinculoInstitucional: "VINCULO_INSTITUCIONAL",
+  },
   plano: {
     ativo: "ATIVO",
     semVigente: "SEM_PLANO_VIGENTE",

@@ -18,14 +18,14 @@
 4. Para funções da instituição, o sistema confirma o tipo da conta e limita consultas e alterações aos contratos e vínculos próprios.
 5. O sistema concede a operação somente quando perfil, titularidade e acesso atendem às regras.
 6. Sem acesso ativo, o sistema bloqueia recursos de treinamento e orienta consultar ou contratar um plano.
-7. O backend valida novamente as operações que exigem plano, como treino e histórico; também verifica o tipo de conta e a titularidade nas operações de conta e gestão institucional. A proteção de navegação do frontend não substitui as validações da API.
+7. O backend valida novamente as operações que exigem plano, como iniciar, continuar e concluir treinos; a consulta ao histórico exige apenas perfil de aluno ativo. Também verifica o tipo de conta e a titularidade nas operações de conta e gestão institucional. A proteção de navegação do frontend não substitui as validações da API.
 
 ## Fluxos alternativos e exceções
 
 - **A1 — Aluno com plano individual vigente:** o sistema permite as funções cobertas pela oferta.
 - **A2 — Aluno com vínculo institucional vigente:** o sistema permite as funções cobertas, sem acesso à gestão do contrato da instituição.
 - **A3 — Aluno vinculado tenta contratar plano individual:** o backend rejeita a contratação conforme RF19 e CDU-10.
-- **A4 — Plano expirado ou vínculo removido:** o sistema nega novas operações protegidas.
+- **A4 — Plano expirado ou vínculo removido:** o sistema nega iniciar ou continuar treinos, mas mantém a consulta ao histórico e ao feedback próprios do aluno.
 - **A5 — Tipo de conta incompatível:** o sistema rejeita a chamada e mantém o usuário na área correspondente ao seu perfil.
 - **E1 — Estado de acesso não verificável:** o sistema nega a operação protegida.
 
@@ -36,7 +36,7 @@
 
 ## Situação atual no sistema
 
-Implementado nas rotas do frontend, com verificação de plano no backend para treinos e histórico e validações de perfil/titularidade nas APIs de conta e gestão institucional. A modalidade do aluno é determinada por contrato individual ou vínculo institucional; não há perfil separado salvo como AlunoPagante/AlunoConsórcio.
+Implementado nas rotas do frontend, com verificação de plano no backend para operações do treino e validação de perfil de aluno para o histórico. As APIs de conta e gestão institucional verificam perfil e titularidade conforme a operação. A origem do acesso do aluno é determinada por contrato individual ou vínculo institucional; ambos usam a conta do tipo `ALUNO`.
 
 ## Diagrama de ações do ator
 

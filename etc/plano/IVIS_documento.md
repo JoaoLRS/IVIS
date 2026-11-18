@@ -1,5 +1,5 @@
 # IVIS — Intelligent Virtual Interview System
-### Documento de Visão e Escopo Inicial do Projeto
+### Documento de visão e escopo — revisão de 18/11/2026
 
 ---
 
@@ -7,13 +7,13 @@
 
 O **IVIS (Intelligent Virtual Interview System)** é uma plataforma web baseada em Inteligência Artificial voltada ao treinamento de candidatos para entrevistas de emprego na área de tecnologia.
 
-O sistema conduz o candidato por uma simulação de entrevista, apresentando perguntas de acordo com o perfil de habilidades do usuário e/ou os requisitos de uma vaga específica cadastrada por ele. As respostas são processadas por um modelo de IA, que avalia o desempenho e fornece feedback, aproximando a experiência de uma entrevista técnica real.
+O sistema conduz o candidato por uma simulação de entrevista, apresentando perguntas de acordo com o perfil de habilidades do usuário ou os requisitos de uma vaga específica cadastrada por ele. As respostas são processadas pela API de IA, que gera feedback ao concluir o treino. No modo stub, não há avaliação qualitativa nem nota.
 
-Além do treinamento em si, a plataforma passa a contemplar o **ciclo comercial do produto**: uma Home com os planos disponíveis, a contratação de um plano (individual, pelo Aluno Pagante, ou de consórcio, pela Instituição de Ensino) e o controle de perfil/conta dos usuários.
+Além do treinamento em si, a plataforma contempla o **ciclo comercial do produto**: planos públicos, contratação individual pelo aluno elegível ou institucional pela Instituição de Ensino e controle da conta dos usuários. O pagamento atual é simulado, sem cobrança real.
 
 **Problema que o projeto resolve:** candidatos de tecnologia frequentemente têm dificuldade em praticar entrevistas técnicas de forma realista, personalizada e recorrente, pois isso normalmente depende de mentoria humana, que é escassa, cara ou pouco acessível.
 
-**Proposta de valor:** oferecer treinamento de entrevistas ilimitado, personalizado por vaga/habilidade e com feedback objetivo gerado por IA, a um custo acessível — seja via contratação individual, seja via consórcio contratado por uma instituição de ensino para seus alunos.
+**Proposta de valor:** oferecer prática recorrente de entrevistas, personalizada por vaga ou habilidade, com avaliação por IA, via plano individual ou institucional. O resultado da IA pode conter erros; a avaliação mostra critérios e limitações quando o provedor real está configurado.
 
 ---
 
@@ -29,22 +29,22 @@ Desenvolver uma aplicação web que permita a alunos treinarem entrevistas técn
 - Simular uma entrevista técnica interativa, conduzida por IA, com feedback ao final.
 - Manter um histórico de treinos realizados para acompanhamento de evolução.
 - Exibir uma Home com os planos disponíveis (individual e institucional).
-- Permitir que um Aluno Pagante contrate um plano individual.
+- Permitir que um aluno elegível contrate um plano individual.
 - Permitir que uma Instituição de Ensino contrate um plano de consórcio e vincule seus alunos a ele.
 
-### 2.3 Dentro do Escopo (MVP — primeira versão)
-- Cadastro, login e controle de perfil (dados pessoais, senha, foto) de Aluno e de Instituição de Ensino.
+### 2.3 Dentro do escopo atual
+- Cadastro, login, recuperação de acesso e manutenção de dados e senha de Aluno e de Instituição de Ensino. Foto e logo existem no modelo, mas não no formulário atual.
 - Cadastro/edição/exclusão de perfil e habilidades do Aluno.
 - Gerenciamento (cadastro, edição e exclusão) de vaga de interesse, usada para gerar o treino.
-- Simulação de entrevista via IA (perguntas + respostas em texto) e feedback ao final.
+- Simulação de entrevista textual com sessão persistida, retomada e feedback ao final.
 - Histórico de treinos por aluno.
 - Home com apresentação dos planos disponíveis (individual e institucional/consórcio).
-- Contratação de plano individual pelo Aluno Pagante, com pagamento simulado no modo acadêmico.
-- Contratação de plano de consórcio pela Instituição de Ensino, com pagamento simulado no modo acadêmico e escolha entre capacidades de 50, 100 e alunos ilimitados.
-- Cadastro/vínculo de alunos pela Instituição de Ensino ao plano de consórcio contratado.
-- Diferenciação entre AlunoConsórcio e AlunoPagante para fins de acesso ao plano.
+- Contratação de plano individual pelo aluno sem vínculo institucional ativo, com pagamento no modo acadêmico.
+- Contratação de plano de consórcio pela Instituição de Ensino, com pagamento no modo acadêmico e escolha entre capacidades de 50, 100 e alunos ilimitados.
+- Cadastro de novos alunos e vínculo de contas existentes pela Instituição de Ensino ao plano contratado.
+- Controle de acesso conforme contrato individual ou vínculo institucional ativo.
 
-### 2.4 Fora do Escopo (nesta etapa — possíveis fases futuras)
+### 2.4 Fora do escopo atual
 - Entrevistas por voz/vídeo com IA (apenas texto no MVP).
 - Painel administrativo completo para Gestão ADM/Gestão Suporte (métricas internas, relatórios financeiros etc.).
 - Integração com vagas reais de plataformas externas (ex.: LinkedIn, Gupy).
@@ -52,10 +52,8 @@ Desenvolver uma aplicação web que permita a alunos treinarem entrevistas técn
 - Upgrade/downgrade automático de plano, renovação automática e faturamento recorrente avançado.
 - Suporte a múltiplos idiomas.
 
-> ⚠️ Validar esta divisão MVP vs. fases futuras com o time e o Product Owner antes de fechar o backlog do Sprint 0.
-
 ### 2.5 Público-Alvo
-Estudantes e profissionais em transição de carreira para tecnologia (Alunos Pagantes ou Consórcio) e Instituições de Ensino que desejam oferecer o treinamento como benefício/consórcio aos seus alunos.
+Estudantes e profissionais em transição de carreira para tecnologia, com acesso individual ou institucional, e Instituições de Ensino que desejam oferecer o treinamento aos seus alunos.
 
 ---
 
@@ -66,7 +64,7 @@ Link do diagrama original: https://canva.link/obupwdeokzl3ggs
 | Camada | Stakeholder | Papel em relação ao IVIS |
 |---|---|---|
 | Núcleo | IVIS | O próprio sistema/produto |
-| Infraestrutura | NVIDIA NGC | Provável provedor de infraestrutura/modelos de IA |
+| Infraestrutura | NVIDIA | Provedor configurável para perguntas e avaliações por IA |
 | Usuário direto | Alunos | Utilizam a plataforma para treinar entrevistas |
 | Usuário direto | Instituição de Ensino | Contrata plano de consórcio e gerencia seus alunos vinculados |
 | Operação interna | Gestão Suporte | Suporte técnico/atendimento aos alunos e instituições |
@@ -75,191 +73,369 @@ Link do diagrama original: https://canva.link/obupwdeokzl3ggs
 | Órgão regulador | PROCON | Defesa do consumidor |
 | Referências de mercado | Alacuna, PRAMP, interviewing.io | Concorrentes/referências de mercado (plataformas de mock interview) |
 
-> ⚠️ Com a Instituição de Ensino passando a ser um ator direto do sistema (e não só uma parceria/stakeholder externo), movi essa linha para "Usuário direto" na tabela acima. Confirmar com o time se ANPD e PROCON entram como *stakeholders regulatórios* (compliance) ou apenas como referência de contexto legal.
+A Instituição de Ensino participa diretamente dos fluxos implementados. ANPD e PROCON são referências do contexto regulatório; não operam o sistema.
 
 ---
 
-## 4. Atores do Sistema
+## 4. Atores e modalidades de acesso
 
-**Atores Principais**
-- **Aluno** — pessoa que utiliza a plataforma para treinar entrevistas. Se divide em:
-  - *AlunoConsórcio*: vinculado por uma instituição de ensino com plano de consórcio ativo.
-  - *AlunoPagante*: contratou um plano individual diretamente.
-- **Instituição de Ensino** — contrata um plano de consórcio e gerencia (cadastra/remove) os alunos vinculados a esse plano.
+Os atores de negócio são **Visitante**, **Aluno** e **Instituição de Ensino**. O visitante consulta planos públicos e pode criar conta. O aluno gerencia sua conta, habilidades, vagas e treinos; a instituição contrata um plano institucional e gerencia seus alunos vinculados.
 
-**Atores Secundários**
-- **Sistema de IA** — serviço externo responsável por processar as respostas do aluno e gerar as perguntas/feedback da entrevista.
-- **Sistema de Pagamento** — simulador controlado pelo backend no modo acadêmico. Um gateway externo depende de decisão futura.
-
-> ⚠️ Sugestão: se Gestão Suporte e Gestão ADM forem operar telas no sistema (ex.: aprovar/cancelar um plano, dar suporte a um chamado), eles também devem entrar como atores do sistema — hoje o documento cobre apenas Aluno e Instituição de Ensino como atores de negócio.
+O aluno pode ter **acesso individual**, por contrato próprio vigente, ou **acesso institucional**, por vínculo ativo com contrato institucional vigente. Essas origens de acesso não criam novos tipos de conta nem subclasses de Aluno. A API de IA e o simulador de pagamento são componentes técnicos do IVIS, não atores externos. Gestão de suporte e gestão administrativa permanecem interessados, sem fluxo de usuário implementado neste escopo.
 
 ---
 
-## 5. Diagrama de Casos de Uso
+## 5. Casos de uso vigentes
+
+O catálogo atual reúne **20 CDU**: 16 fluxos funcionais, duas jornadas ponta a ponta e dois fluxos complementares. O [índice de casos de uso](../cdu/IVIS_Casos_de_Uso.md) contém a rastreabilidade com RF, estado observado, exceções e testes. Implementação no código não significa aceite formal ou validação em produção. No diagrama abaixo, o boneco identifica cada ator; as formas ovais representam casos de uso.
+
+| Área | Casos de uso |
+|---|---|
+| Acesso e conta | CDU-01 a CDU-05; CDU-16 valida a política de senha. |
+| Preparação e entrevista | CDU-06 a CDU-08; CDU-19 detalha a retomada de treino. |
+| Planos e contratação | CDU-09 a CDU-12. |
+| Instituição e acesso | CDU-13 e CDU-14; CDU-20 detalha o vínculo de conta existente. |
+| Auditoria e jornadas | CDU-15 registra ações sensíveis; CDU-17 e CDU-18 encadeiam as jornadas do aluno e da instituição. |
 
 ```mermaid
 flowchart LR
-    Aluno(["👤 Aluno"])
-    IE(["🏫 Instituição de Ensino"])
-    IA(["🤖 Sistema de IA"])
-    Pagamento(["💳 Sistema de Pagamento"])
-
-    subgraph SistemaIVIS["Sistema IVIS"]
-        direction TB
-
-        subgraph Acesso["Acesso e Perfil"]
-            UC1(["Criar Conta"])
-            UC2(["Fazer Login"])
-            UC3(["Gerenciar Perfil e Habilidades"])
-            UC13(["Gerenciar Dados da Conta"])
-        end
-
-        subgraph Treino["Treinamento"]
-            UC4(["Gerenciar Vaga de Interesse"])
-            UC5(["Iniciar Treinamento"])
-            UC6(["Responder Perguntas da Entrevista"])
-            UC7(["Receber Feedback da Entrevista"])
-            UC8(["Consultar Histórico de Treinos"])
-        end
-
-        subgraph PlanosArea["Planos e Contratação"]
-            UC9(["Visualizar Home com Planos"])
-            UC10(["Contratar Plano"])
-            UC11(["Gerenciar Alunos Vinculados"])
-            UC12(["Efetuar Pagamento"])
-        end
-    end
-
-    Aluno --> UC1
-    Aluno --> UC2
-    Aluno --> UC3
-    Aluno --> UC4
-    Aluno --> UC5
-    Aluno --> UC8
-    Aluno --> UC9
-    Aluno --> UC10
-    Aluno --> UC13
-
-    IE --> UC1
-    IE --> UC2
-    IE --> UC9
-    IE --> UC10
-    IE --> UC11
-    IE --> UC13
-
-    UC5 -. inclui .-> UC6
-    UC6 -. inclui .-> UC7
-    UC6 --> IA
-    UC7 --> IA
-    UC10 -. inclui .-> UC12
-    UC12 --> Pagamento
+    Visitante["🧍 Visitante"] --> Planos([Consultar planos])
+    Visitante --> Acesso([Criar conta ou entrar])
+    Aluno["🧍 Aluno"] --> Perfil([Gerenciar conta, habilidades e vagas])
+    Aluno --> Treino([Realizar e retomar treinamento])
+    Aluno --> Historico([Consultar histórico e feedback])
+    Aluno --> Individual([Contratar plano individual quando elegível])
+    Instituicao["🧍 Instituição de Ensino"] --> Conta([Gerenciar conta])
+    Instituicao --> Institucional([Contratar plano institucional])
+    Instituicao --> Vinculos([Gerenciar alunos vinculados])
+    Individual --> Pagamento([Pagamento simulado])
+    Institucional --> Pagamento
 ```
-
-> Observação 1: "Gerenciar Vaga de Interesse" (UC4) substitui os antigos "Cadastrar Vaga" e "Editar Vaga", já que cadastrar, editar e excluir uma vaga fazem parte da mesma responsabilidade (CRUD de vaga).
-> Observação 2: `UC10 — Contratar Plano` é compartilhado pelos dois atores principais, mas com fluxos diferentes: o AlunoPagante contrata um plano individual para si; a Instituição de Ensino contrata um plano de consórcio para múltiplos alunos (que depois são vinculados via `UC11`).
 
 ---
 
-## 6. Diagrama de Relacionamento entre Atores
+## 6. Diagramas de classes por etapa
+
+Os diagramas mostram os **conceitos do domínio e suas cardinalidades**, com nomes próximos aos modelos do backend. Cada desenho foca uma etapa do uso do IVIS; uma classe pode reaparecer para ligar as etapas. Os números ficam **na ponta da classe a que se referem**: em `Conta "1" -- "0..*" Contrato`, uma conta pode ter vários contratos e cada contrato pertence a uma conta. `0..1` significa nenhum ou um; `0..*` significa nenhum ou vários.
+
+As associações representam chaves estrangeiras e regras dos serviços. As entidades JPA nem sempre possuem campos de referência entre objetos. As tabelas `planos` e `contratos` têm modelos parciais em módulos diferentes do backend; aqui cada uma aparece como uma classe de domínio.
+
+### Etapa 1 — Conta e perfil do aluno
+
+Uma conta possui um tipo (`ALUNO` ou `INSTITUICAO`) e o perfil correspondente. O aluno registra suas habilidades com nível de domínio.
 
 ```mermaid
-flowchart TB
-    IE(["🏫 Instituição de Ensino"])
-    Aluno(["👤 Aluno"])
-    AC(["👤 AlunoConsórcio"])
-    AP(["👤 AlunoPagante"])
-    IA(["🤖 Sistema de IA"])
-    Pagamento(["💳 Sistema de Pagamento"])
-
-    AC -->|é um tipo de| Aluno
-    AP -->|é um tipo de| Aluno
-    Aluno -->|interage com| IA
-
-    IE -->|contrata plano de consórcio| Pagamento
-    AP -->|contrata plano individual| Pagamento
-    IE -->|cadastra / vincula| AC
-    AC -->|pertence a| IE
+classDiagram
+    direction LR
+    class Conta {
+      +UUID id
+      +String tipoConta
+    }
+    class PerfilAluno {
+      +UUID contaId
+      +String nome
+    }
+    class PerfilInstituicao {
+      +UUID contaId
+      +String nomeInstituicao
+    }
+    class HabilidadePerfil {
+      +UUID id
+      +String nome
+      +short nivel
+    }
+    Conta "1" -- "0..1" PerfilAluno : perfil de aluno
+    Conta "1" -- "0..1" PerfilInstituicao : perfil institucional
+    PerfilAluno "1" -- "0..*" HabilidadePerfil : possui
 ```
 
-> O vínculo Instituição de Ensino ↔ AlunoConsórcio, antes marcado como funcionalidade futura, passa a ser parte do escopo desta versão (seção 2.3), por isso aparece agora com relação direta (não mais tracejada).
+| Relação | Leitura da cardinalidade |
+|---|---|
+| Conta → PerfilAluno | Uma conta pode ter zero ou um perfil de aluno. Cada perfil de aluno pertence a uma conta. |
+| Conta → PerfilInstituicao | Uma conta pode ter zero ou um perfil de instituição. Cada perfil de instituição pertence a uma conta. |
+| PerfilAluno → HabilidadePerfil | Um aluno pode ter várias habilidades. Cada habilidade pertence a um aluno. |
+
+**Regra adicional:** a conta tem exatamente um dos dois tipos de perfil, conforme `tipoConta`; os dois `0..1` do desenho não autorizam ausência de ambos nem dois perfis simultâneos.
+
+### Etapa 2 — Vaga e início do treino
+
+O aluno pode cadastrar vagas e realizar treinos. Um treino usa uma vaga **ou** as habilidades do aluno como contexto.
+
+```mermaid
+classDiagram
+    direction LR
+    class PerfilAluno {
+      +UUID contaId
+    }
+    class VagaInteresse {
+      +UUID id
+      +String titulo
+    }
+    class RequisitoVaga {
+      +UUID id
+      +String texto
+    }
+    class Treinamento {
+      +UUID id
+      +String tipoContexto
+    }
+    PerfilAluno "1" -- "0..*" VagaInteresse : cadastra
+    VagaInteresse "1" -- "0..*" RequisitoVaga : contem
+    PerfilAluno "1" -- "0..*" Treinamento : realiza
+    VagaInteresse "0..1" -- "0..*" Treinamento : contexto
+```
+
+| Relação | Leitura da cardinalidade |
+|---|---|
+| PerfilAluno → VagaInteresse | Um aluno pode cadastrar várias vagas. Cada vaga pertence a um aluno. |
+| VagaInteresse → RequisitoVaga | Uma vaga pode conter vários requisitos. Cada requisito pertence a uma vaga. |
+| PerfilAluno → Treinamento | Um aluno pode realizar vários treinos. Cada treino pertence a um aluno. |
+| VagaInteresse → Treinamento | Uma vaga pode servir a vários treinos. Um treino usa no máximo uma vaga; quando treina por habilidades, não usa vaga. |
+
+### Etapa 3 — Perguntas e avaliação
+
+A sessão persiste as perguntas, as respostas e, ao concluir, uma avaliação. O histórico mantém esses dados mesmo se o aluno alterar depois suas habilidades ou vaga.
+
+```mermaid
+classDiagram
+    direction LR
+    class Treinamento {
+      +UUID id
+      +String situacao
+    }
+    class PerguntaEntrevista {
+      +UUID id
+      +short numeroSequencial
+    }
+    class RespostaEntrevista {
+      +UUID id
+      +String textoResposta
+    }
+    class AvaliacaoTreinamento {
+      +UUID id
+      +Short nota
+    }
+    class ItemFeedback {
+      +UUID id
+      +String tipo
+    }
+    Treinamento "1" -- "0..*" PerguntaEntrevista : registra
+    PerguntaEntrevista "1" -- "0..1" RespostaEntrevista : recebe
+    Treinamento "1" -- "0..1" AvaliacaoTreinamento : gera
+    AvaliacaoTreinamento "1" -- "0..*" ItemFeedback : contem
+```
+
+| Relação | Leitura da cardinalidade |
+|---|---|
+| Treinamento → PerguntaEntrevista | Um treino pode registrar várias perguntas. Cada pergunta pertence a um treino. |
+| PerguntaEntrevista → RespostaEntrevista | Uma pergunta recebe no máximo uma resposta; pode ainda estar sem resposta. Cada resposta pertence a uma pergunta. |
+| Treinamento → AvaliacaoTreinamento | Um treino tem no máximo uma avaliação, criada na conclusão. |
+| AvaliacaoTreinamento → ItemFeedback | Uma avaliação pode conter vários pontos fortes ou de melhoria. Cada item pertence a uma avaliação. |
+
+No modo stub da IA, a nota permanece vazia quando não há avaliação qualitativa.
+
+### Etapa 4 — Plano, contrato e pagamento
+
+O plano é a oferta. O contrato registra a contratação de uma conta, inclusive a capacidade e o preço acordados. No modo acadêmico, o pagamento é simulado e não gera cobrança real.
+
+```mermaid
+classDiagram
+    direction LR
+    class Conta {
+      +UUID id
+      +String tipoConta
+    }
+    class Plano {
+      +UUID id
+      +String modalidade
+      +Integer vagasIncluidas
+    }
+    class Contrato {
+      +UUID id
+      +String situacao
+      +Integer quantidadeVagas
+    }
+    class Pagamento {
+      +UUID id
+      +String modo
+      +String situacao
+    }
+    Conta "1" -- "0..*" Contrato : titular
+    Plano "1" -- "0..*" Contrato : oferta contratada
+    Contrato "1" -- "0..*" Pagamento : tentativas
+```
+
+| Relação | Leitura da cardinalidade |
+|---|---|
+| Conta → Contrato | Uma conta pode ter vários contratos ao longo do tempo. Cada contrato tem um titular. |
+| Plano → Contrato | Um plano pode ser contratado várias vezes. Cada contrato se refere a um plano. |
+| Contrato → Pagamento | Um contrato pode registrar várias tentativas de pagamento. Cada tentativa pertence a um contrato. |
+
+### Etapa 5 — Vínculo institucional e auditoria
+
+O vínculo associa o aluno a um **contrato institucional**. A instituição titular desse contrato controla a capacidade e os alunos vinculados. A remoção encerra o vínculo, preservando seu histórico.
+
+```mermaid
+classDiagram
+    direction LR
+    class Contrato {
+      +UUID id
+      +Integer quantidadeVagas
+    }
+    class PerfilAluno {
+      +UUID contaId
+    }
+    class VinculoInstitucional {
+      +UUID id
+      +String situacao
+    }
+    Contrato "1" -- "0..*" VinculoInstitucional : possui
+    PerfilAluno "1" -- "0..*" VinculoInstitucional : historico
+```
+
+| Relação | Leitura da cardinalidade |
+|---|---|
+| Contrato → VinculoInstitucional | Um contrato institucional pode ter vários vínculos ao longo do tempo. Cada vínculo pertence a um contrato. |
+| PerfilAluno → VinculoInstitucional | Um aluno pode ter vários vínculos históricos. Cada vínculo corresponde a um aluno. |
+
+**Regra adicional:** um aluno pode ter **no máximo um vínculo institucional ativo** por vez. Para os planos de 50 e 100 alunos, contam-se apenas os vínculos ativos; no plano ilimitado não há teto numérico. O contrato institucional tem como titular a conta da instituição, conforme a etapa 4.
+
+A auditoria é transversal às etapas de contratação, pagamento e vínculo: cada `EventoAuditoria` registra ação, resultado e momento, podendo apontar para zero ou uma `Conta` como ator; uma conta pode ser ator de vários eventos. Sessões de autenticação, tokens de recuperação, benefícios de plano e e-mails simulados ficaram fora dos desenhos por etapa para preservar a leitura. O diagrama consolidado abaixo inclui essas classes.
 
 ---
 
-## 7. Casos de Uso Detalhados
+## 7. Diagrama de classes completo
 
-**UC1 — Criar Conta**
-Ator: Aluno / Instituição de Ensino. Cadastro inicial na plataforma, informando dados básicos (e-mail, senha, tipo de conta).
+Esta é a visão consolidada das **20 classes persistidas do domínio**. Ela mostra atributos essenciais e associações principais, inclusive as entidades que os serviços manipulam diretamente pelo banco sem classe JPA própria. Leia `1`, `0..1` e `0..*` junto à ponta da classe correspondente; as etapas da seção 6 explicam as relações centrais em linguagem comum. Os campos e constraints completos estão nas [migrations Flyway](../../backend/src/main/resources/db/migration/) e no [modelo relacional](BD/Modelo_Relacional_IVIS.md).
 
-**UC2 — Fazer Login**
-Ator: Aluno / Instituição de Ensino. Autenticação na plataforma com e-mail e senha.
+```mermaid
+classDiagram
+    direction TB
+    class Conta {
+      +UUID id
+      +String tipoConta
+      +String email
+    }
+    class PerfilAluno {
+      +UUID contaId
+      +String nome
+    }
+    class PerfilInstituicao {
+      +UUID contaId
+      +String nomeInstituicao
+    }
+    class SessaoAutenticacao {
+      +UUID id
+      +Instant expiraEm
+    }
+    class TokenRecuperacaoSenha {
+      +UUID id
+      +Instant expiraEm
+    }
+    class HabilidadePerfil {
+      +UUID id
+      +short nivel
+    }
+    class VagaInteresse {
+      +UUID id
+      +String titulo
+    }
+    class RequisitoVaga {
+      +UUID id
+      +String texto
+    }
+    class Treinamento {
+      +UUID id
+      +String situacao
+    }
+    class PerguntaEntrevista {
+      +UUID id
+      +short numeroSequencial
+    }
+    class RespostaEntrevista {
+      +UUID id
+      +String textoResposta
+    }
+    class AvaliacaoTreinamento {
+      +UUID id
+      +Integer nota
+    }
+    class ItemFeedback {
+      +UUID id
+      +String tipo
+    }
+    class Plano {
+      +UUID id
+      +String modalidade
+      +Integer vagasIncluidas
+    }
+    class BeneficioPlano {
+      +UUID id
+      +String texto
+    }
+    class Contrato {
+      +UUID id
+      +String situacao
+      +Integer quantidadeVagas
+    }
+    class VinculoInstitucional {
+      +UUID id
+      +String situacao
+    }
+    class Pagamento {
+      +UUID id
+      +String situacao
+    }
+    class EmailSimulado {
+      +UUID id
+      +String destinatario
+    }
+    class EventoAuditoria {
+      +UUID id
+      +String acao
+    }
 
-**UC3 — Gerenciar Perfil e Habilidades**
-Ator: Aluno. O aluno cadastra, edita ou remove habilidades técnicas do seu perfil, usadas pela IA para calibrar o treino.
+    Conta "1" -- "0..1" PerfilAluno : perfil aluno
+    Conta "1" -- "0..1" PerfilInstituicao : perfil instituicao
+    PerfilInstituicao "0..1" -- "0..*" PerfilAluno : instituicao atual
+    Conta "1" -- "0..*" SessaoAutenticacao : sessoes
+    Conta "1" -- "0..*" TokenRecuperacaoSenha : recuperacao
+    PerfilAluno "1" -- "0..*" HabilidadePerfil : habilidades
+    PerfilAluno "1" -- "0..*" VagaInteresse : vagas
+    VagaInteresse "1" -- "0..*" RequisitoVaga : requisitos
+    PerfilAluno "1" -- "0..*" Treinamento : treinos
+    VagaInteresse "0..1" -- "0..*" Treinamento : contexto opcional
+    Treinamento "1" -- "0..*" PerguntaEntrevista : perguntas
+    PerguntaEntrevista "1" -- "0..1" RespostaEntrevista : resposta
+    Treinamento "1" -- "0..1" AvaliacaoTreinamento : avaliacao
+    AvaliacaoTreinamento "1" -- "0..*" ItemFeedback : itens
+    Plano "1" -- "0..*" BeneficioPlano : beneficios
+    Conta "1" -- "0..*" Contrato : titular
+    Plano "1" -- "0..*" Contrato : oferta
+    Contrato "1" -- "0..*" Pagamento : tentativas
+    Contrato "1" -- "0..*" VinculoInstitucional : vinculos
+    PerfilAluno "1" -- "0..*" VinculoInstitucional : historico
+    Conta "1" -- "0..*" VinculoInstitucional : criador
+    Conta "1" -- "0..*" EmailSimulado : destinatario
+    Contrato "1" -- "0..*" EmailSimulado : confirmacoes
+    Pagamento "1" -- "0..1" EmailSimulado : confirmacao
+    Conta "0..1" -- "0..*" EventoAuditoria : ator
+    Contrato "0..1" -- "0..*" EventoAuditoria : contrato auditado
+```
 
-**UC4 — Gerenciar Vaga de Interesse**
-Ator: Aluno. O aluno cadastra, edita ou exclui vagas de interesse, informando dados e requisitos usados para gerar um treino direcionado. Pré-condição para edição/exclusão: a vaga não pode estar em um treino já em andamento.
-
-**UC5 — Iniciar Treinamento**
-Ator: Aluno. O aluno seleciona uma vaga (ou seu perfil de habilidades) e inicia a simulação de entrevista.
-
-**UC6 — Responder Perguntas da Entrevista**
-Ator: Aluno / Sistema de IA. A IA apresenta perguntas e recebe as respostas do aluno em tempo real.
-
-**UC7 — Receber Feedback da Entrevista**
-Ator: Aluno / Sistema de IA. Ao final do treino, a IA gera uma avaliação de desempenho para o aluno.
-
-**UC8 — Consultar Histórico de Treinos**
-Ator: Aluno. O aluno visualiza treinos realizados anteriormente e sua evolução.
-
-**UC9 — Visualizar Home com Planos**
-Ator: Aluno / Instituição de Ensino. Tela inicial que apresenta os planos disponíveis (individual e institucional), com preços e benefícios.
-
-**UC10 — Contratar Plano**
-Ator: Aluno Pagante / Instituição de Ensino. Seleção de um plano na Home e início do fluxo de contratação, que inclui o pagamento (UC12).
-
-**UC11 — Gerenciar Alunos Vinculados**
-Ator: Instituição de Ensino. Pré-condição: possuir um plano de consórcio ativo. A instituição cadastra ou remove alunos vinculados ao plano contratado, dentro do limite de vagas disponíveis.
-
-**UC12 — Efetuar Pagamento**
-Ator: Aluno Pagante / Instituição de Ensino / Sistema de Pagamento. No modo acadêmico, o backend processa a contratação por pagamento simulado, sem cobrança real.
-
-**UC13 — Gerenciar Dados da Conta**
-Ator: Aluno / Instituição de Ensino. Controle de perfil da conta: edição de dados cadastrais (nome/razão social, e-mail, foto/logo), alteração de senha e visualização do plano vigente.
-
-> ⚠️ UC6, UC7, UC9, UC10, UC11, UC12 e UC13 foram inferidos/expandidos a partir do pedido de incluir controle de perfil, contratação de plano institucional e Home — recomendo validar a redação e os fluxos com o time antes de considerá-los "fechados".
+As associações de `VinculoInstitucional` representam o contrato, o aluno e a conta que criou o vínculo; a instituição titular é obtida pelo contrato. A ligação direta entre `PerfilAluno` e `PerfilInstituicao` espelha a instituição atual e é sincronizada com o vínculo ativo. A origem de acesso do aluno é calculada a partir de contrato individual ou vínculo institucional ativo. Um aluno pode ter vários vínculos históricos, mas apenas um ativo. O diagrama omite somente relações técnicas que não alteram essas regras, como a rotação de uma sessão de autenticação para outra.
 
 ---
 
-## 8. Histórias de Usuário
+## 8. Histórias de usuário
 
-| ID | História | Critério de Aceite (sugestão) | Prioridade (MoSCoW) |
-|---|---|---|---|
-| US01 | Como Aluno, quero treinar minhas habilidades para uma entrevista técnica de tecnologia, para alcançar uma vaga e melhorar minhas capacidades. | Dado que o aluno tem um perfil cadastrado, quando ele inicia um treino, então o sistema apresenta perguntas coerentes com seu perfil. | Deve ter |
-| US02 | Como Aluno, quero editar minhas habilidades cadastradas, para que a IA me avalie corretamente. | Dado que o aluno acessa seu perfil, quando ele edita uma habilidade, então a alteração é refletida nos próximos treinos. | Deve ter |
-| US03 | Como Aluno, quero inserir os dados e requisitos de uma vaga específica, para que o sistema gere um treino focado nela. | Dado que o aluno cadastra uma vaga, quando ele inicia um treino a partir dela, então as perguntas são relacionadas aos requisitos informados. | Deve ter |
-| US04 | Como Aluno, quero receber um feedback ao final da entrevista, para saber meus pontos fortes e fracos. | Dado que o treino foi concluído, quando o aluno finaliza, então o sistema exibe uma avaliação com pontos de melhoria. | Deve ter |
-| US05 | Como Aluno, quero consultar meu histórico de treinos, para acompanhar minha evolução ao longo do tempo. | Dado que o aluno já realizou treinos, quando ele acessa o histórico, então visualiza data, vaga/habilidade treinada e resultado. | Deveria ter |
-| US06 | Como Aluno, quero criar uma conta na plataforma, para poder acessar os recursos de treinamento. | Dado que o visitante preenche e-mail e senha válidos, quando ele confirma o cadastro, então a conta é criada e ele pode fazer login. | Deve ter |
-| US07 | Como Aluno, quero fazer login na plataforma, para acessar meu perfil e meus treinos. | Dado que o aluno informa e-mail e senha corretos, quando ele confirma, então é redirecionado à Home autenticado. | Deve ter |
-| US08 | Como Aluno, quero editar meus dados pessoais (nome, e-mail, foto), para manter meu perfil atualizado. | Dado que o aluno acessa "Minha Conta", quando ele altera um dado e salva, então a informação é atualizada no sistema. | Deveria ter |
-| US09 | Como Aluno, quero alterar minha senha, para manter minha conta segura. | Dado que o aluno informa a senha atual e uma nova senha válida, quando ele confirma, então a senha é atualizada. | Deveria ter |
-| US10 | Como Aluno, quero visualizar a Home com os planos disponíveis, para entender as opções antes de contratar. | Dado que o usuário acessa a Home, quando a página carrega, então os planos individuais são exibidos com preço e benefícios. | Deve ter |
-| US11 | Como Aluno Pagante, quero contratar um plano diretamente pela plataforma, para ter acesso ao treinamento. | Dado que o aluno seleciona um plano na Home, quando ele conclui o pagamento, então seu status muda para AlunoPagante ativo. | Deve ter |
-| US12 | Como Aluno, quero visualizar os detalhes do meu plano atual (validade, benefícios), para saber o que tenho direito de usar. | Dado que o aluno possui um plano ativo, quando ele acessa "Meu Plano", então vê validade, tipo de plano e benefícios inclusos. | Deveria ter |
-| US13 | Como Aluno, quero excluir uma vaga cadastrada que não uso mais, para manter minha lista de vagas organizada. | Dado que a vaga não está em um treino em andamento, quando o aluno confirma a exclusão, então a vaga é removida da sua lista. | Poderia ter |
-| US14 | Como Instituição de Ensino, quero criar uma conta na plataforma, para poder contratar um plano de consórcio. | Dado que a instituição preenche os dados obrigatórios (razão social, CNPJ, e-mail, senha), quando confirma o cadastro, então a conta é criada. | Deve ter |
-| US15 | Como Instituição de Ensino, quero fazer login na plataforma, para gerenciar meu plano e meus alunos. | Dado que a instituição informa e-mail e senha corretos, quando confirma, então acessa seu painel autenticado. | Deve ter |
-| US16 | Como Instituição de Ensino, quero visualizar a Home com os planos institucionais disponíveis, para escolher o mais adequado. | Dado que a instituição acessa a Home, quando a página carrega, então os três planos institucionais são exibidos com preço total ilustrativo por 30 dias e capacidade de 50, 100 ou alunos ilimitados. | Deve ter |
-| US17 | Como Instituição de Ensino, quero contratar um plano de consórcio, para oferecer o treinamento aos meus alunos. | Dado que a instituição seleciona um plano de consórcio, quando conclui o pagamento, então o plano é ativado com a capacidade da oferta escolhida, inclusive sem teto no plano ilimitado. | Deve ter |
-| US18 | Como Instituição de Ensino, quero cadastrar/vincular um aluno ao meu plano de consórcio, para que ele tenha acesso gratuito via consórcio. | Dado que a instituição tem plano ativo com vaga disponível ou capacidade ilimitada, quando cadastra ou vincula o aluno, então ele recebe acesso pelo vínculo institucional. | Deve ter |
-| US19 | Como Instituição de Ensino, quero remover um aluno vinculado ao meu plano, para liberar a vaga para outro aluno. | Dado que a instituição seleciona um aluno vinculado, quando confirma a remoção, então o vínculo é encerrado e, em plano finito, a vaga volta a ficar disponível. | Deveria ter |
-| US20 | Como Instituição de Ensino, quero visualizar a quantidade de vagas do meu plano de consórcio já utilizadas e disponíveis, para controlar meus vínculos. | Dado que a instituição possui um plano ativo, quando acessa o painel de alunos, então vê a capacidade, quantos alunos estão vinculados e, nos planos finitos, quantas vagas restam. | Deveria ter |
+As 20 histórias iniciais desta versão do documento foram uma proposta de planejamento, não a fonte vigente de critérios de aceite. Para fluxos e exceções atualizados, consulte os [CDU](../cdu/IVIS_Casos_de_Uso.md); para a redação e prioridades aprovadas, consulte os [requisitos](IVIS_Requisitos.md). Os critérios de teste e pendências de validação constam no [plano de teste](../plano%20de%20teste.md).
 
 ---
 
 ## 9. Requisitos Funcionais (RF)
 
-Os códigos e descrições vigentes são mantidos em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). O planejamento aprovado contém 20 RF: 14 na lista de requisitos e 6 implementados em validação.
+Os códigos e descrições vigentes são mantidos em [`IVIS_Requisitos.md`](IVIS_Requisitos.md). O quadro aprovado contém 20 RF. Sua divisão entre lista de requisitos e implementados em validação é administrativa e não descreve sozinha o estado atual do código. O [índice de CDU](../cdu/IVIS_Casos_de_Uso.md) registra a situação observada por fluxo.
 
 | Situação no quadro | RF |
 |---|---|
@@ -275,24 +451,24 @@ O conjunto aprovado contém **4 RNF**. Seus textos completos estão em [`IVIS_Re
 | Código | Requisito |
 |---|---|
 | RNF01 | Aplicação Web |
-| RNF03 | Tempo de resposta da IA |
+| RNF03 | Meta p95 de até 10 s para pergunta e avaliação, a medir com o provedor real |
 | RNF07 | Isolamento de dados entre instituições |
-| RNF09 | Proteção e retenção dos logs de auditoria |
+| RNF09 | Proteção e retenção mínima de 4 anos dos logs de auditoria; backup e descarte requerem procedimento operacional |
 
 ---
 
-## 11. Mapeamento de Telas (Prototipação Inicial)
+## 11. Interfaces atuais
 
 - **Tela de Cadastro/Login** — criação de conta e autenticação de Aluno e Instituição de Ensino.
-- **Tela Home** — apresentação dos planos disponíveis (individual e institucional), com preços e benefícios.
-- **Tela de Contratação/Pagamento de Plano** — seleção do plano e fluxo de pagamento.
-- **Tela de Perfil / Minha Conta** — controle de perfil: dados pessoais/institucionais, foto/logo, senha, plano vigente.
+- **Apresentação e Planos** — páginas públicas com planos individuais e institucionais.
+- **Checkout simulado** — seleção do plano e pagamento acadêmico sem cobrança real.
+- **Conta, Alterar Senha e Meu Plano** — dados da conta, senha e contrato vigente; os campos de foto/logo existem no modelo, mas não no formulário atual.
 - **Tela de Perfil de Habilidades** — edição das habilidades técnicas do Aluno.
 - **Tela de Gerenciamento de Vagas** — cadastro, edição e exclusão dos requisitos da vaga desejada.
-- **Tela de Treinamento** — interface de simulação de entrevista da vaga selecionada.
+- **Treinamento** — entrevista por habilidades ou vaga, com retomada de sessão em andamento.
 - **Tela de Feedback** — exibição do resultado/avaliação ao fim do treino.
-- **Tela de Histórico** — listagem dos treinos já realizados.
-- **Tela de Gerenciamento de Alunos Vinculados** *(Instituição de Ensino)* — cadastro/remoção de alunos e visualização de vagas usadas/disponíveis do plano de consórcio.
+- **Histórico** — consulta de treinos concluídos.
+- **Área institucional** — cadastro ou vínculo de alunos existentes, remoção de vínculo e capacidade usada/disponível.
 
 ---
 
@@ -306,17 +482,15 @@ O conjunto aprovado contém **4 RNF**. Seus textos completos estão em [`IVIS_Re
 | Consórcio | Modalidade de acesso via instituição de ensino parceira |
 | Plano | Oferta comercial (individual ou institucional) que dá acesso à plataforma |
 | Home | Tela inicial com a apresentação dos planos disponíveis |
-| Gateway de Pagamento | Sistema externo responsável por processar pagamentos de forma segura |
+| Simulador de pagamento | Componente do backend que registra aprovação ou recusa fictícia, sem cobrança real |
 | Treinamento | Sessão de simulação de entrevista |
 | Feedback | Avaliação gerada pela IA ao final do treino |
 
 ---
 
-## 13. Próximos Passos Sugeridos
+## 13. Próximas validações
 
-1. Validar com o time os detalhes de contratação dos planos institucionais e o ciclo de vida das vagas.
-2. Revisar e priorizar as 20 Histórias de Usuário (seção 8) para os próximos Sprints.
-3. Definir critérios de aceite verificáveis para os RF e RNF aprovados em [`IVIS_Requisitos.md`](IVIS_Requisitos.md).
-4. Definir wireframes de baixa fidelidade para as telas mapeadas, priorizando Home, Contratação de Plano e Gerenciamento de Alunos Vinculados.
-5. Medir o contrato de integração entre backend e API de IA com o provedor real e verificar a meta de p95 até 10 segundos para pergunta e avaliação, separadamente.
-6. Detalhar as regras de troca, cancelamento e renovação do plano institucional; as três capacidades e o bloqueio ao esgotar planos finitos já estão definidos.
+1. Registrar o aceite formal dos RF e RNF conforme o [plano de teste](../plano%20de%20teste.md), distinguindo cobertura automatizada de validação integrada.
+2. Medir o RNF03 com o provedor real, usando entradas representativas e pergunta e avaliação separadas.
+3. Definir regras de renovação, troca e cancelamento de planos e transferência de aluno entre instituições.
+4. Formalizar procedimentos de retenção, backup e descarte dos eventos de auditoria.

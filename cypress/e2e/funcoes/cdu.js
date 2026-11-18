@@ -44,7 +44,7 @@ export function prepararConfirmacaoDemoradaDoPlano() {
       planos: [
         {
           situacao: valoresSistema.plano.ativo,
-          origemAcesso: valoresSistema.modalidade.individual,
+          origemAcesso: valoresSistema.origemAcesso.proprio,
         },
       ],
     },
@@ -230,7 +230,7 @@ export function conferirPlanoVigenteInstitucional() {
       planos: [
         {
           situacao: valoresSistema.plano.ativo,
-          origemAcesso: valoresSistema.modalidade.institucional,
+          origemAcesso: valoresSistema.origemAcesso.vinculoInstitucional,
         },
       ],
     });
