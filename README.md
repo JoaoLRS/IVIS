@@ -23,7 +23,7 @@ Para preparar o ambiente, iniciar o sistema e rodar os testes, siga o guia [Como
 
 ## 🌐 Acesso à produção
 
-A versão de produção do IVIS está disponível em: [https://ivis-ia.vercel.app/inicio](https://ivis-ia.vercel.app/inicio).
+A versão de produção do IVIS roda na AWS (AWS Academy Learner Lab), em [https://ivis-ia.duckdns.org](https://ivis-ia.duckdns.org). Ela fica no ar durante as demonstrações, porque o laboratório é desligado entre os usos. A arquitetura, as decisões técnicas e o procedimento de implantação estão na seção [Implantação em nuvem (AWS)](#-implantação-em-nuvem-aws) e no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md).
 
 ---
 
@@ -321,6 +321,125 @@ etc/
 Esse documento contém a especificação inicial de visão, escopo, stakeholders, atores, casos de uso, histórias de usuário, requisitos e prototipação.
 
 A situação dos requisitos RF03 e RF06 a RF10 e suas pendências de aceite estão em [`etc/plano/IVIS_Requisitos.md`](etc/plano/IVIS_Requisitos.md) e no [plano de teste](etc/plano%20de%20teste.md).
+
+## ☁️ Implantação em nuvem (AWS)
+
+### Visão geral e diagrama
+
+O IVIS é executado em uma EC2 de aplicação, com Caddy, frontend em Nginx, backend em Spring Boot e API de IA em FastAPI. O frontend e a API usam a mesma origem por HTTPS, o backend acessa a API de IA pela rede interna e o RDS PostgreSQL privado, e o acesso administrativo é feito pelo AWS Systems Manager (SSM), sem porta 22.
+
+```mermaid
+flowchart LR
+    user["Usuário"] -->|"HTTPS"| caddy
+
+    subgraph app["EC2 app"]
+        caddy["Caddy"]
+        caddy -->|"/"| frontend["Frontend (Nginx)"]
+        caddy -->|"/api"| backend["Backend (Spring Boot)"]
+        backend --> ia["API de IA (FastAPI)"]
+        alloy["Grafana Alloy - em implantação"]
+    end
+
+    backend --> rds[("RDS PostgreSQL privado")]
+    ia -->|"HTTPS de saída"| nvidia["API NVIDIA"]
+
+    subgraph monitor["EC2 de monitoramento"]
+        prom["Prometheus"]
+        loki["Loki - em implantação"]
+        graf["Grafana"]
+    end
+
+    prom -->|"porta 9091"| backend
+    alloy -->|"logs - em implantação"| loki
+
+    ecr["ECR (3 imagens)"]
+    s3["S3 (estado do Terraform)"]
+    terraform["Terraform"]
+    gh["GitHub Actions"]
+    inf["Infisical"]
+
+    ecr -.->|"imagens"| app
+    gh -->|"CI/CD e imagens"| ecr
+    gh -->|"implanta por SSM"| app
+    gh -->|"busca segredos"| inf
+    terraform -.->|"provisiona"| app
+    terraform -.->|"estado"| s3
+```
+
+### Tecnologias e justificativas
+
+| Tecnologia | Uso | Justificativa |
+|---|---|---|
+| Amazon EC2 | Executa a aplicação e o monitoramento | Processo permanente evita partida a frio e permite controlar o proxy e as redes internas. |
+| Amazon RDS (PostgreSQL) | Persistência | Serviço gerenciado, compatível com o PostgreSQL já usado e com o Flyway, isolado por grupo de segurança. |
+| Amazon ECR | Registro das três imagens | Integração com a AWS; as EC2 obtêm as imagens pelo perfil de instância, sem credencial fixa no servidor. |
+| Amazon S3 | Estado remoto do Terraform | Armazena o estado com versionamento, bloqueio de acesso público e criptografia; usa travamento por arquivo no laboratório. |
+| AWS Systems Manager | Acesso administrativo e implantação | Permite executar comandos nas instâncias sem abrir a porta 22. |
+| Docker e Docker Compose | Empacotamento e execução | Os quatro componentes da aplicação já são executados como contêineres. |
+| Terraform | Infraestrutura como código | Provisiona e remove a rede, as instâncias, o banco, os repositórios e os grupos de segurança. |
+| GitHub Actions | CI/CD | Executa verificações e testes, constrói imagens, envia-as ao ECR e implanta por SSM. |
+| Infisical | Gestão de segredos da aplicação | Mantém segredos fora do código; o GitHub guarda apenas as credenciais de acesso à identidade de máquina. |
+| Caddy | Proxy reverso e HTTPS | Serve `/` e `/api` na mesma origem e obtém e renova automaticamente certificados Let's Encrypt. |
+| DuckDNS | Nome de domínio gratuito | O laboratório não oferece domínio próprio nem permissões completas de DNS para o ALB com certificado gerenciado. |
+| Let's Encrypt | Certificado HTTPS | Emite gratuitamente o certificado usado pelo Caddy para o subdomínio DuckDNS. |
+| Prometheus, Loki e Grafana | Métricas, logs e painéis | Compõem a observabilidade proposta pelo projeto; Loki está em implantação. |
+| Grafana Alloy | Coleta de logs dos contêineres | Substitui o Promtail descontinuado e envia logs ao Loki; está em implantação. |
+
+Alternativas descartadas pela proposta histórica:
+
+- **Application Load Balancer (ALB):** não traz balanceamento real com uma única EC2, exige validação de DNS incompatível com o DuckDNS e acrescentaria custo fixo ao laboratório.
+- **Ansible:** a instalação inicial cabe no `user_data` do Terraform e as atualizações podem ser feitas por SSM e Docker Compose; o uso por SSH exigiria porta 22 e por SSM exigiria infraestrutura auxiliar.
+
+### Como executar, implantar e remover
+
+Os pré-requisitos, as credenciais temporárias do laboratório, a criação da infraestrutura, a construção das imagens, o procedimento manual ou automatizado e o ciclo de remoção estão no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md). O guia não repete as decisões técnicas registradas neste README.
+
+O ambiente exige que o AWS Learner Lab esteja iniciado. Antes de usar o AWS CLI ou o Terraform, configure as credenciais temporárias da sessão e execute testes e validações fora do VS Code, conforme as lições registradas no guia.
+
+### Segurança
+
+- Os segredos da aplicação são gerenciados pelo Infisical. No GitHub existem somente `INFISICAL_CLIENT_ID` e `INFISICAL_CLIENT_SECRET`, usados pela identidade de máquina do pipeline.
+- O CI executa `gitleaks` sobre o histórico completo do repositório.
+- O RDS é privado (`publicly_accessible = false`) e sua porta `5432` só é aceita pelo grupo de segurança da EC2 de aplicação.
+- A porta `22` não está aberta; a administração é feita por SSM.
+- O Caddy obtém HTTPS com Let's Encrypt. Em produção, o cookie `ivis_refresh` é `HttpOnly`, `Secure` e `SameSite=Strict`.
+- A porta `9091`, usada pelas métricas do backend, só é aceita pelo grupo de segurança da EC2 de monitoramento.
+- O log de acesso do Caddy é desativado de propósito porque poderia registrar cabeçalhos sensíveis.
+- A chave e o endpoint da API de limpeza de dados não são configurados em produção; essa API não existe no ambiente implantado.
+- O acesso aos metadados da EC2 exige IMDSv2 (`http_tokens = required`) e os discos das duas EC2 são criptografados.
+- O estado do Terraform fica em um bucket S3 com versionamento, bloqueio de acesso público e criptografia; o travamento do estado usa arquivo no bucket.
+- A regra `proteger-main` exige solicitação revisada, uma aprovação e os cinco checks obrigatórios: Backend, Frontend, API de IA, Segredos (gitleaks) e Terraform.
+- Os repositórios ECR têm varredura ativada no envio das imagens (`scan_on_push`).
+
+### Testes e qualidade
+
+O CI roda em toda solicitação de mesclagem para `main` e também pode ser chamado por outro fluxo ou executado manualmente. Ele verifica o frontend com ESLint, checagem de tipos e Vitest; a API de IA com pytest; o backend com Gradle Test e Testcontainers; a infraestrutura Terraform com `fmt -check`, `init -backend=false` e `validate`; e segredos com gitleaks.
+
+Os relatórios de pytest e do backend são publicados como artefatos dos respectivos jobs. Os cinco checks são obrigatórios pela regra da branch `main`, portanto não é possível mesclar uma solicitação com um teste vermelho.
+
+O workflow de implantação em andamento já encadeia o CI como pré-requisito dos jobs de construção e implantação; uma falha impede a construção e o envio das imagens. Após a implantação, o workflow consulta `/api/v1/pronto` com repetição.
+
+Como exemplo real, a mudança da regra de habilidades tornou único o nome por nível e mudou o comportamento da migração V15; um teste desatualizado foi barrado pelo CI e corrigido na solicitação #28. A solicitação #26 foi mesclada com CI vermelho antes de os checks serem obrigatórios, fato que motivou a proteção da branch.
+
+Cypress é usado localmente. Sua execução contra produção seria arriscada porque as tarefas de limpeza acessam o banco.
+
+### Observabilidade
+
+Prometheus e Grafana estão definidos no diretório `observability/`, e o backend já expõe métricas em `/actuator/prometheus` na porta `9091`. Os arquivos ainda não confirmam a implantação dessas ferramentas na EC2 de monitoramento.
+
+Loki e Grafana Alloy estão em implantação: Alloy deve enviar os logs da EC2 de aplicação ao Loki na EC2 de monitoramento. Um README específico de observabilidade ainda não está disponível no diretório.
+
+### Limitações conhecidas
+
+- Não há SMTP real em produção: a recuperação de senha responde de forma neutra e o e-mail não é entregue; o Mailpit existe apenas no plano local.
+- As credenciais do AWS Academy são temporárias e precisam ser renovadas a cada sessão.
+- Na implantação manual, os valores usados para gerar o `.env` passaram pelos parâmetros do `send-command`; a meta é gerar o arquivo a partir do Infisical.
+- Existe uma única EC2 de aplicação, sem balanceador de carga, conforme o ADR-0012.
+- O ambiente depende do laboratório estar ligado e a conta do laboratório encerra ao fim do curso.
+
+### Divisão de tarefas
+
+A preencher pelo coordenador.
 
 ## Verificação de dependências
 
