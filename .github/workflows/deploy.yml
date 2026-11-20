@@ -1,0 +1,102 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+env:
+  AWS_DEFAULT_REGION: us-east-1
+  DOMINIO: ivis-ia.duckdns.org
+
+jobs:
+  testes:
+    name: Testes
+    uses: ./.github/workflows/ci.yml
+
+  construir:
+    name: Construir e enviar as imagens
+    needs: testes
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      tag: ${{ steps.versao.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: versao
+        run: echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/credenciais-aws
+        with:
+          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      - name: Entrar no ECR
+        run: aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "$REGISTRO_ECR"
+      - name: Construir e enviar (pula o que ja existe no ECR)
+        env:
+          TAG: ${{ steps.versao.outputs.tag }}
+        run: |
+          declare -A CONTEXTO=( [ivis-backend]=backend [ivis-api-ia]=api-ia [ivis-frontend]=frontend )
+          for img in ivis-backend ivis-api-ia ivis-frontend; do
+            if aws ecr describe-images --repository-name "$img" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+              echo "$img:$TAG ja existe no ECR (tags imutaveis): pulando."
+              continue
+            fi
+            ARGS=()
+            if [ "$img" = "ivis-frontend" ]; then
+              ARGS+=(--build-arg VITE_API_URL=/api)
+            fi
+            docker build "${ARGS[@]}" -t "$REGISTRO_ECR/$img:$TAG" "${CONTEXTO[$img]}"
+            docker push "$REGISTRO_ECR/$img:$TAG"
+          done
+
+  implantar:
+    name: Implantar na EC2
+    needs: construir
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      tag_anterior: ${{ steps.atual.outputs.tag_anterior }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/credenciais-aws
+        with:
+          client-id: ${{ secrets.INFISICAL_CLIENT_ID }}
+          client-secret: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+      - name: Localizar a EC2 app
+        id: ec2
+        run: |
+          ID_EC2="$(aws ec2 describe-instances --filters "Name=tag:Name,Values=ivis-app" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)"
+          if [ -z "$ID_EC2" ]; then
+            echo "::error::A EC2 'ivis-app' nao esta ligada. Inicie o laboratorio e a instancia."
+            exit 1
+          fi
+          echo "id=$ID_EC2" >> "$GITHUB_OUTPUT"
+      - name: Ler a tag em uso
+        id: atual
+        env:
+          ID_EC2: ${{ steps.ec2.outputs.id }}
+        run: |
+          bash deploy/scripts/ssm-executar.sh "$ID_EC2" deploy/scripts/implantar.sh --tag-atual | tee "$RUNNER_TEMP/saida.txt"
+          TAG_ANTERIOR="$(grep '^TAG_ATUAL=' "$RUNNER_TEMP/saida.txt" | cut -d= -f2)"
+          echo "tag_anterior=$TAG_ANTERIOR" >> "$GITHUB_OUTPUT"
+      - name: Implantar a tag nova
+        env:
+          ID_EC2: ${{ steps.ec2.outputs.id }}
+          TAG: ${{ needs.construir.outputs.tag }}
+        run: bash deploy/scripts/ssm-executar.sh "$ID_EC2" deploy/scripts/implantar.sh "$TAG"
+
+  verificar:
+    name: Verificar a disponibilidade
+    needs: implantar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Testar o /pronto
+        run: curl --fail --silent --show-error --max-time 15 --retry 10 --retry-delay 6 --retry-all-errors -w "\nHTTP %{http_code}\n" "https://${DOMINIO}/api/v1/pronto"
