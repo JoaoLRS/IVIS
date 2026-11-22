@@ -1,0 +1,44 @@
+# Configuração do Loki em um único nó (armazenamento em disco local).
+# Baseada no exemplo "Local configuration" da documentação oficial do Loki 3.x.
+# Retenção curta (72 h) porque a EC2 de monitoramento tem pouca memória e disco.
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+
+# TSDB com esquema v13 e período de índice de 24 h. A retenção só funciona com 24 h.
+schema_config:
+  configs:
+    - from: 2020-05-15
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+# Tempo máximo de guarda dos logs.
+limits_config:
+  retention_period: 72h
+
+# Sem retention_enabled, o Loki NÃO apaga nada, mesmo com retention_period definido.
+compactor:
+  working_directory: /loki/retention
+  delete_request_store: filesystem
+  retention_enabled: true
+
+analytics:
+  reporting_enabled: false

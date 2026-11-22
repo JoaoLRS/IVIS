@@ -1,7 +1,7 @@
-# Monitoramento do IVIS: Prometheus (métricas) e Grafana (painéis).
-# O Loki entra na Etapa 2.
+# Monitoramento do IVIS: Prometheus (métricas), Loki (logs) e Grafana (painéis).
 # Uso local: copie .env.exemplo para .env e rode
 #   docker compose -f docker-compose.monitoramento.yml up -d
+# O Alloy, que envia os logs ao Loki, fica em outro arquivo: docker-compose.alloy.yml.
 name: ivis-monitoramento
 
 services:
@@ -23,12 +23,27 @@ services:
       # AWS: o Rafael define IP_APP com o IP privado da EC2 app.
       - "ivis-app:${IP_APP:-host-gateway}"
 
+  loki:
+    image: grafana/loki:3.7.10
+    container_name: ivis-loki
+    restart: unless-stopped
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    ports:
+      # Sem 127.0.0.1 de propósito: o Alloy envia os logs de outra máquina (EC2 app).
+      # Na AWS, o grupo de segurança só aceita a porta 3100 vinda da EC2 app.
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-dados:/loki
+
   grafana:
     image: grafana/grafana:13.3.1
     container_name: ivis-grafana
     restart: unless-stopped
     depends_on:
       - prometheus
+      - loki
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_SENHA:?defina GRAFANA_SENHA no arquivo .env}
       GF_USERS_ALLOW_SIGN_UP: "false"
@@ -43,4 +58,5 @@ services:
 
 volumes:
   prometheus-dados:
+  loki-dados:
   grafana-dados:
