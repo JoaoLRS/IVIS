@@ -1,0 +1,30 @@
+// Coleta os logs dos contêineres pelo socket do Docker e envia ao Loki.
+// A variável LOKI_URL vem do ambiente:
+//   AWS:   http://IP-PRIVADO-DA-EC2-DE-MONITORAMENTO:3100/loki/api/v1/push
+//   Local: http://host.docker.internal:3100/loki/api/v1/push
+
+discovery.docker "conteineres" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "conteineres" {
+  targets = discovery.docker.conteineres.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+
+loki.source.docker "conteineres" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.conteineres.output
+  forward_to = [loki.write.destino.receiver]
+}
+
+loki.write "destino" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+  }
+}
