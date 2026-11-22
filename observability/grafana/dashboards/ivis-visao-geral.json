@@ -6,7 +6,7 @@
   ],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "editable": true,
   "refresh": "10s",
   "time": {
@@ -14,6 +14,19 @@
     "to": "now"
   },
   "panels": [
+    {
+      "id": 10,
+      "type": "row",
+      "title": "Disponibilidade e tráfego",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
     {
       "id": 1,
       "title": "Disponibilidade do backend",
@@ -25,7 +38,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 0,
+        "y": 1,
         "w": 6,
         "h": 8
       },
@@ -100,8 +113,8 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 0,
-        "w": 9,
+        "y": 1,
+        "w": 18,
         "h": 8
       },
       "targets": [
@@ -138,52 +151,17 @@
       }
     },
     {
-      "id": 3,
-      "title": "Erros 5xx por segundo",
-      "type": "timeseries",
-      "description": "Respostas com erro de servidor (5xx) por segundo. Fica em zero quando não há erros.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus-ivis"
-      },
+      "id": 11,
+      "type": "row",
+      "title": "Tempo de resposta e erros",
+      "collapsed": false,
       "gridPos": {
-        "x": 15,
-        "y": 0,
-        "w": 9,
-        "h": 8
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 1
       },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus-ivis"
-          },
-          "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) or vector(0)",
-          "legendFormat": "erros 5xx/s"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "never"
-          },
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      }
+      "panels": []
     },
     {
       "id": 4,
@@ -196,7 +174,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 10,
         "w": 12,
         "h": 8
       },
@@ -234,6 +212,67 @@
       }
     },
     {
+      "id": 3,
+      "title": "Erros 5xx por segundo",
+      "type": "timeseries",
+      "description": "Respostas com erro de servidor (5xx) por segundo. Fica em zero quando não há erros.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus-ivis"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 10,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus-ivis"
+          },
+          "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) or vector(0)",
+          "legendFormat": "erros 5xx/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Recursos",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
       "id": 5,
       "title": "Memória da aplicação (heap)",
       "type": "timeseries",
@@ -243,9 +282,9 @@
         "uid": "prometheus-ivis"
       },
       "gridPos": {
-        "x": 12,
-        "y": 8,
-        "w": 6,
+        "x": 0,
+        "y": 19,
+        "w": 12,
         "h": 8
       },
       "targets": [
@@ -291,9 +330,9 @@
         "uid": "prometheus-ivis"
       },
       "gridPos": {
-        "x": 18,
-        "y": 8,
-        "w": 6,
+        "x": 12,
+        "y": 19,
+        "w": 12,
         "h": 8
       },
       "targets": [
@@ -327,6 +366,57 @@
         "tooltip": {
           "mode": "multi"
         }
+      }
+    },
+    {
+      "id": 13,
+      "type": "row",
+      "title": "Logs",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 7,
+      "type": "logs",
+      "title": "Logs de erro do backend (respostas 4xx e 5xx)",
+      "description": "Linhas de log do backend com resposta de erro (código 4xx ou 5xx). Filtra pelo código HTTP porque, no perfil dev, o nível do log é INFO mesmo nas falhas.",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki-ivis"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 10
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki-ivis"
+          },
+          "queryType": "range",
+          "maxLines": 100,
+          "expr": "{container=\"ivis-backend\"} |~ \"-> [45][0-9]{2}\""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "showCommonLabels": false,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": false,
+        "enableLogDetails": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
       }
     }
   ]
