@@ -15,6 +15,9 @@ env:
   AWS_DEFAULT_REGION: us-east-1
   DOMINIO: ivis-ia.duckdns.org
 
+defaults:
+  run:
+    shell: bash
 jobs:
   testes:
     name: Testes
