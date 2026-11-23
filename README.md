@@ -337,20 +337,23 @@ flowchart LR
         caddy -->|"/"| frontend["Frontend (Nginx)"]
         caddy -->|"/api"| backend["Backend (Spring Boot)"]
         backend --> ia["API de IA (FastAPI)"]
-        alloy["Grafana Alloy - em implantação"]
+        alloy["Grafana Alloy"]
     end
 
     backend --> rds[("RDS PostgreSQL privado")]
     ia -->|"HTTPS de saída"| nvidia["API NVIDIA"]
 
     subgraph monitor["EC2 de monitoramento"]
-        prom["Prometheus - não implantado"]
-        loki["Loki - em implantação"]
-        graf["Grafana - não implantado"]
+        prom["Prometheus"]
+        loki["Loki"]
+        graf["Grafana"]
     end
 
     prom -->|"porta 9091"| backend
-    alloy -->|"logs - em implantação"| loki
+    alloy -->|"logs (porta 3100)"| loki
+    graf --> prom
+    graf --> loki
+    admin["Administrador"] -.->|"túnel SSM"| graf
 
     ecr["ECR (3 imagens)"]
     s3["S3 (estado do Terraform)"]
@@ -376,14 +379,14 @@ flowchart LR
 | Amazon S3 | Estado remoto do Terraform | Armazena o estado com versionamento, bloqueio de acesso público e criptografia; usa travamento por arquivo no laboratório. |
 | AWS Systems Manager | Acesso administrativo e implantação | Permite executar comandos nas instâncias sem abrir a porta 22. |
 | Docker e Docker Compose | Empacotamento e execução | Os quatro componentes da aplicação já são executados como contêineres. |
-| Terraform | Infraestrutura como código | Provisiona a rede, as instâncias, o banco, os repositórios e os grupos de segurança; a remoção (`terraform destroy`) ainda será validada. |
+| Terraform | Infraestrutura como código | Provisiona a rede, as instâncias, o banco, os repositórios e os grupos de segurança; o plano de remoção foi gerado (31 recursos), mas o ciclo destroy/apply ainda não foi validado. |
 | GitHub Actions | CI/CD | Executa verificações e testes, constrói imagens, envia-as ao ECR e implanta por SSM. |
 | Infisical | Gestão de segredos da aplicação | Mantém segredos fora do código; o GitHub guarda apenas as credenciais de acesso à identidade de máquina. |
 | Caddy | Proxy reverso e HTTPS | Serve `/` e `/api` na mesma origem e obtém e renova automaticamente certificados Let's Encrypt. |
 | DuckDNS | Nome de domínio gratuito | O laboratório não oferece domínio próprio nem permissões completas de DNS para o ALB com certificado gerenciado. |
 | Let's Encrypt | Certificado HTTPS | Emite gratuitamente o certificado usado pelo Caddy para o subdomínio DuckDNS. |
-| Prometheus, Loki e Grafana | Métricas, logs e painéis | Compõem a observabilidade proposta pelo projeto; Prometheus e Grafana estão definidos em `observability/` e ainda não foram implantados na EC2 de monitoramento; Loki está em implantação. |
-| Grafana Alloy | Coleta de logs dos contêineres | Substitui o Promtail descontinuado e envia logs ao Loki; está em implantação. |
+| Prometheus, Loki e Grafana | Métricas, logs e painéis | Compõem a observabilidade exigida pelo projeto: métricas, logs e painéis. Estão definidos em observability/ e foram implantados na EC2 de monitoramento em 22/11/2026. |
+| Grafana Alloy | Coleta de logs dos contêineres | Substitui o Promtail, descontinuado; roda na EC2 de aplicação, lê os logs dos contêineres e os envia ao Loki. Implantado e verificado em 22/11/2026. |
 
 Alternativas descartadas pela proposta histórica:
 
@@ -406,6 +409,8 @@ O ambiente exige que o AWS Learner Lab esteja iniciado. Antes de usar o AWS CLI 
 - A porta `22` não está aberta; a administração é feita por SSM.
 - O Caddy obtém HTTPS com Let's Encrypt. Em produção, o cookie `ivis_refresh` é `HttpOnly`, `Secure` e `SameSite=Strict`.
 - A porta `9091`, usada pelas métricas do backend, só é aceita pelo grupo de segurança da EC2 de monitoramento.
+- A porta `3100` (Loki) só é aceita do grupo de segurança da EC2 de aplicação.
+- O Grafana não tem porta aberta à internet: o acesso é por túnel do Session Manager (SSM), e a senha do administrador é gerada no próprio servidor, sem passar pelo repositório.
 - O log de acesso do Caddy é desativado de propósito porque poderia registrar cabeçalhos sensíveis.
 - A chave e o endpoint da API de limpeza de dados não são configurados em produção; essa API não existe no ambiente implantado.
 - O acesso aos metadados da EC2 exige IMDSv2 (`http_tokens = required`) e os discos das duas EC2 são criptografados.
@@ -419,7 +424,9 @@ O CI roda em toda solicitação de mesclagem para `main` e também pode ser cham
 
 Os relatórios de pytest e do backend são publicados como artefatos dos respectivos jobs. Os cinco checks são obrigatórios pela regra da branch `main`, portanto não é possível mesclar uma solicitação com um teste vermelho.
 
-O workflow de implantação (`deploy.yml`) já foi executado com sucesso e encadeia os jobs Testes, Construir, Implantar e Verificar. O job de testes reaproveita o CI e é pré-requisito dos demais: se falhar, nada é construído nem enviado ao ECR. Depois da implantação, o job de verificação consulta `/api/v1/pronto` com repetições e falha se a aplicação não responder. O gatilho atual é a execução manual (`workflow_dispatch`); o disparo automático a cada mesclagem na `main` ainda não está ativo. A reversão para a versão anterior é manual (cópia `.env.bak-<tag>` na EC2); não existe reversão automática, e migrações do Flyway não se desfazem apenas trocando a imagem.
+O workflow de implantação (`deploy.yml`) já foi executado com sucesso e encadeia os jobs Testes, Construir, Implantar e Verificar. O job de testes reaproveita o CI e é pré-requisito dos demais: se falhar, nada é construído nem enviado ao ECR. Depois da implantação, o job de verificação consulta `/api/v1/pronto` com repetições e falha se a aplicação não responder. O gatilho atual é a execução manual (`workflow_dispatch`); o disparo automático a cada mesclagem na `main` ainda não está ativo.
+Os passos `run:` usam `bash` explicitamente (`defaults.run.shell`), o que faz uma sequência ligada por `|` falhar se qualquer comando dela falhar, e não só o último.
+A reversão para a versão anterior é manual (cópia `.env.bak-<tag>` na EC2); não existe reversão automática, e migrações do Flyway não se desfazem apenas trocando a imagem.
 
 Como exemplo real, a migração V15 passou a permitir a mesma habilidade em níveis diferentes (única por aluno, nome e nível); um teste desatualizado foi barrado pelo CI e corrigido na solicitação #28. A solicitação #26 foi mesclada com CI vermelho antes de os checks serem obrigatórios, fato que motivou a proteção da branch.
 
@@ -427,9 +434,9 @@ Cypress é usado localmente. Sua execução contra produção seria arriscada po
 
 ### Observabilidade
 
-Prometheus e Grafana estão definidos no diretório `observability/` e o backend já expõe métricas em `/actuator/prometheus` na porta `9091`, mas essas ferramentas ainda não foram implantadas na EC2 de monitoramento. Quando implantado, o Grafana será acessado por túnel SSM, sem porta aberta à internet.
+Prometheus, Loki, Grafana e Grafana Alloy foram implantados e verificados em 22/11/2026. Na EC2 de monitoramento, o Prometheus coleta as métricas do backend (porta `9091`, caminho `/actuator/prometheus`) com retenção de 3 dias, e o Loki guarda os logs por 72 horas. Na EC2 de aplicação, o Alloy lê os logs dos contêineres e os envia ao Loki. O Grafana lê as duas fontes e carrega o painel a partir dos arquivos de `observability/`.
 
-Loki e Grafana Alloy estão em implantação: Alloy deve enviar os logs da EC2 de aplicação ao Loki na EC2 de monitoramento. Um README específico de observabilidade ainda não está disponível no diretório.
+O Grafana não tem porta aberta à internet: o acesso é por túnel do SSM, feito por quem administra o ambiente. O painel mostra disponibilidade do backend, requisições por segundo, tempo de resposta (p95), erros 5xx, memória (heap da JVM), CPU do processo e os logs de erro. Detalhes, decisões e como subir localmente estão em [observability/README.md](observability/README.md).
 
 ### Limitações conhecidas
 
@@ -438,10 +445,13 @@ Loki e Grafana Alloy estão em implantação: Alloy deve enviar os logs da EC2 d
 - Na implantação manual, os valores usados para gerar o `.env` passaram pelos parâmetros do `send-command`; a meta é gerar o arquivo a partir do Infisical.
 - Existe uma única EC2 de aplicação, sem balanceador de carga, conforme o ADR-0012.
 - O ambiente depende do laboratório estar ligado e a conta do laboratório encerra ao fim do curso.
-- O pipeline não gera o `.env`, não copia o `docker-compose.prod.yml` nem o `Caddyfile` e não cria os volumes do Caddy na EC2; essas etapas continuam manuais.
+- O pipeline não gera o `.env`, não copia o `docker-compose.prod.yml`, o `Caddyfile` nem a pasta `observability/` para as EC2 e não cria os volumes do Caddy; essas etapas continuam manuais, assim como a implantação da observabilidade.
 - A ação do Infisical usada no pipeline exporta todos os segredos do ambiente `prod` para o job; separar as credenciais da AWS em uma pasta própria, com acesso restrito, é uma melhoria prevista.
 - A imagem do Caddy não tem versão fixa (`caddy:2-alpine`).
-- O ciclo `terraform destroy` e `apply` ainda não foi validado nesta infraestrutura.
+- O plano de remoção foi gerado (`terraform plan -destroy`, 31 recursos, sem aplicar), mas o ciclo `terraform destroy` e `apply` não foi validado nesta infraestrutura. O banco seria apagado sem instantâneo final.
+- O RDS não tem backups automáticos; o único ponto de volta do banco é um instantâneo manual.
+- O Alloy monta o socket do Docker em modo somente leitura (`:ro`), que protege apenas o arquivo do socket e não impede comandos à API do Docker por quem controla o Alloy; o risco foi aceito para a entrega.
+- A retenção é curta (3 dias de métricas e 72 horas de logs) por causa da memória da EC2 de monitoramento, e o painel usa as métricas da aplicação, não as do servidor inteiro.
 
 ### Divisão de tarefas
 
