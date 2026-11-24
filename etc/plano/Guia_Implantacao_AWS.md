@@ -2,7 +2,7 @@
 
 Procedimento para executar, implantar, operar e **remover** o IVIS no ambiente do AWS Academy Learner Lab (região `us-east-1`). A arquitetura e as justificativas estão no ADR-0012 (`etc/plano/adr/ADR-0012-hospedagem-aws.md`).
 
-> **Estado deste documento (rascunho v0.1, 17/11/2026).** Os comandos abaixo foram executados pelo grupo em 15 e 16/11/2026, a partir do histórico do terminal e dos arquivos de comando usados. Os pontos marcados com **[A CONFERIR]** ainda não foram confirmados e devem ser resolvidos antes da entrega. Os pontos marcados com **[A VALIDAR]** dependem do ciclo `terraform destroy` e `apply`, ainda não feito.
+> **Estado deste documento (rascunho v0.2, 22/11/2026).** Os comandos foram executados pelo grupo em 15, 16, 20 e 22/11/2026. Os pontos marcados com **[A CONFERIR]** ainda não foram confirmados. Os marcados com **[A VALIDAR]** dependem do ciclo `terraform destroy` e `apply`, ainda não feito.
 
 ## 1. Visão geral
 
@@ -19,7 +19,7 @@ Procedimento para executar, implantar, operar e **remover** o IVIS no ambiente d
 
 Na máquina de quem implanta (Windows, PowerShell 5.1):
 
-- AWS CLI 2, Terraform (versão mínima exigida em `infra/versions.tf` **[A CONFERIR]**), Docker, Git, gitleaks e o plugin do Session Manager.
+- AWS CLI 2, Terraform (versão mínima `>= 1.11`, definida em `infra/versions.tf`; o grupo usa a 1.17.1), Docker, Git, gitleaks e o plugin do Session Manager.
 - Acesso ao Learner Lab iniciado (botão **Start Lab**) e às credenciais temporárias do painel.
 
 **Regra de execução:** comandos de AWS, Terraform e `gradlew test` devem ser rodados em um PowerShell **fora do VS Code**, porque o terminal do VS Code injeta o `.env` do projeto no ambiente e quebra os testes.
@@ -88,17 +88,19 @@ Os argumentos do Terraform que contêm ponto vão entre aspas no PowerShell 5.1 
 
 ### 4.4 Ordem em que o ambiente foi criado
 
-1. `infra/base-terraform`: backend do S3 e travas de versão.
-2. `infra/rede`: VPC, sub-redes públicas e privadas.
-3. `infra/seguranca-ecr`: grupos de segurança e repositórios ECR.
-4. `infra/ec2`: EC2 app, EC2 de monitoramento e IP elástico. O `plan` desta etapa foi feito com `-target` em três recursos (`aws_instance.app`, `aws_eip_association.app` e `aws_instance.monitoramento`). **[A CONFERIR]** o motivo.
-5. `infra/rds`: RDS PostgreSQL privado. Foi aplicado numa sessão posterior do laboratório, depois das EC2.
+Os arquivos `.tf` ficam soltos em `infra/`. A ordem lógica de criação, por arquivo, foi:
 
-Resultado: **32 entradas** em `terraform state list`.
+1. `versions.tf`: versão do Terraform e backend do S3.
+2. `network.tf`: VPC, sub-redes públicas e privadas, rotas e gateway.
+3. `security.tf` e `ecr.tf`: grupos de segurança, regras e repositórios ECR.
+4. `compute.tf`: EC2 app, EC2 de monitoramento e IP elástico. O `plan` desta etapa foi feito com `-target` em três recursos (`aws_instance.app`, `aws_eip_association.app` e `aws_instance.monitoramento`). **[A CONFERIR]** o motivo.
+5. `database.tf`: RDS PostgreSQL privado, aplicado numa sessão posterior do laboratório, depois das EC2.
+
+Resultado: **32 entradas** em `terraform state list` (31 recursos gerenciados e a leitura da AMI, que é um `data`). Conferido em 22/11.
 
 ### 4.5 O que o `user_data` faz (e o que não faz)
 
-Nas duas EC2, o `user_data` instala o Docker, habilita o serviço, inclui o `ec2-user` no grupo `docker` e instala o plugin do Docker Compose (versão fixada em `infra/compute.tf`). O registro fica em `/var/log/ivis-user-data.log`. O `user_data` **não** cria `/opt/ivis`, não cria os volumes do Caddy, não copia o compose nem o `Caddyfile`, não gera o `.env` e não faz login no ECR. Essas etapas são manuais (seção 7) até existir o `deploy.yml`.
+Nas duas EC2, o `user_data` instala o Docker, habilita o serviço, inclui o `ec2-user` no grupo `docker` e instala o plugin do Docker Compose (versão fixada em `infra/compute.tf`). O registro fica em `/var/log/ivis-user-data.log`. O `user_data` **não** cria `/opt/ivis`, não cria os volumes do Caddy, não copia o compose nem o `Caddyfile`, não gera o `.env` e não faz login no ECR. Essas etapas continuam manuais (seção 7), mesmo com o `deploy.yml`.
 
 ## 5. Comandos na EC2 (padrão `send-command`)
 
@@ -215,7 +217,11 @@ Variáveis do `.env` (só os **nomes**; os valores vêm do Infisical):
 
 O modelo está em `deploy/.env.example`.
 
-**[A CONFERIR]** o comando exato usado em 15/11 para gravar esses três arquivos na EC2 (arquivo `gravar-ivis.json`, já apagado por conter segredos) e a limpeza do resíduo `/opt/ivis-teste` (ver a seção 13).
+**[A CONFERIR]** o comando exato usado em 15/11 para gravar esses três arquivos na EC2 (arquivo `gravar-ivis.json`, já apagado por conter segredos).
+
+A pasta `/opt/ivis-teste` (site de teste de 13/11, com um `Caddyfile`, um `docker-compose.yml` e `site/index.html`) é resíduo e não é necessária para os volumes do Caddy; foi mantida até a entrega.
+
+Conferido em 22/11 na EC2 app: o `Caddyfile` e o `docker-compose.prod.yml` em `/opt/ivis` tinham o mesmo identificador (`git hash-object`) dos arquivos de `deploy/` na `main`. O pipeline **não** atualiza esses arquivos; a comparação deve ser repetida quando `deploy/` mudar.
 
 ### 7.1 DuckDNS
 
@@ -226,11 +232,11 @@ nslookup ivis-ia.duckdns.org
 aws ec2 describe-addresses --query "Addresses[].PublicIp" --output text
 ```
 
-Os dois valores devem ser iguais. Se a infraestrutura for recriada, o IP elástico muda e o subdomínio precisa ser atualizado no site do DuckDNS (o token fica no Infisical como `DUCKDNS_TOKEN`). **[A CONFERIR]** o passo a passo da atualização.
+Os dois valores devem ser iguais. Conferido em 22/11: o subdomínio apontava para o IP elástico da EC2 app. Se a infraestrutura for recriada, o IP elástico muda e o subdomínio precisa ser atualizado no site do DuckDNS (o token fica no Infisical como `DUCKDNS_TOKEN`). **[A CONFERIR]** o passo a passo da atualização.
 
 ## 8. Implantar ou trocar a versão
 
-Procedimento **manual**, usado em 15 e 16/11 (a automação é o `deploy.yml`):
+Procedimento **manual**, usado em 15 e 16/11. O `deploy.yml`, testado em 20/11, automatiza construir, enviar as imagens, trocar a tag e verificar, mas **não** copia o compose, o `Caddyfile` nem `observability/` para as EC2:
 
 1. Testar e construir as imagens com a tag nova (seção 6).
 2. Se a versão traz **migração de banco** (Flyway), criar o instantâneo do RDS **antes** (seção 9).
@@ -254,6 +260,21 @@ Cada `$json` é gravado e enviado como na seção 5, com `Start-Sleep` de 75 seg
 
 5. Verificar (seção 10).
 
+### 8.1 Implantar a observabilidade (EC2 de monitoramento e EC2 app)
+
+Feito em 22/11/2026, pelo padrão `send-command` da seção 5.
+
+1. Instalar o Git (`dnf install -y git`) e clonar só `observability/`, fixando o commit: `git clone --filter=blob:none --no-checkout https://github.com/lucifer-son/IVIS.git /opt/ivis-repo`, depois `git sparse-checkout set observability` e `git checkout <commit>`. O repositório é público e o clone não leva segredo.
+2. EC2 de monitoramento: gerar `/opt/ivis-repo/observability/.env` **no próprio servidor**, com `umask 077`, `GRAFANA_SENHA` aleatória de 24 caracteres (nunca passa pelo chat nem pelo repositório) e `IP_APP` com o IP privado da EC2 app. Validar com `docker compose -f docker-compose.monitoramento.yml config -q` (sem `-q` a senha seria impressa).
+3. Subir: `docker compose -f docker-compose.monitoramento.yml up -d`. Conferir Prometheus (`/-/ready` e o alvo `ivis-backend` com `health: up`), Loki (`/ready`, que pode responder "not ready" por cerca de 15 s) e Grafana (`/api/health`).
+4. EC2 app: em `/opt/ivis-repo/observability`, gravar `.env` com `LOKI_URL=http://<IP privado da monitoramento>:3100/loki/api/v1/push` e subir `docker compose -f docker-compose.alloy.yml up -d`.
+5. Acessar o Grafana por túnel SSM, sem porta aberta: `aws ssm start-session --target <id da EC2 de monitoramento> --document-name AWS-StartPortForwardingSession --parameters file://<arquivo>.json`, com `{"portNumber":["3000"],"localPortNumber":["3300"]}`; depois abrir `http://localhost:3300`.
+6. A senha do Grafana é lida só no terminal de quem administra, em uma sessão SSM de uma linha (`grep '^GRAFANA_SENHA=' ... | cut -d= -f2`), sem tirar print.
+
+**Resultado observado:** Prometheus com o alvo do backend `up`; Loki com os rótulos `container` dos cinco contêineres da EC2 app; memória da EC2 de monitoramento com cerca de 1,1 GB disponível depois de subir os três serviços; **[A CONFERIR]** a tendência com tráfego durante horas.
+
+**Observação:** na primeira partida o Alloy tentou enviar logs antigos e o Loki recusou os mais velhos que a janela aceita (HTTP 400, "entry too far behind"); as linhas novas chegaram normalmente.
+
 ## 9. Instantâneo do banco e pontos de volta
 
 Antes de migrações que não se desfazem apenas trocando a imagem:
@@ -263,7 +284,9 @@ aws rds create-db-snapshot --db-instance-identifier ivis-banco --db-snapshot-ide
 aws rds describe-db-snapshots --db-snapshot-identifier ivis-antes-v14-v15 --query "DBSnapshots[].[Status,PercentProgress]" --output text
 ```
 
-Pontos de volta existentes em 16/11/2026: `/opt/ivis/.env.bak-a7082c5`, o instantâneo `ivis-antes-v14-v15` e as imagens `a7082c5` no ECR. **Atenção:** a imagem antiga pode **não** funcionar com o banco já na migração V15; para voltar de verdade, é preciso restaurar o instantâneo. O instantâneo pode gerar custo **[A CONFERIR]**.
+Pontos de volta existentes em 22/11/2026: as cópias `/opt/ivis/.env.bak-a7082c5`, `/opt/ivis/.env.bak-ccd8ee3` e `/opt/ivis/.env.bak-cbdb0ba`, o instantâneo `ivis-antes-v14-v15` e as imagens `a7082c5`, `ccd8ee3`, `cbdb0ba` e `5fd1285` no ECR. A migração V15 trocou a regra única "aluno e nome" por "aluno, nome e nível" em `habilidades`. Se já existirem duas habilidades com o mesmo nome em níveis diferentes, uma imagem anterior pode falhar ao lidar com esses dados **[A CONFERIR]**; sem esses dados, a troca de imagem tende a funcionar. Para voltar de verdade, é preciso restaurar o instantâneo. O instantâneo pode gerar custo **[A CONFERIR]**.
+
+O RDS não tem backups automáticos (`BackupRetentionPeriod = 0`); o único ponto de volta do banco é o instantâneo manual.
 
 ## 10. Verificação
 
@@ -278,7 +301,7 @@ Esperado: HTTP 200 e o corpo do `/pronto` informando o estado (inclusive a indis
 
 - Os segredos ficam no Infisical (projeto `ivis`, ambiente `prod`): `IVIS_JWT_CHAVE_ASSINATURA`, `IVIS_IA_CHAVE_SERVICO`, `NVIDIA_API_KEY`, `IVIS_BD_SENHA` e `DUCKDNS_TOKEN`.
 - No GitHub ficam apenas `INFISICAL_CLIENT_ID` e `INFISICAL_CLIENT_SECRET`, de uma identidade de máquina com Universal Auth (`ivis-github-actions`). O Client Secret foi rotacionado em 17/11/2026.
-- As três credenciais temporárias do laboratório **ainda não estão** no Infisical **[A FAZER, item 5 do plano]**.
+- As três credenciais temporárias do laboratório estão no Infisical desde 20/11 e mudam a cada Start Lab; atualize-as antes de rodar o Deploy. A ação do Infisical exporta todos os segredos do ambiente `prod` para o job (melhoria prevista: pasta própria para as credenciais da AWS).
 - O repositório é público: `.gitignore` bloqueia `.env`, `*.tfstate*`, `*.tfvars` e chaves; o `gitleaks` roda no CI e no histórico.
 
 ## 12. Operar o laboratório (parar, encerrar e retomar)
@@ -286,9 +309,11 @@ Esperado: HTTP 200 e o corpo do `/pronto` informando o estado (inclusive a indis
 Comportamento **observado pelo grupo em 15 e 16/11**:
 
 - **End Lab** para as EC2 e **não** para o RDS. **Start Lab** religa as EC2 sozinhas, com o IP elástico mantido.
-- Se o RDS for parado **à mão**, ele **não** volta com o Start Lab: é preciso `aws rds start-db-instance` (3 a 6 minutos até `available`). Um RDS parado volta sozinho após 7 dias **[A CONFERIR]**.
+- Se o RDS for parado **à mão**, ele **não** volta com o Start Lab: é preciso `aws rds start-db-instance` (3 a 6 minutos até `available`). Um RDS parado volta sozinho após cerca de 7 dias; em 22/11 o campo `AutomaticRestartTime` indicava 27/11/2026.
 - Sem o banco, o backend reinicia em ciclo (55 reinícios medidos) até o banco ficar disponível. O `/pronto` responde cerca de 2 minutos depois de o banco ficar `available`.
 - Com o RDS ligado, as EC2 voltam em cerca de 1 minuto e o `/pronto` em até cerca de 10 minutos. O compose de produção sobe sozinho (`restart: unless-stopped`).
+
+Medição de 22/11: com o RDS parado à mão, ele passou a `starting` às 15:56 e a `available` às 15:57:59 (cerca de 2 minutos); o `/pronto` respondeu HTTP 200 em seguida; o contador de reinícios do backend marcava 7 **[A CONFERIR]** se é cumulativo.
 
 Parar (para economizar crédito):
 
@@ -296,6 +321,8 @@ Parar (para economizar crédito):
 aws ec2 stop-instances --instance-ids <id da EC2 app> <id da EC2 de monitoramento> --query "StoppingInstances[].[InstanceId,CurrentState.Name]" --output table
 aws rds stop-db-instance --db-instance-identifier ivis-banco --query "DBInstance.DBInstanceStatus" --output text
 ```
+
+Pare o RDS **e** as EC2 **antes** do End Lab, com os comandos acima, e confira `stopped`. O End Lab não para o RDS. Use `--query` com `--output text`, que não imprime ARN.
 
 Retomar (nesta ordem, com o RDS **primeiro**):
 
@@ -306,19 +333,22 @@ aws ec2 describe-instances --filters "Name=tag:Name,Values=ivis-app,ivis-monitor
 aws ssm describe-instance-information --query "InstanceInformationList[].[InstanceId,PingStatus]" --output table
 ```
 
-Depois, `/pronto` com HTTP 200 e o fluxo completo. O IP público da EC2 de monitoramento muda a cada ligada.
+Depois, `/pronto` com HTTP 200 e o fluxo completo. O IP público da EC2 de monitoramento muda a cada ligada. O `IP_APP` do Prometheus e o `LOKI_URL` do Alloy são IPs privados; se o IP privado mudar depois de parar e ligar as EC2, atualize os `.env` **[A CONFERIR]** se muda.
 
 ## 13. Lições aprendidas
 
 - **`docker login` com pipe no PowerShell 5.1** dá `400 Bad Request`: usar `cmd /c "aws ecr get-login-password ... | docker login ..."`.
 - **Aspas no PowerShell:** `\"` dentro de aspas duplas não escapa; usar aspas simples externas.
-- **Sessão SSM interativa:** não colar blocos de várias linhas; a colagem criou arquivos em lugares errados (apareceram `Caddyfile` e `docker-compose.yml` em `/usr/bin` **[A CONFERIR: se ainda existem]**). Usar `send-command` com arquivo JSON.
+- **Sessão SSM interativa:** não colar blocos de várias linhas; a colagem pode criar arquivos em lugares errados. A suspeita de que ela tivesse criado `Caddyfile` e `docker-compose.yml` em `/usr/bin` foi descartada em 22/11 (os arquivos não existem). Usar `send-command` com arquivo JSON.
 - **Terminal do VS Code:** injeta o `.env` do projeto e quebra testes; rodar AWS, Terraform e `gradlew test` fora dele. Gravar arquivos com LF.
 - **Nome do contêiner do backend:** `ivis-backend` (sem `-1`).
 - **`grep` de logs em JSON:** as aspas quebram o filtro de `"level":"ERROR"` dentro do JSON; usar `.` no lugar das aspas (o backend registra o campo `level`).
 - **Antes de migrações** que não se desfazem trocando a imagem, criar o instantâneo do RDS.
 - **O teste do CI barrou uma regressão:** a regra nova de habilidades (única por nome e nível, migração V15) mudou o nome de um método do repositório e um teste unitário falhou; a correção foi a solicitação #28. É o exemplo para a seção "como a falha de teste bloqueia a implantação".
 - **Correção de um roteiro anterior:** o End Lab **não** para o RDS; ele só não volta sozinho se o grupo o parar à mão.
+- **Prompt da sessão SSM:** `sh-5.2$` significa que o terminal está na EC2 (Linux, sem PowerShell); `PS C:\...>` é o computador local. Comandos do PowerShell não rodam na EC2.
+- **Terminal novo:** variáveis e credenciais ficam só no terminal onde foram definidas; num terminal novo, `$idMon` vem vazio e o `--target` falha.
+- **PowerShell 5.1:** não aceita `|` depois de `foreach (...) { }`; usar `ForEach-Object`.
 
 ## 14. Limitações conhecidas
 
@@ -329,6 +359,9 @@ Depois, `/pronto` com HTTP 200 e o fluxo completo. O IP público da EC2 de monit
 - **Imagem do Caddy sem versão fixa** (`caddy:2-alpine`).
 - **Volumes do Caddy** com nome herdado do ambiente de teste e marcados como externos.
 - **Conta do laboratório** encerra ao fim do curso: guardar evidências e o vídeo da demonstração.
+- **Alloy e o socket do Docker:** o Alloy monta o socket em modo somente leitura (`:ro`), que só protege o arquivo do socket; quem controla o Alloy pode, em princípio, enviar comandos à API do Docker. O risco foi aceito para a entrega.
+- **O pipeline não copia** `docker-compose.prod.yml`, `Caddyfile` nem a pasta `observability/` para as EC2.
+- **Sem backups automáticos do RDS** e sem instantâneo final na remoção (`skip_final_snapshot = true`).
 
 ## 15. Remover os recursos **[A VALIDAR]**
 
@@ -341,13 +374,10 @@ terraform plan "-destroy" "-out=destruir.tfplan"
 
 Revisar o plano com o coordenador e só então `terraform apply "destruir.tfplan"`. Pontos de atenção:
 
-- **O banco será apagado**, junto com os dados. O RDS é recriado vazio e o Flyway reaplica as migrações.
+- O plano de remoção foi gerado em 22/11, sem aplicar: `Plan: 0 to add, 0 to change, 31 to destroy`. O bucket do estado não entra. O comando precisa de `TF_VAR_senha_banco`; para um plano de **remoção** qualquer valor serve, mas nunca use um valor descartável em um `plan` ou `apply` normal, porque o Terraform tentaria trocar a senha do RDS.
+- O banco é apagado **sem instantâneo final** (`skip_final_snapshot = true`) e não há backups automáticos. Para guardar os dados, crie um instantâneo manual **antes** do `destroy`; o Terraform não o remove e ele pode gerar custo **[A CONFERIR]**. Ao recriar, o RDS volta vazio e o Flyway reaplica as migrações.
 - **O IP elástico muda** ao recriar: atualizar o DuckDNS (seção 7.1).
 - **O certificado do Let's Encrypt é perdido** com a EC2: o Caddy pede um novo (limite de emissões **[A CONFERIR]**).
-- **Imagens do ECR:** se o repositório tiver imagens, o `destroy` pode falhar sem a opção de remoção forçada **[A CONFERIR em `infra/ecr.tf`]**.
+- **Imagens do ECR:** `force_delete = true` em `infra/ecr.tf` permite a remoção mesmo com imagens; as imagens são perdidas e é preciso construir e enviar de novo.
 - **O que o Terraform não remove:** o bucket do estado (criado à mão), instantâneos manuais do RDS (`ivis-antes-v14-v15`) e o subdomínio do DuckDNS. Os instantâneos podem gerar custo **[A CONFERIR]**.
 - Depois de recriar, repetir as seções 6, 7 e 8 (construir, preparar a EC2 e implantar) e a verificação da seção 10.
-
-## 16. Evidências desta documentação
-
-Guardar (mascaradas, com retângulo preto, nunca desfoque; originais fora do repositório): `/pronto` com cadeado, `docker ps` com os quatro contêineres `healthy` e a tag, trecho do log do Flyway, ECR com as tags, o instantâneo do RDS, RDS privado (`PubliclyAccessible=False`) e grupos de segurança, `terraform state list`, e o cronômetro e o crédito do painel.
