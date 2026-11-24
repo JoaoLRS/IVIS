@@ -455,7 +455,26 @@ O Grafana não tem porta aberta à internet: o acesso é por túnel do SSM, feit
 
 ### Divisão de tarefas
 
-A preencher pelo coordenador.
+A coordenação foi do Rafael, que também executou, na conta do laboratório da AWS, a implantação manual, a implantação da observabilidade nas EC2 e as paradas e partidas do ambiente. A tabela mostra a responsabilidade principal de cada área e quem revisou as solicitações de mesclagem; os números são os das solicitações em `lucifer-son/IVIS`.
+
+| Área | Execução principal | Revisão |
+|---|---|---|
+| Terraform (#11 a #15) | Rafael | João Lucas Ribeiro (#11, #14), Cosme (#12, #13), Mariana (#15) |
+| ADR-0012, proposta inicial e README da infraestrutura (#2, #3, #5, #7, #40) | Rafael | João Lucas Ribeiro (#2), Mariana (#3, #5, #7), Cosme (#40) |
+| Padronização dos ADRs (#9, #16) | Cosme | Rafael |
+| Compose e perfil de produção, teste de CORS (#17, #19, #20) | Mariana | Rafael (#17, #20), Cosme (#19), João Lucas Ribeiro (#20) |
+| Métricas no backend (#18, #21) | Cosme | Mariana (#18), João Lucas Ribeiro (#21) |
+| CI e pipeline: `ci.yml`, `deploy.yml`, plugin do Gradle e `pipefail` (#23, #31, #34, #39) | João Lucas Ribeiro | Rafael (#23), Mariana (#31, #34, #39) |
+| Observabilidade: Prometheus, Grafana, Loki, Alloy, painéis e README (#24, #36, #37, #38) | Cosme | Rafael (#24, #37), Mariana (#36, #38) |
+| Testes: regra de habilidade por nível (#26, #28) | Rafael | Mariana |
+| Migração V15 (habilidades únicas por nome e nível) | João Lucas Ribeiro | Mariana (#25, que trouxe as alterações do repositório de Engenharia de Software) |
+| `.env.exemplo` (#30, #32) | Cosme (#30), Rafael (#32) | Mariana |
+| Guia de Implantação (#29) | Rafael | João Lucas Ribeiro |
+| README de nuvem (#33, #35, #41) | Mariana | Rafael (#33, #35), Cosme (#41) |
+| Segredos (Infisical) | Rafael e João Lucas Ribeiro | não se aplica |
+| Operação do laboratório (Start Lab, parar e religar, implantação manual) | Rafael | não se aplica |
+
+Nas solicitações #1 a #41, houve 41 aprovações em 40 solicitações (a #27, uma reversão, não teve revisão; a #20 teve duas). Por revisor: Mariana 17, Rafael 9, João Lucas Cosme 8 e João Lucas Ribeiro 7. Os quatro integrantes escreveram e revisaram solicitações; a Mariana foi quem mais revisou. O histórico do repositório inclui commits anteriores ao projeto de nuvem, da disciplina de Engenharia de Software, que não entram nesta divisão.
 
 ## Verificação de dependências
 
