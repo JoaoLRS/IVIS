@@ -23,7 +23,7 @@ Para preparar o ambiente, iniciar o sistema e rodar os testes, siga o guia [Como
 
 ## 🌐 Acesso à produção
 
-A versão de produção do IVIS roda na AWS (AWS Academy Learner Lab), em [https://ivis-ia.duckdns.org](https://ivis-ia.duckdns.org). Ela fica no ar durante as demonstrações, porque o laboratório é desligado entre os usos. A arquitetura, as decisões técnicas e o procedimento de implantação estão na seção [Implantação em nuvem (AWS)](#-implantação-em-nuvem-aws) e no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md).
+A versão de produção do IVIS foi implantada na AWS (AWS Academy Learner Lab), em https://ivis-ia.duckdns.org. O laboratório é desligado entre os usos e a conta é encerrada ao fim do curso, por isso o ambiente **não permanece no ar**. O funcionamento da aplicação implantada está comprovado pelas evidências (imagens e vídeo) listadas em [Evidências](etc/plano/evidencias/README.md). A arquitetura, as decisões técnicas e o procedimento de implantação estão na seção [Implantação em nuvem (AWS)](#-implantação-em-nuvem-aws) e no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md).
 
 ---
 
