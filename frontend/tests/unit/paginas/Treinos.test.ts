@@ -82,4 +82,17 @@ describe("página Treinos", () => {
     expect(estado.respostaPendente).toBe("Resposta técnica");
     expect(pagina.get('[role="alert"]').text()).toContain("Sua resposta foi mantida");
   });
+
+  it("atualiza os caracteres restantes enquanto a resposta é digitada", async () => {
+    vi.mocked(iniciarTreinoRemoto).mockResolvedValue(sessao());
+    const estado = useEstadoAplicacao();
+    await estado.iniciarTreino(undefined, ["Vue.js"]);
+    const pagina = mount(Treinos, { global: { stubs: { RouterLink: true } } });
+    const contador = () => pagina.find('[aria-live="polite"]').text();
+    const campo = pagina.find("textarea");
+
+    expect(contador()).toContain("4000 caracteres restantes");
+    await campo.setValue("Olá!");
+    expect(contador()).toContain("3996 caracteres restantes");
+  });
 });
