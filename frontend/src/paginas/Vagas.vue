@@ -183,16 +183,25 @@ function treinarPara(titulo: string) {
       class="col-md-6 col-xl-4"
     >
       <article class="card job-card h-100">
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-end align-items-center">
-            <div class="d-flex gap-2">
+        <div class="card-body">
+          <div
+            class="d-flex justify-content-between align-items-start gap-3 mb-3"
+          >
+            <div>
+              <h2 class="job-title">{{ vaga.titulo }}</h2>
+              <div class="company-meta">
+                {{ vaga.empresa }} · {{ vaga.senioridade }}
+              </div>
+            </div>
+            <div class="d-flex flex-shrink-0 gap-2">
               <button
                 class="btn btn-sm btn-outline-secondary"
                 :aria-label="`Editar vaga ${vaga.titulo}`"
                 @click="abrirEdicao(indice)"
               >
-                <Pencil :size="14" /></button
-              ><button
+                <Pencil :size="18" />
+              </button>
+              <button
                 class="btn btn-sm btn-outline-danger"
                 :aria-label="`Excluir vaga ${vaga.titulo}`"
                 :disabled="estado.vagaEmTreinamento === vaga.titulo"
@@ -203,15 +212,14 @@ function treinarPara(titulo: string) {
                 "
                 @click="solicitarRemocao(indice)"
               >
-                <Trash2 :size="14" />
+                <Trash2 :size="18" />
               </button>
             </div>
           </div>
-          <div class="company-meta mt-3">
-            {{ vaga.empresa }} · {{ vaga.senioridade }}
-          </div>
-          <h2 class="job-title">{{ vaga.titulo }}</h2>
-          <div class="d-flex flex-wrap gap-2">
+          <div
+            v-if="vaga.requisitos.length"
+            class="d-flex flex-wrap gap-2 mb-3"
+          >
             <Etiqueta v-for="habilidade in vaga.requisitos" :key="habilidade">{{
               habilidade
             }}</Etiqueta>
@@ -221,7 +229,8 @@ function treinarPara(titulo: string) {
               class="btn btn-primary w-100"
               @click="treinarPara(vaga.titulo)"
             >
-              Treinar para esta vaga <ArrowRight :size="14" />
+              Treinar para esta vaga
+              <ArrowRight :size="16" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -238,7 +247,9 @@ function treinarPara(titulo: string) {
       </EstadoVazio>
     </div>
     <div v-else-if="!vagasFiltradas.length" class="col-12">
-      <div class="empty-state card card-body">Nenhuma vaga corresponde à busca.</div>
+      <div class="empty-state card card-body">
+        Nenhuma vaga corresponde à busca.
+      </div>
     </div>
   </div>
   <ModalFormulario

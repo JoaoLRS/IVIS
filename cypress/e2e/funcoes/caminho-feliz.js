@@ -9,6 +9,7 @@ import {
 export const habilidadeDoCaminho = dadosCaminhoFeliz.habilidade;
 export const vagaDoCaminho = dadosCaminhoFeliz.vaga;
 let mensagensAnteriores = new Set();
+let codigoRecuperacao = "";
 
 export function marcarCaixaMailpit() {
   cy.request("http://127.0.0.1:8025/api/v1/messages").then(({ body }) => {
@@ -16,20 +17,53 @@ export function marcarCaixaMailpit() {
   });
 }
 
-export function conferirEmailNoMailpit(destinatario, assunto, trechoEsperado) {
-  cy.request("http://127.0.0.1:8025/api/v1/messages").then(({ body }) => {
+function obterEmailNoMailpit(destinatario, assunto) {
+  return cy.request("http://127.0.0.1:8025/api/v1/messages").then(({ body }) => {
     const mensagem = body.messages.find((item) =>
       !mensagensAnteriores.has(item.ID) &&
       item.Subject === assunto &&
       item.To.some((alvo) => alvo.Address === destinatario)
     );
     expect(mensagem, `e-mail ${assunto} para ${destinatario} no Mailpit`).to.exist;
-    cy.request(`http://127.0.0.1:8025/api/v1/message/${mensagem.ID}`).then(({ body: email }) => {
+    return cy.request(`http://127.0.0.1:8025/api/v1/message/${mensagem.ID}`)
+      .its("body");
+  });
+}
+
+export function conferirEmailNoMailpit(destinatario, assunto, trechoEsperado) {
+  obterEmailNoMailpit(destinatario, assunto).then((email) => {
       expect(email.Subject).to.eq(assunto);
       expect(email.To.some((alvo) => alvo.Address === destinatario)).to.be.true;
       expect(email.Text).to.be.a("string").and.not.be.empty;
-      if (trechoEsperado) expect(email.Text).to.include(trechoEsperado);
-    });
+      if (trechoEsperado instanceof RegExp) {
+        expect(email.Text).to.match(trechoEsperado);
+      } else if (trechoEsperado) {
+        expect(email.Text).to.include(trechoEsperado);
+      }
+  });
+}
+
+export function guardarCodigoRecuperacaoDoMailpit(destinatario) {
+  cy.visit("http://localhost:8025");
+  cy.origin("http://localhost:8025", { args: { destinatario } }, ({ destinatario }) => {
+    cy.get("a.message", { timeout: 30000 })
+      .filter((_, mensagem) =>
+        mensagem.textContent.includes(destinatario) &&
+        mensagem.textContent.includes("Redefinição de senha — IVIS"))
+      .first()
+      .click();
+    cy.contains("td", destinatario).should("be.visible");
+    cy.contains("td", "Redefinição de senha — IVIS").should("be.visible");
+    cy.get("#nav-plain-text .text-view")
+      .should("contain.text", "Use este código de 8 dígitos")
+      .invoke("text")
+      .then((texto) => {
+        const codigo = texto.match(/Use este código de 8 dígitos em até \d+ minutos:\s*(\d{8})/);
+        expect(codigo, "código de recuperação no e-mail").to.not.be.null;
+        return codigo[1];
+      });
+  }).then((codigo) => {
+    codigoRecuperacao = codigo;
   });
 }
 
@@ -44,9 +78,61 @@ export function abrirRecuperacaoDeSenhaAposCheckout(email) {
   cy.get(seletores.login.email).type(email);
 }
 
-export function solicitarRecuperacaoDeSenha() {
-  cy.contains("button", "Enviar instruções").click();
-  cy.contains("Se este e-mail estiver cadastrado").should("be.visible");
+export function solicitarRecuperacaoDeSenha(email) {
+  cy.contains("button", textos.login.enviarCodigo).click();
+  cy.location("pathname").should("eq", rotas.redefinirSenha);
+  cy.contains("h1", textos.login.conferirEmail).should("be.visible");
+  cy.contains(".recovery-email", email).should("be.visible");
+  cy.get(seletores.recuperacao.codigo).should("be.visible");
+}
+
+export function informarCodigoDeRecuperacao() {
+  expect(codigoRecuperacao, "código de recuperação capturado no Mailpit").to.match(/^\d{8}$/);
+  cy.get(seletores.recuperacao.codigo).type(codigoRecuperacao, { log: false });
+}
+
+export function voltarParaRedefinicaoDeSenha(email) {
+  cy.visit(rotas.redefinirSenha);
+  cy.get(seletores.recuperacao.email).type(email);
+}
+
+export function validarCodigoDeRecuperacao() {
+  cy.contains("button", textos.recuperacao.verificarCodigo).click();
+  cy.contains("h1", textos.recuperacao.criarNovaSenha).should("be.visible");
+}
+
+export function informarNovaSenha(senha = dadosCaminhoFeliz.senhaRedefinida) {
+  cy.get(seletores.recuperacao.novaSenha).type(senha, { log: false });
+  cy.get(seletores.recuperacao.confirmarSenha).type(senha, { log: false });
+}
+
+export function confirmarNovaSenha() {
+  cy.contains("button", textos.recuperacao.redefinirSenha).click();
+  cy.contains("h1", textos.recuperacao.senhaRedefinida).should("be.visible");
+}
+
+export function voltarAoLoginAposRedefinicao() {
+  cy.contains("a", textos.recuperacao.entrarNaConta).click();
+  cy.location("pathname").should("eq", rotas.login);
+}
+
+export function informarCredenciaisDeLogin(email, senha) {
+  cy.get(seletores.login.email).clear().type(email);
+  cy.get(seletores.login.senha).clear().type(senha, { log: false });
+}
+
+export function tentarAutenticacao() {
+  cy.contains("button", textos.login.entrar).click();
+}
+
+export function conferirSenhaAntigaRecusada() {
+  cy.location("pathname").should("eq", rotas.login);
+  cy.contains('[role="status"]', "E-mail ou senha inválidos.").should("be.visible");
+}
+
+export function conferirLoginComNovaSenha(nome) {
+  cy.location("pathname").should("eq", rotas.inicioAluno);
+  cy.contains(textos.areaAluno.saudacao(nome)).should("be.visible");
 }
 
 export function conferirFormularioDeCadastroDoAluno() {
@@ -140,6 +226,7 @@ export function conferirAreaDoAluno(nome) {
 
 export function abrirEdicaoDosDadosDaConta() {
   cy.get(seletores.navegacao.perfilConta).click();
+  cy.contains(seletores.navegacao.dadosConta, textos.conta.meusDados).click();
 }
 
 export function conferirTelaDeEdicaoDosDadosDoAluno() {
@@ -291,6 +378,13 @@ export function iniciarEntrevistaComIa() {
 }
 
 export function conferirPerguntaDaIa(numero) {
+  if (numero > 1) {
+    cy.wait("@respostaTreinoReal", { responseTimeout: 140000 }).then(({ response }) => {
+      expect(response?.statusCode, "status da resposta do treino no backend").to.eq(200);
+      expect(response?.body?.perguntas?.length, "quantidade de perguntas retornadas pelo backend")
+        .to.be.at.least(numero);
+    });
+  }
   cy.contains(seletores.treino.progressoPergunta, textos.treino.pergunta(numero), {
     timeout: 120000,
   }).should("be.visible");
@@ -319,6 +413,7 @@ export function responderPerguntaDaIa() {
 }
 
 export function enviarRespostaDoTreino() {
+  cy.intercept("POST", "**/api/v1/treinos/*/respostas").as("respostaTreinoReal");
   cy.contains("button", textos.treino.enviarResposta).click();
 }
 

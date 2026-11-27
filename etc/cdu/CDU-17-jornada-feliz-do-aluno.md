@@ -1,6 +1,6 @@
-# CDU-17 - Jornada feliz do aluno pagante
+# CDU-17 - Jornada feliz do aluno com plano individual
 
-Este caso de uso encadeia operações dos CDU-01, CDU-02, CDU-03, CDU-06, CDU-07, CDU-08, CDU-09, CDU-10, CDU-12 e CDU-14. Ele documenta a jornada ponta a ponta exercitada por [`perfil_aluno.cy.js`](../../cypress/e2e/caminho_feliz/perfil_aluno.cy.js), sem criar um requisito funcional novo.
+Este caso de uso encadeia operações dos CDU-01, CDU-02, CDU-03, CDU-06, CDU-07, CDU-08, CDU-09, CDU-10, CDU-12, CDU-14 e CDU-16. Ele documenta a jornada ponta a ponta exercitada por [`perfil_aluno.cy.js`](../../cypress/e2e/caminho_feliz/perfil_aluno.cy.js), sem criar um requisito funcional novo.
 
 ## Atores
 
@@ -41,7 +41,7 @@ Este caso de uso encadeia operações dos CDU-01, CDU-02, CDU-03, CDU-06, CDU-07
 
 ## Situação atual e cobertura
 
-O fluxo é exercitado pelo Cypress contra os serviços e o banco reais, sem interceptações que substituam respostas. O teste verifica os resultados visíveis de cada etapa, incluindo a nota e a reabertura do feedback; não verifica diretamente todos os registros de banco ou eventos de auditoria. A contratação continua acadêmica, sem cobrança real. A jornada depende de acesso ao provedor de IA configurado e dos dados de teste reservados para a suíte.
+O fluxo é exercitado pelo Cypress contra os serviços e o banco reais, sem interceptações que substituam respostas. O teste verifica os resultados visíveis de cada etapa, incluindo a nota e a reabertura do feedback, e consulta no Mailpit as mensagens de boas-vindas e de confirmação da contratação simulada. Não verifica diretamente todos os registros de banco ou eventos de auditoria. A contratação continua acadêmica, sem cobrança real. A jornada depende de acesso ao provedor de IA configurado e dos dados de teste reservados para a suíte.
 
 ## Diagrama de ações do ator
 

@@ -1,30 +1,35 @@
 # Glossário do IVIS
 
-Este glossário reúne os termos funcionais, técnicos e arquiteturais usados nos requisitos, casos de uso, ADRs e planos de implementação. Quando um termo estiver ligado a uma decisão ainda em revisão, a definição descreve a proposta atual e pode ser ajustada pela equipe.
+Este glossário reúne os termos funcionais, técnicos e arquiteturais usados nos requisitos, [casos de uso](../cdu/IVIS_Casos_de_Uso.md), ADRs e código atual do IVIS. A situação de implementação de cada fluxo consta nos CDU; uma definição aqui não representa aceite formal do requisito.
 
 ## Termos do domínio
 
 | Termo | Definição no IVIS |
 |---|---|
+| **Conta** | Identidade de acesso com e-mail, senha protegida e tipo `ALUNO` ou `INSTITUICAO`. Cada conta possui o perfil correspondente; a modalidade de acesso do aluno deriva de contrato ou vínculo, não de um terceiro tipo de conta. |
 | **Aluno** | Pessoa que utiliza o IVIS para cadastrar habilidades e vagas de interesse, realizar treinamentos e consultar o próprio histórico. |
-| **Aluno Pagante** | Modalidade de acesso do aluno que possui um plano individual contratado diretamente. A modalidade e as permissões são determinadas pelo backend. |
-| **Aluno de Consórcio** | Modalidade de acesso do aluno que possui vínculo ativo a um contrato institucional. A instituição que administra o vínculo deriva do contrato; o aluno não define essa condição no cliente. Nos requisitos atuais também aparece o nome `AlunoConsórcio`. |
+| **Acesso individual** | Acesso ao treinamento derivado de contrato individual vigente do próprio aluno. A interface usa este nome; a API informa origem `PROPRIO`. Um aluno sem vínculo institucional ativo pode ser elegível para contratar esse plano. |
+| **Acesso institucional** | Acesso ao treinamento derivado de vínculo ativo do aluno com contrato institucional vigente. A interface usa este nome; a API informa origem `VINCULO_INSTITUCIONAL`. |
 | **Instituição de Ensino** | Conta institucional que contrata plano institucional e gerencia os alunos vinculados às vagas de alunos. |
 | **Plano individual** | Oferta contratada diretamente por um aluno para obter os benefícios e o acesso correspondentes. |
-| **Plano institucional / plano de consórcio** | Oferta contratada por uma instituição, com capacidade de vagas para vincular alunos. “Consórcio” é o nome de negócio usado nos requisitos para essa modalidade. |
+| **Plano institucional / plano de consórcio** | Oferta contratada por uma instituição para vincular alunos. No catálogo acadêmico atual há capacidades de 50, 100 ou alunos ilimitados por 30 dias; “consórcio” é o nome de negócio usado nos requisitos. |
 | **Contrato** | Registro da contratação de um plano por uma conta. Mantém estado, vigência e o preço acordado, preservando o histórico mesmo que o catálogo de planos mude. |
+| **Acesso vigente** | Permissão para usar recursos de treinamento, derivada de contrato individual ativo do aluno ou vínculo ativo com contrato institucional vigente. Consultar o histórico próprio não depende desse acesso, apenas de conta de aluno ativa. |
 | **Vaga de interesse** | Vaga de emprego cadastrada pelo aluno como contexto para uma simulação de entrevista. Não representa uma vaga de assento do plano institucional. |
-| **Vaga institucional** | Capacidade de um contrato institucional para conceder acesso a um aluno. O total contratado limita quantos vínculos podem estar ativos simultaneamente. |
-| **Vínculo institucional** | Relação registrada entre um aluno e um contrato institucional ativo. A instituição titular é obtida por meio do contrato. |
-| **Habilidade técnica** | Competência ou tecnologia registrada no perfil do aluno e usada como contexto possível para o treinamento. |
-| **Treinamento / simulação de entrevista** | Sessão em que a IA apresenta perguntas ao aluno, recebe as respostas e gera uma avaliação. Cada sessão pertence a um aluno e pode estar associada a uma vaga de interesse. |
+| **Vaga institucional** | Lugar de acesso ocupado por um vínculo ativo em contrato institucional finito. Vagas usadas são contadas a partir dos vínculos ativos; nos planos de 50 e 100 não podem ultrapassar a capacidade. No plano ilimitado, a capacidade não tem teto numérico. Não é uma vaga de emprego. |
+| **Vínculo institucional** | Registro que associa um aluno a um contrato institucional. A remoção encerra o vínculo sem apagar seu histórico; o aluno pode ter vários vínculos históricos, mas no máximo um ativo por vez. A instituição titular é obtida pelo contrato. |
+| **Habilidade técnica** | Competência ou tecnologia registrada no perfil do aluno, com nível de domínio de 1 a 5, usada como possível contexto do treinamento. |
+| **Treinamento / simulação de entrevista** | Sessão textual em que a API de IA gera perguntas a partir das habilidades ou de uma vaga do aluno. A sessão persiste o contexto, as perguntas e as respostas, pode ser retomada enquanto está em andamento e recebe avaliação ao concluir. A interface atual usa três perguntas. |
+| **Treino em andamento** | Treinamento ainda não concluído nem cancelado. O backend recupera sua sessão persistida para o aluno com acesso vigente, inclusive após recarregar a página. |
 | **Pergunta de entrevista** | Pergunta gerada ou selecionada para uma sessão de treinamento, registrada em sequência para compor o histórico. |
 | **Resposta** | Conteúdo enviado pelo aluno em resposta a uma pergunta do treinamento. Deve ser enviado à IA somente quando necessário para processar a sessão. |
-| **Feedback / avaliação** | Resultado do treinamento, que pode incluir nota, pontos fortes e oportunidades de melhoria. É gerado com apoio da IA e validado pelo backend antes de ser persistido ou apresentado. |
-| **Histórico de treinamentos** | Registros persistidos das sessões, perguntas, respostas, contexto e avaliações, consultáveis pelo aluno titular. |
+| **Feedback / avaliação** | Resultado produzido na conclusão do treino. Com o provedor real, pode incluir nota, critérios por pergunta, justificativas, pontos fortes, melhorias e limitações. O modo stub não realiza avaliação qualitativa; o feedback de IA pode conter erros. |
+| **Histórico de treinamentos** | Consulta dos treinos concluídos e de seus resultados pelo aluno titular. Continua disponível à conta de aluno ativa mesmo sem plano vigente; iniciar ou continuar um treino exige acesso vigente. |
 | **Pagamento simulado** | Resultado fictício produzido pelo simulador controlado pelo backend no ambiente de apresentação. Não gera cobrança nem encaminha os dados do cartão a um gateway real; PAN e CVV não são persistidos. |
 | **Cartão de teste** | Dados fictícios aceitos pelo simulador acadêmico para demonstrar a contratação. Não representam um meio de pagamento real. |
-| **Auditoria** | Registro protegido e rastreável de ações sensíveis, incluindo ator, ação, resultado e momento. A retenção mínima é de 4 anos desde o evento. |
+| **Auditoria** | Registro protegido de ações sensíveis, incluindo ator, ação, resultado e momento. O backend grava um evento por tentativa de contratação/pagamento simulado e eventos de criação ou remoção de vínculo. A retenção mínima exigida é de 4 anos; backup, arquivamento e descarte dependem de procedimento operacional. |
+| **Código de recuperação** | Código de oito dígitos enviado ao e-mail cadastrado para validar a redefinição de senha. É de uso único e tem validade limitada; no ambiente local o Mailpit captura a mensagem. |
+| **Autorização de redefinição** | Credencial temporária criada após validar o código de recuperação. Fica em cookie HttpOnly por até dez minutos e autoriza definir a nova senha; o fluxo atual não usa token na URL. |
 | **Autoridade do backend** | Princípio segundo o qual o servidor valida identidade, permissões, preço, modalidade, capacidade, estados e resultados de negócio. O frontend não pode alterar essas decisões. |
 
 ## Requisitos e documentação
@@ -40,7 +45,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **RNF09 — Proteção e retenção dos logs** | Os registros de auditoria devem ser protegidos contra alteração e mantidos por no mínimo 4 anos desde o evento. |
 | **Caso de uso (CDU)** | Descrição de como um ator interage com o sistema para alcançar um objetivo. Os documentos estão em [`../cdu/`](../cdu/). |
 | **ADR** | *Architecture Decision Record*: documento que registra contexto, decisão arquitetural, consequências e alternativas. Os ADRs atuais estão em [`adr/`](adr/). |
-| **Em andamento** | Estado documental usado para indicar que uma decisão ou artefato está sendo revisado pela equipe; não significa necessariamente que a implementação já começou. |
+| **Em andamento (documentação)** | Estado de revisão de uma decisão ou artefato. É diferente da situação `EM_ANDAMENTO` de uma sessão de treinamento persistida. |
 
 ## Arquitetura e componentes
 
@@ -49,11 +54,13 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Frontend** | Aplicação web Vue e TypeScript que apresenta a interface e consome a API do backend. Não acessa diretamente o banco, a API de IA ou serviços de pagamento. |
 | **Backend** | Serviço Java 25 LTS com Spring Boot que aplica regras de negócio, autentica e autoriza usuários, persiste dados e coordena integrações. Usa Gradle como ferramenta de build. |
 | **API de IA** | Serviço Python separado que processa solicitações de geração de perguntas e avaliação. É chamado pelo backend, não pelo navegador. |
-| **NVIDIA NGC** | Plataforma/provedor NVIDIA escolhido para disponibilizar a capacidade de IA. O modelo e o endpoint específicos ainda precisam ser definidos. |
+| **Provedor NVIDIA** | Integração da API de IA com endpoint NVIDIA compatível com OpenAI, chamada de “NVIDIA NGC” em documentos de planejamento anteriores. Modelo e URL base têm valores padrão configurados no serviço Python e podem ser alterados por `NVIDIA_MODEL` e `NVIDIA_BASE_URL`; a chamada real exige `NVIDIA_API_KEY`. |
+| **Modo stub da IA** | Respostas locais de demonstração quando o provedor real não está em uso. Permite exercitar o fluxo, mas não comprova a qualidade da avaliação nem o desempenho exigido pelo RNF03. |
 | **API** | Interface de programação que define como módulos ou serviços trocam solicitações e respostas. Os contratos do IVIS devem ser versionados e validados. |
 | **Módulo** | Parte do sistema com responsabilidade delimitada e interface explícita. O IVIS separa frontend, backend e API de IA; o backend organiza internamente capacidades de domínio. |
 | **Regra de negócio** | Condição que define o comportamento do domínio, como quem pode contratar, quais benefícios estão ativos, quantas vagas existem ou quando um plano permite acesso. É validada pelo backend. |
 | **Integração serviço a serviço** | Comunicação entre componentes no servidor, como a chamada autenticada do backend à API de IA. Segredos não são expostos ao navegador. |
+| **Sessão de autenticação** | Estado de login da conta. O frontend usa token de acesso; um cookie protegido permite renovar a sessão, que pode ser revogada ao sair ou trocar a senha. É distinta da sessão de treinamento. |
 
 ## Banco de dados e operação
 
@@ -62,7 +69,7 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **PostgreSQL** | Banco de dados relacional escolhido para persistir os dados de domínio do IVIS. NoSQL não será utilizado para esse propósito. |
 | **Flyway** | Ferramenta de migração que aplica alterações versionadas ao esquema do banco. Migrações já aplicadas não devem ser editadas em ambientes compartilhados. |
 | **Migração** | Arquivo versionado que cria ou altera tabelas, colunas, restrições ou índices de forma reproduzível. |
-| **Chave primária (PK)** | Identificador único de uma linha de tabela. O modelo propõe UUIDs como chaves primárias. |
+| **Chave primária (PK)** | Identificador único de uma linha de tabela. As tabelas de domínio do IVIS usam UUIDs como chaves primárias. |
 | **Chave estrangeira (FK)** | Coluna ou conjunto de colunas que referencia uma linha relacionada em outra tabela, mantendo integridade referencial. |
 | **UUID** | Identificador universalmente único usado como chave primária `objeto` em todas as tabelas do banco. |
 | **`snake_case`** | Convenção de identificadores com palavras minúsculas separadas por sublinhado, como `codigo_objeto_perfis_aluno`. No banco IVIS, nomes em português brasileiro e sem acentos. |
@@ -72,9 +79,9 @@ Este glossário reúne os termos funcionais, técnicos e arquiteturais usados no
 | **Soft delete / arquivamento** | Marcar um registro como inativo/arquivado em vez de apagá-lo fisicamente, para preservar relações e histórico quando necessário. |
 | **Índice** | Estrutura do banco que pode acelerar consultas; deve corresponder aos padrões de acesso e não substituir validações de autorização. |
 | **Idempotência** | Propriedade de uma operação em que repetir a mesma solicitação não duplica seus efeitos, necessária, por exemplo, para tentativas repetidas de pagamento. |
-| **Mailpit** | Servidor SMTP de captura usado para simular e inspecionar e-mails de desenvolvimento/apresentação sem encaminhá-los a destinatários reais. Não é provedor de e-mail de produção. |
+| **Mailpit** | Servidor SMTP de captura usado no ambiente local para inspecionar e-mails de boas-vindas, recuperação de senha e confirmação de contratação simulada, sem encaminhá-los a destinatários reais. Não é provedor de e-mail de produção. |
 | **Gateway de pagamento** | Serviço externo que processa cobranças reais. Não é utilizado pelo simulador acadêmico; uma integração real depende de decisão e configuração futuras. |
-| **SLA** | Acordo/limite mensurável de nível de serviço. A meta de RNF03 é p95 até 10 segundos para pergunta e avaliação, cada uma medida separadamente. |
+| **p95** | Percentil 95 dos tempos de resposta medidos: 95% das operações observadas ficam nesse tempo ou abaixo. O RNF03 estabelece meta de até 10 segundos para geração da próxima pergunta e para avaliação final, medidas separadamente com o provedor real; a meta ainda depende de medição registrada. |
 
 ## Convenções de nomes no código
 

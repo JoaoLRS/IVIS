@@ -39,13 +39,7 @@
 .chart-axis,
 .chart-dates,
 .row-copy small,
-.company-meta,
-.skill-level,
 .training-option small,
-.context-card-title small,
-.skill-chip small,
-.vacancy-option-copy > small,
-.training-context-summary small,
 .training-start-actions > small,
 .interview-heading small,
 .interview-detail small,
@@ -939,17 +933,8 @@ body {
 }
 
 .company-meta {
-  font-size: 8px;
-  color: #8e8f9b;
-}
-
-.job-title,
-.skill-title {
-  font:
-    700 14px/1.45 Manrope,
-    sans-serif;
-  letter-spacing: -0.2px;
-  margin: 5px 0 11px;
+  color: #49435d;
+  font-size: 1rem;
   overflow-wrap: anywhere;
 }
 
@@ -966,40 +951,99 @@ body {
   background: #fbfaff;
 }
 
+.job-card,
+.skill-card {
+  background: #fff;
+  border-color: #a8a3be;
+}
+
+.job-card .card-body,
+.skill-card .card-body {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
 .skill-icon {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 9px;
-  background: #f0edff;
-  color: #6954d1;
+  background: #eae5ff;
+  color: #47339a;
+}
+
+.job-card .btn-sm,
+.skill-card .btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+
+.job-card .btn-primary {
+  --bs-btn-bg: #5845c4;
+  --bs-btn-border-color: #5845c4;
+  --bs-btn-hover-bg: #47339a;
+  --bs-btn-hover-border-color: #47339a;
+  min-height: 44px;
+  font-size: 1rem !important;
+}
+
+.job-title,
+.skill-title {
+  margin: 12px 0 8px;
+  color: #201b38;
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.job-title {
+  margin: 0 0 4px;
+}
+
+.job-card .ivis-badge,
+.skill-card .ivis-badge.skill-category {
+  padding: 4px 10px;
+  background: #eae5ff;
+  color: #47339a;
+  font-size: 1rem !important;
+}
+
+.skill-card .skill-category {
+  align-self: flex-start;
+  margin-bottom: 20px;
 }
 
 .skill-level {
-  font-size: 8px;
-  color: #999aa6;
+  margin-top: auto;
+  padding: 12px;
+  background: #f5f2ff;
+  color: #49435d;
+  font-size: 1rem;
 }
 
 .skill-level strong {
-  color: #555662;
+  color: #392682;
 }
 
 .level-bars {
   display: flex;
-  gap: 4px;
-  margin-top: 7px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .level-bars i {
-  height: 4px;
+  height: 8px;
   flex: 1;
-  border-radius: 4px;
-  background: #eeeef3;
+  border: 1px solid #8b81a7;
 }
 
 .level-bars i.filled {
-  background: #7162dd;
+  background: #5845c4;
+  border-color: #5845c4;
 }
 
 .training-hero {
@@ -1067,8 +1111,7 @@ body {
 
 .training-setup {
   padding: 22px;
-  border: 1px solid #e7e8ef;
-  border-radius: 14px;
+  border: 1px solid #c8c3d9;
   background: #fff;
   box-shadow: 0 8px 24px #24213d08;
 }
@@ -1081,9 +1124,8 @@ body {
 
 .context-card {
   min-width: 0;
-  padding: 17px;
-  border: 1px solid #e8e9f0;
-  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #a8a3be;
   background: #fff;
   transition:
     border-color 0.18s ease,
@@ -1091,30 +1133,25 @@ body {
 }
 
 .context-card-selected {
-  border-color: #a99df0;
-  box-shadow: 0 0 0 3px #7162dd12;
+  border-color: #5845c4;
+  background: #f5f2ff;
+  box-shadow: 0 0 0 1px #5845c4;
 }
 
-.context-card:not(.context-card-selected) {
-  border-color: #e4e5eb;
-  background: #f2f3f6;
+.training-setup .form-check-input {
+  width: 18px;
+  height: 18px;
+  border-color: #756c90;
 }
 
-.context-card:not(.context-card-selected) .skill-chip,
-.context-card:not(.context-card-selected) .vacancy-option {
-  background: #f8f8fa;
+.training-setup .form-check-input:checked {
+  border-color: #5845c4;
+  background-color: #5845c4;
 }
 
-.context-card:not(.context-card-selected) .context-card-icon {
-  background: #e9eaf0;
-  color: #858695;
-}
-
-.context-card:not(.context-card-selected) input.form-check-input {
-  border-color: #cfd1d9;
-  background-color: #e5e6eb;
-  background-image: none !important;
-  box-shadow: none;
+.training-setup :is(a, button, input):focus-visible {
+  outline: 2px solid #5845c4;
+  outline-offset: 2px;
 }
 
 .context-card-heading {
@@ -1127,7 +1164,6 @@ body {
 .context-card-heading .form-check-input {
   flex: 0 0 auto;
   margin: 0;
-  accent-color: #7162dd;
 }
 
 .context-card-heading .form-check-input:disabled {
@@ -1140,9 +1176,8 @@ body {
   flex: 0 0 38px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  background: #f1efff;
-  color: #6c5cdb;
+  background: #eae5ff;
+  color: #47339a;
 }
 
 .context-card-title {
@@ -1153,23 +1188,21 @@ body {
 }
 
 .context-card-title strong {
-  color: #272638;
-  font-size: 12px;
+  color: #201b38;
+  font-size: 1.375rem;
+  line-height: 1.3;
 }
 
 .context-card-title small {
-  color: #858594;
-  font-size: 10px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .context-count {
   min-width: 27px;
   padding: 4px 8px;
-  border-radius: 20px;
-  background: #f4f3f8;
-  color: #696879;
-  font-size: 10px;
+  background: #eae5ff;
+  color: #47339a;
+  font-size: 1rem;
   font-weight: 700;
   text-align: center;
 }
@@ -1178,32 +1211,37 @@ body {
 .vacancy-picker {
   margin-top: 17px;
   padding-top: 15px;
-  border-top: 1px solid #f0f0f4;
+  border-top: 1px solid #c8c3d9;
 }
 
 .skill-picker-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 4px 12px;
   margin-bottom: 10px;
-  color: #777786;
-  font-size: 10px;
+  color: #201b38;
+  font-size: 1rem;
   font-weight: 700;
 }
 
 .skill-picker-heading > div {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 4px 12px;
 }
 
 .skill-picker-heading button {
+  min-height: 36px;
   padding: 0;
   border: 0;
   background: none;
-  color: #6757d7;
-  font-size: 9px;
+  color: #47339a;
+  font-size: 0.9375rem;
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .skill-chip-list,
@@ -1217,39 +1255,46 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: 44px;
+  max-width: 100%;
   padding: 7px 10px;
-  border: 1px solid #e5e5ec;
-  border-radius: 8px;
+  border: 1px solid #a8a3be;
   background: #fff;
-  color: #585866;
-  font-size: 10px;
+  color: #201b38;
+  font-size: 1rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
   transition: all 0.16s ease;
 }
 
 .skill-chip:hover {
-  border-color: #a99df0;
-  color: #5f50cd;
+  border-color: #5845c4;
+  color: #47339a;
 }
 
 .skill-chip-selected {
-  border-color: #8273e3;
-  background: #f3f1ff;
-  color: #5142bd;
+  border-color: #5845c4;
+  background: #eae5ff;
+  color: #392682;
+  box-shadow: inset 0 0 0 1px #5845c4;
 }
 
 .skill-chip small {
-  color: #9291a1;
-  font-size: 9px;
+  flex-shrink: 0;
+  font-weight: 400;
 }
 
 .context-manage-link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-top: 13px;
-  color: #6757d7;
-  font-size: 10px;
-  text-decoration: none;
+  min-height: 36px;
+  margin-top: 8px;
+  color: #47339a;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .context-manage-link:hover {
@@ -1266,27 +1311,25 @@ body {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 11px;
-  border: 1px solid #e9e9ef;
-  border-radius: 9px;
+  padding: 12px;
+  border: 1px solid #a8a3be;
+  background: #fff;
   cursor: pointer;
   transition: all 0.16s ease;
 }
 
 .vacancy-option:hover {
-  border-color: #b6aef0;
-  background: #fcfbff;
+  border-color: #5845c4;
 }
 
 .vacancy-option-selected {
-  border-color: #8273e3;
-  background: #f7f5ff;
+  border-color: #5845c4;
+  background: #eae5ff;
 }
 
 .vacancy-option > .form-check-input {
   flex: 0 0 auto;
   margin: 2px 0 0;
-  accent-color: #7162dd;
 }
 
 .vacancy-option-copy {
@@ -1294,16 +1337,18 @@ body {
   gap: 4px;
   min-width: 0;
   flex: 1;
+  overflow-wrap: anywhere;
 }
 
 .vacancy-option-copy > strong {
-  color: #302f40;
-  font-size: 10px;
+  color: #201b38;
+  font-size: 1.125rem;
 }
 
-.vacancy-option-copy > small {
-  color: #858594;
-  font-size: 9px;
+.page-content .training-setup .context-card small,
+.page-content .training-setup .context-empty p {
+  color: #49435d !important;
+  font-size: 1rem !important;
 }
 
 .vacancy-tags {
@@ -1311,11 +1356,11 @@ body {
 }
 
 .vacancy-tags > span {
-  padding: 3px 6px;
-  border-radius: 5px;
-  background: #f0eff6;
-  color: #727182;
-  font-size: 8px;
+  max-width: 100%;
+  padding: 4px 8px;
+  background: #f5f2ff;
+  color: #47339a;
+  font-size: 1rem;
 }
 
 .vacancy-target {
@@ -1327,10 +1372,8 @@ body {
 .context-empty {
   margin-top: 16px;
   padding: 15px;
-  border-radius: 9px;
-  background: #f8f8fb;
-  color: #777786;
-  font-size: 10px;
+  background: #f0ecfc;
+  font-size: 1rem;
 }
 
 .context-empty p {
@@ -1338,9 +1381,9 @@ body {
 }
 
 .context-empty a {
-  color: #6757d7;
+  color: #47339a;
   font-weight: 600;
-  text-decoration: none;
+  text-underline-offset: 2px;
 }
 
 .training-setup-footer {
@@ -1350,14 +1393,12 @@ body {
   gap: 18px;
   margin-top: 20px;
   padding-top: 17px;
-  border-top: 1px solid #eeeef3;
+  border-top: 1px solid #c8c3d9;
 }
 
 .training-context-summary {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #7162dd;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .training-context-summary > span {
@@ -1366,15 +1407,13 @@ body {
 }
 
 .training-context-summary small {
-  color: #9291a0;
-  font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.6px;
 }
 
 .training-context-summary strong {
-  color: #41404f;
-  font-size: 10px;
+  color: #201b38;
+  font-size: 1rem;
 }
 
 .training-start-actions {
@@ -1388,16 +1427,25 @@ body {
   font-size: 9px;
 }
 
-.training-start-actions .btn {
+.training-setup .training-start-actions .btn {
+  --bs-btn-bg: #5845c4;
+  --bs-btn-border-color: #5845c4;
+  --bs-btn-hover-bg: #47339a;
+  --bs-btn-hover-border-color: #47339a;
+  --bs-btn-disabled-color: #49435d;
+  --bs-btn-disabled-bg: #eae7f1;
+  --bs-btn-disabled-border-color: #a8a3be;
+  --bs-btn-disabled-opacity: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  white-space: nowrap;
+  min-height: 44px;
+  font-size: 1rem !important;
 }
 
-.training-start-actions .btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
+.training-start-actions .btn svg {
+  flex-shrink: 0;
 }
 
 .interview-detail .d-flex {
@@ -3026,15 +3074,10 @@ body {
 .page-content .text-muted,
 .page-content .stat-label,
 .page-content .stat-detail,
-.page-content .company-meta,
-.page-content .skill-level,
 .page-content .chart-axis,
 .page-content .chart-dates,
 .page-content .chart-legend,
 .page-content .row-copy small,
-.page-content .context-card-title small,
-.page-content .skill-chip small,
-.page-content .vacancy-tags > span,
 .page-content .history-result > small,
 .page-content .student-cell small {
   font-size: 14px !important;
@@ -3054,12 +3097,8 @@ body {
 /* Metadados e textos de apoio usam o mesmo contraste em todas as páginas. */
 .page-content small,
 .page-content .breadcrumb-line,
-.page-content .company-meta,
 .page-content .match-label,
 .page-content .focus-progress > div:first-child,
-.page-content .context-empty,
-.page-content .vacancy-tags > span,
-.page-content .training-context-summary,
 .page-content .history-stat span > small,
 .page-content .history-result > small,
 .page-content .history-result strong small,
@@ -3095,15 +3134,10 @@ body {
 .page-content .eyebrow,
 .page-content .stat-label,
 .page-content .stat-detail,
-.page-content .company-meta,
-.page-content .skill-level,
 .page-content .chart-axis,
 .page-content .chart-dates,
 .page-content .chart-legend,
 .page-content .row-copy small,
-.page-content .context-card-title small,
-.page-content .skill-chip small,
-.page-content .vacancy-tags > span,
 .page-content .history-result > small,
 .page-content .student-cell small {
   font-size: 14px !important;
@@ -3220,17 +3254,10 @@ body {
     .form-select,
     .form-check-label,
     .btn,
-    .company-meta,
     .match-label,
-    .skill-level,
     .ivis-badge,
     .result-label,
-    .skill-chip,
-    .vacancy-tags > span,
-    .context-count,
-    .training-context-summary,
     .training-option,
-    .skill-picker-heading,
     .feedback-point strong,
     .feedback-meta,
     .interview-status,
@@ -3261,9 +3288,7 @@ body {
     .text-secondary,
     .text-muted,
     .eyebrow,
-    .company-meta,
     .match-label,
-    .skill-level,
     .stat-label,
     .stat-detail,
     .chart-axis,
@@ -3288,10 +3313,6 @@ body {
 .page-content
   :is(
     .panel-title,
-    .job-title,
-    .skill-title,
-    .context-card-title > strong,
-    .vacancy-option-copy > strong,
     .home-action-copy > strong,
     .latest-training-copy > strong
   ) {
@@ -3473,22 +3494,17 @@ body {
   .context-card-heading {
     display: grid;
     grid-template-columns: 18px 32px minmax(0, 1fr) auto;
-    align-items: start;
+    align-items: center;
     gap: 8px;
-  }
-
-  .context-card-heading > .form-check-input {
-    margin-top: 9px;
   }
 
   .context-card-icon {
     width: 32px;
     height: 32px;
-    flex-basis: 32px;
   }
 
   .context-card-title {
-    overflow-wrap: anywhere;
+    display: contents;
   }
 
   .context-card-title > strong,
@@ -3496,35 +3512,20 @@ body {
     overflow-wrap: anywhere;
   }
 
+  .context-card-title > strong {
+    font-size: 1.125rem;
+  }
+
+  .context-card-title > small {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
   .context-count {
+    grid-column: 4;
+    grid-row: 1;
     min-width: 24px;
     padding: 4px 6px;
-  }
-
-  .skill-picker-heading {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .skill-picker-heading > div {
-    flex-wrap: wrap;
-  }
-
-  .training-setup-footer {
-    align-items: stretch;
-  }
-
-  .training-context-summary,
-  .training-context-summary > span {
-    min-width: 0;
-  }
-
-  .training-context-summary strong,
-  .vacancy-option-copy,
-  .vacancy-option-copy > strong,
-  .vacancy-option-copy > small {
-    min-width: 0;
-    overflow-wrap: anywhere;
   }
 
   .interview-top {
@@ -3563,7 +3564,7 @@ body {
   }
 
   .context-card-heading {
-    grid-template-columns: 16px 28px minmax(0, 1fr) auto;
+    grid-template-columns: 18px 28px minmax(0, 1fr) auto;
     gap: 6px;
   }
 

@@ -163,6 +163,7 @@ async function cancelar() {
               v-model="modo"
               class="form-check-input"
               type="radio"
+              name="modo-treino"
               value="habilidades"
             />
             <span class="context-card-icon"><Code2 :size="18" /></span>
@@ -225,6 +226,7 @@ async function cancelar() {
               v-model="modo"
               class="form-check-input"
               type="radio"
+              name="modo-treino"
               value="vaga"
               :disabled="!estado.vagas.length"
             />
@@ -254,6 +256,7 @@ async function cancelar() {
                 v-model="vagaSelecionada"
                 class="form-check-input"
                 type="radio"
+                name="vaga-treino"
                 :value="vaga.id"
                 @change="modo = 'vaga'"
               />
@@ -422,12 +425,14 @@ async function cancelar() {
                 <div
                   class="d-flex justify-content-between align-items-center mt-2"
                 >
-                  <small class="text-secondary">{{
-                    estado.respostaPendente
-                      ? "Sua resposta está preservada para nova tentativa."
-                      : "Limite de 4.000 caracteres."
-                  }}</small
-                  ><button class="btn btn-primary btn-sm">
+                  <small
+                    class="text-secondary"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    {{ 4000 - respostaEmEdicao.length }} caracteres restantes
+                  </small>
+                  <button class="btn btn-primary btn-sm">
                     {{
                       processando
                         ? "Aguardando serviço..."
