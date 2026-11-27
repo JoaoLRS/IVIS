@@ -2,8 +2,9 @@
 
 - **Status:** Aprovado
 - **Data:** 2026-11-09
+- **Atualizado em:** 2026-11-23 (ver "Atualização de 23/11/2026" ao final)
 - **Decisores:** Equipe IVIS
-- **Relacionados:** [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md), [ADR-0011](ADR-0011-autenticacao-do-mvp.md), [`Plano_Implantacao_AWS_Academy.md`](../Plano_Implantacao_AWS_Academy.md)
+- **Relacionados:** [ADR-0007](ADR-0007-simulacao-de-email-com-mailpit.md), [ADR-0011](ADR-0011-autenticacao-do-mvp.md), [`Plano_Implantacao_AWS_Academy.md`](../Plano_Implantacao_AWS_Academy.md), [`Guia_Implantacao_AWS.md`](../Guia_Implantacao_AWS.md)
 
 ## Contexto
 
@@ -55,3 +56,31 @@ Esta decisão não define alta disponibilidade, política de backup do banco, do
 - **Frontend em S3 com CDN e backend em outra origem:** rejeitada, pois origens diferentes quebrariam o cookie `SameSite=Strict` do ADR-0011.
 - **Balanceador de carga com certificado gerenciado e domínio próprio:** exige domínio e permissões de DNS que o laboratório não oferece, e acrescenta custo; o Caddy com DuckDNS atende à demonstração.
 - **Contêineres gerenciados ou funções sem servidor:** fora da lista de serviços do enunciado, com permissões do laboratório não validadas; exigiriam justificativa e aprovação.
+
+## Atualização de 23/11/2026
+
+Esta seção registra o que se confirmou ou mudou na implantação. A decisão acima continua valendo; nada do texto anterior foi alterado.
+
+### Confirmado
+
+- Pilha inteira na AWS, mesma origem por causa do cookie `ivis_refresh`, RDS PostgreSQL privado, EC2 "app" com Caddy (em vez de balanceador de carga), ECR, Terraform com estado no S3, GitHub Actions e Infisical, tal como decidido.
+- Em 11/11/2026, o professor aprovou, no acompanhamento do projeto, as tecnologias fora da lista do enunciado: Caddy, DuckDNS, Let's Encrypt e Grafana Alloy.
+- O acesso administrativo e a implantação usam o SSM, sem a porta 22 aberta.
+- A observabilidade (Prometheus, Loki, Grafana e Alloy) foi implantada e verificada em 22/11/2026. O Grafana não tem porta pública: o acesso é por túnel SSM.
+- O Ansible e o balanceador de carga ficaram fora da entrega; as razões estão na proposta inicial.
+
+### Mudou em relação ao texto original
+
+- **Métricas:** o backend passou a expor métricas Prometheus na porta 9091 (Actuator e Micrometer), fora do Caddy e liberada apenas para o grupo de segurança de monitoramento. O item "o backend não expõe métricas hoje" deixou de valer.
+- **Operação do laboratório:** a regra "apagar o que não estiver em uso (`terraform destroy`) em vez de parar" **não foi adotada**. O grupo parou o RDS e as EC2 à mão para poupar crédito, porque recriar a infraestrutura apagaria o banco (sem instantâneo final), perderia as imagens do ECR, mudaria o IP elástico e o certificado, e exigiria refazer à mão o `.env`, o compose, o `Caddyfile`, os volumes, as imagens e a observabilidade.
+- **Comportamento medido:** o End Lab não para o RDS; um RDS parado à mão não volta com o Start Lab e exige `aws rds start-db-instance`; as EC2 voltam sozinhas e o compose de produção sobe sozinho.
+- **Banco:** sem backups automáticos (`BackupRetentionPeriod = 0`) e sem instantâneo final na remoção (`skip_final_snapshot = true`); o único ponto de volta é um instantâneo manual. Isso define, na prática, a política que o texto original deixou em aberto.
+- **E-mail:** o Mailpit só existe no plano local. Em produção não há SMTP real: a recuperação de senha responde de forma neutra e o e-mail não é entregue (limitação da demonstração).
+- **Segredos:** o Infisical usa uma identidade de máquina com acesso de leitura; no GitHub ficam apenas o identificador e o segredo dessa identidade. As credenciais do laboratório estão no Infisical e precisam ser atualizadas a cada Start Lab. A ação usada no pipeline exporta todos os segredos do ambiente `prod` para o job (melhoria prevista: pasta própria para as credenciais da AWS).
+
+### Riscos e limitações que permanecem
+
+- O ciclo `terraform destroy` e `apply` **não foi validado**. Em 22/11 foi gerado o plano de remoção (31 recursos a remover, sem aplicar). A recomendação para a entrega é não executá-lo, pelos motivos acima, e entregar o plano e o procedimento documentados.
+- O pipeline não gera o `.env`, não copia o compose, o `Caddyfile` nem `observability/`, e não cria os volumes do Caddy; a reversão para a versão anterior é manual.
+- O Alloy monta o socket do Docker em modo somente leitura, que protege só o arquivo do socket; o risco foi aceito.
+- A imagem do Caddy não tem versão fixa e há uma única EC2 "app", sem balanceador.

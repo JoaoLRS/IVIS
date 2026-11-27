@@ -1,0 +1,33 @@
+# Alloy: lê os logs dos contêineres e envia ao Loki. Roda na EC2 app (e localmente, para teste).
+# Arquivo separado do compose de produção.
+# Uso:
+#   $env:LOKI_URL = "http://host.docker.internal:3100/loki/api/v1/push"
+#   docker compose -f docker-compose.alloy.yml up -d
+#
+# RISCO CONHECIDO: o Alloy monta o socket do Docker (somente leitura). Quem controla o Alloy
+# enxerga todos os contêineres da máquina. O risco foi aceito porque o Alloy só lê logs, não
+# publica portas e a EC2 não tem entrada pública além de 80 e 443.
+name: ivis-alloy
+
+services:
+  alloy:
+    image: grafana/alloy:v1.22.0
+    container_name: ivis-alloy
+    restart: unless-stopped
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    environment:
+      LOKI_URL: ${LOKI_URL:?defina LOKI_URL (endereço de envio do Loki)}
+    extra_hosts:
+      # Permite usar host.docker.internal também em Linux.
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-dados:/var/lib/alloy/data
+
+volumes:
+  alloy-dados:

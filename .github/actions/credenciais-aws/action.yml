@@ -1,0 +1,42 @@
+name: Credenciais da AWS (Infisical)
+description: Busca as credenciais temporarias do laboratorio no Infisical e as deixa no ambiente, mascaradas.
+
+inputs:
+  client-id:
+    description: Client ID da identidade de maquina do Infisical
+    required: true
+  client-secret:
+    description: Client Secret da identidade de maquina do Infisical
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Buscar credenciais no Infisical
+      uses: Infisical/secrets-action@v1.0.18
+      with:
+        method: universal
+        client-id: ${{ inputs.client-id }}
+        client-secret: ${{ inputs.client-secret }}
+        project-slug: ivis-k-uz-2
+        env-slug: prod
+        domain: https://app.infisical.com
+        export-type: env
+
+    - name: Mascarar e conferir as credenciais
+      shell: bash
+      run: |
+        for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+          valor="${!v:-}"
+          if [ -z "$valor" ]; then
+            echo "::error::$v ausente no Infisical (ambiente prod). Atualize as credenciais do laboratorio e rode de novo."
+            exit 1
+          fi
+          echo "::add-mask::$valor"
+        done
+        ID_CONTA="$(aws sts get-caller-identity --query Account --output text 2>/dev/null)" || {
+          echo "::error::Credenciais da AWS invalidas ou expiradas. Atualize-as no Infisical e rode de novo."
+          exit 1
+        }
+        echo "::add-mask::$ID_CONTA"
+        echo "REGISTRO_ECR=${ID_CONTA}.dkr.ecr.us-east-1.amazonaws.com" >> "$GITHUB_ENV"

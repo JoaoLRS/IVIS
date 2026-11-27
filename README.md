@@ -23,7 +23,7 @@ Para preparar o ambiente, iniciar o sistema e rodar os testes, siga o guia [Como
 
 ## 🌐 Acesso à produção
 
-A versão de produção do IVIS está disponível em: [https://ivis-ia.vercel.app/inicio](https://ivis-ia.vercel.app/inicio).
+A versão de produção do IVIS foi implantada na AWS (AWS Academy Learner Lab), em https://ivis-ia.duckdns.org. O laboratório é desligado entre os usos e a conta é encerrada ao fim do curso, por isso o ambiente **não permanece no ar**. O funcionamento da aplicação implantada está comprovado pelas evidências (imagens e vídeo) listadas em [Evidências](etc/plano/evidencias/README.md). A arquitetura, as decisões técnicas e o procedimento de implantação estão na seção [Implantação em nuvem (AWS)](#-implantação-em-nuvem-aws) e no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md).
 
 ---
 
@@ -322,6 +322,160 @@ etc/
 Esse documento contém a especificação inicial de visão, escopo, stakeholders, atores, casos de uso, histórias de usuário, requisitos e prototipação.
 
 A situação dos requisitos RF03 e RF06 a RF10 e suas pendências de aceite estão em [`etc/plano/IVIS_Requisitos.md`](etc/plano/IVIS_Requisitos.md) e no [plano de teste](etc/plano%20de%20teste.md).
+
+## ☁️ Implantação em nuvem (AWS)
+
+### Visão geral e diagrama
+
+O IVIS é executado em uma EC2 de aplicação, com Caddy, frontend em Nginx, backend em Spring Boot e API de IA em FastAPI. O frontend e a API usam a mesma origem por HTTPS, o backend acessa a API de IA pela rede interna e o RDS PostgreSQL privado, e o acesso administrativo é feito pelo AWS Systems Manager (SSM), sem porta 22.
+
+```mermaid
+flowchart LR
+    user["Usuário"] -->|"HTTPS"| caddy
+
+    subgraph app["EC2 app"]
+        caddy["Caddy"]
+        caddy -->|"/"| frontend["Frontend (Nginx)"]
+        caddy -->|"/api"| backend["Backend (Spring Boot)"]
+        backend --> ia["API de IA (FastAPI)"]
+        alloy["Grafana Alloy"]
+    end
+
+    backend --> rds[("RDS PostgreSQL privado")]
+    ia -->|"HTTPS de saída"| nvidia["API NVIDIA"]
+
+    subgraph monitor["EC2 de monitoramento"]
+        prom["Prometheus"]
+        loki["Loki"]
+        graf["Grafana"]
+    end
+
+    prom -->|"porta 9091"| backend
+    alloy -->|"logs (porta 3100)"| loki
+    graf --> prom
+    graf --> loki
+    admin["Administrador"] -.->|"túnel SSM"| graf
+
+    ecr["ECR (3 imagens)"]
+    s3["S3 (estado do Terraform)"]
+    terraform["Terraform"]
+    gh["GitHub Actions"]
+    inf["Infisical"]
+
+    ecr -.->|"imagens"| app
+    gh -->|"CI/CD e imagens"| ecr
+    gh -->|"implanta por SSM"| app
+    gh -->|"busca segredos"| inf
+    terraform -.->|"provisiona"| app
+    terraform -.->|"estado"| s3
+```
+
+### Tecnologias e justificativas
+
+| Tecnologia | Uso | Justificativa |
+|---|---|---|
+| Amazon EC2 | Executa a aplicação e o monitoramento | Processo permanente evita partida a frio e permite controlar o proxy e as redes internas. |
+| Amazon RDS (PostgreSQL) | Persistência | Serviço gerenciado, compatível com o PostgreSQL já usado e com o Flyway, isolado por grupo de segurança. |
+| Amazon ECR | Registro das três imagens | Integração com a AWS; as EC2 obtêm as imagens pelo perfil de instância, sem credencial fixa no servidor. |
+| Amazon S3 | Estado remoto do Terraform | Armazena o estado com versionamento, bloqueio de acesso público e criptografia; usa travamento por arquivo no laboratório. |
+| AWS Systems Manager | Acesso administrativo e implantação | Permite executar comandos nas instâncias sem abrir a porta 22. |
+| Docker e Docker Compose | Empacotamento e execução | Os quatro componentes da aplicação já são executados como contêineres. |
+| Terraform | Infraestrutura como código | Provisiona a rede, as instâncias, o banco, os repositórios e os grupos de segurança; o plano de remoção foi gerado (31 recursos), mas o ciclo destroy/apply ainda não foi validado. |
+| GitHub Actions | CI/CD | Executa verificações e testes, constrói imagens, envia-as ao ECR e implanta por SSM. |
+| Infisical | Gestão de segredos da aplicação | Mantém segredos fora do código; o GitHub guarda apenas as credenciais de acesso à identidade de máquina. |
+| Caddy | Proxy reverso e HTTPS | Serve `/` e `/api` na mesma origem e obtém e renova automaticamente certificados Let's Encrypt. |
+| DuckDNS | Nome de domínio gratuito | O laboratório não oferece domínio próprio nem permissões completas de DNS para o ALB com certificado gerenciado. |
+| Let's Encrypt | Certificado HTTPS | Emite gratuitamente o certificado usado pelo Caddy para o subdomínio DuckDNS. |
+| Prometheus, Loki e Grafana | Métricas, logs e painéis | Compõem a observabilidade exigida pelo projeto: métricas, logs e painéis. Estão definidos em observability/ e foram implantados na EC2 de monitoramento em 22/11/2026. |
+| Grafana Alloy | Coleta de logs dos contêineres | Substitui o Promtail, descontinuado; roda na EC2 de aplicação, lê os logs dos contêineres e os envia ao Loki. Implantado e verificado em 22/11/2026. |
+
+Alternativas descartadas pela proposta histórica:
+
+- **Application Load Balancer (ALB):** não traz balanceamento real com uma única EC2, exige validação de DNS incompatível com o DuckDNS e acrescentaria custo fixo ao laboratório.
+- **Ansible:** a instalação inicial cabe no `user_data` do Terraform e as atualizações podem ser feitas por SSM e Docker Compose; o uso por SSH exigiria porta 22 e por SSM exigiria infraestrutura auxiliar.
+
+### Como executar, implantar e remover
+
+Os pré-requisitos, as credenciais temporárias do laboratório, a criação da infraestrutura, a construção das imagens, o procedimento manual ou automatizado e o ciclo de remoção estão no [Guia de Implantação](etc/plano/Guia_Implantacao_AWS.md). O guia não repete as decisões técnicas registradas neste README.
+
+O ambiente exige que o AWS Learner Lab esteja iniciado. Antes de usar o AWS CLI ou o Terraform, configure as credenciais temporárias da sessão e execute testes e validações fora do VS Code, conforme as lições registradas no guia.
+
+### Segurança
+
+- Os segredos da aplicação são gerenciados pelo Infisical. No GitHub existem somente `INFISICAL_CLIENT_ID` e `INFISICAL_CLIENT_SECRET`, usados pela identidade de máquina do pipeline.
+- As três credenciais temporárias do laboratório também ficam no Infisical e precisam ser atualizadas a cada sessão do laboratório, antes de qualquer execução do pipeline.
+- O CI executa `gitleaks` sobre o histórico completo do repositório.
+- O RDS é privado (`publicly_accessible = false`) e sua porta `5432` só é aceita pelo grupo de segurança da EC2 de aplicação.
+- O armazenamento do RDS é criptografado (`storage_encrypted = true`).
+- A porta `22` não está aberta; a administração é feita por SSM.
+- O Caddy obtém HTTPS com Let's Encrypt. Em produção, o cookie `ivis_refresh` é `HttpOnly`, `Secure` e `SameSite=Strict`.
+- A porta `9091`, usada pelas métricas do backend, só é aceita pelo grupo de segurança da EC2 de monitoramento.
+- A porta `3100` (Loki) só é aceita do grupo de segurança da EC2 de aplicação.
+- O Grafana não tem porta aberta à internet: o acesso é por túnel do Session Manager (SSM), e a senha do administrador é gerada no próprio servidor, sem passar pelo repositório.
+- O log de acesso do Caddy é desativado de propósito porque poderia registrar cabeçalhos sensíveis.
+- A chave e o endpoint da API de limpeza de dados não são configurados em produção; essa API não existe no ambiente implantado.
+- O acesso aos metadados da EC2 exige IMDSv2 (`http_tokens = required`) e os discos das duas EC2 são criptografados.
+- O estado do Terraform fica em um bucket S3 com versionamento, bloqueio de acesso público e criptografia; o travamento do estado usa arquivo no bucket.
+- A regra `proteger-main` exige solicitação revisada, uma aprovação e os cinco checks obrigatórios: Backend, Frontend, API de IA, Segredos (gitleaks) e Terraform.
+- Os repositórios ECR têm varredura ativada no envio das imagens (`scan_on_push`).
+
+### Testes e qualidade
+
+O CI roda em toda solicitação de mesclagem para `main` e também pode ser chamado por outro fluxo ou executado manualmente. Ele verifica o frontend com ESLint, checagem de tipos e Vitest; a API de IA com pytest; o backend com Gradle Test e Testcontainers; a infraestrutura Terraform com `fmt -check`, `init -backend=false` e `validate`; e segredos com gitleaks.
+
+Os relatórios de pytest e do backend são publicados como artefatos dos respectivos jobs. Os cinco checks são obrigatórios pela regra da branch `main`, portanto não é possível mesclar uma solicitação com um teste vermelho.
+
+O workflow de implantação (`deploy.yml`) já foi executado com sucesso e encadeia os jobs Testes, Construir, Implantar e Verificar. O job de testes reaproveita o CI e é pré-requisito dos demais: se falhar, nada é construído nem enviado ao ECR. Depois da implantação, o job de verificação consulta `/api/v1/pronto` com repetições e falha se a aplicação não responder. O gatilho atual é a execução manual (`workflow_dispatch`); o disparo automático a cada mesclagem na `main` ainda não está ativo.
+Os passos `run:` usam `bash` explicitamente (`defaults.run.shell`), o que faz uma sequência ligada por `|` falhar se qualquer comando dela falhar, e não só o último.
+A reversão para a versão anterior é manual (cópia `.env.bak-<tag>` na EC2); não existe reversão automática, e migrações do Flyway não se desfazem apenas trocando a imagem.
+
+Como exemplo real, a migração V15 passou a permitir a mesma habilidade em níveis diferentes (única por aluno, nome e nível); um teste desatualizado foi barrado pelo CI e corrigido na solicitação #28. A solicitação #26 foi mesclada com CI vermelho antes de os checks serem obrigatórios, fato que motivou a proteção da branch.
+
+Cypress é usado localmente. Sua execução contra produção seria arriscada porque as tarefas de limpeza acessam o banco.
+
+### Observabilidade
+
+Prometheus, Loki, Grafana e Grafana Alloy foram implantados e verificados em 22/11/2026. Na EC2 de monitoramento, o Prometheus coleta as métricas do backend (porta `9091`, caminho `/actuator/prometheus`) com retenção de 3 dias, e o Loki guarda os logs por 72 horas. Na EC2 de aplicação, o Alloy lê os logs dos contêineres e os envia ao Loki. O Grafana lê as duas fontes e carrega o painel a partir dos arquivos de `observability/`.
+
+O Grafana não tem porta aberta à internet: o acesso é por túnel do SSM, feito por quem administra o ambiente. O painel mostra disponibilidade do backend, requisições por segundo, tempo de resposta (p95), erros 5xx, memória (heap da JVM), CPU do processo e os logs de erro. Detalhes, decisões e como subir localmente estão em [observability/README.md](observability/README.md).
+
+### Limitações conhecidas
+
+- Não há SMTP real em produção: a recuperação de senha responde de forma neutra e o e-mail não é entregue; o Mailpit existe apenas no plano local.
+- As credenciais do AWS Academy são temporárias e precisam ser renovadas a cada sessão.
+- Na implantação manual, os valores usados para gerar o `.env` passaram pelos parâmetros do `send-command`; a meta é gerar o arquivo a partir do Infisical.
+- Existe uma única EC2 de aplicação, sem balanceador de carga, conforme o ADR-0012.
+- O ambiente depende do laboratório estar ligado e a conta do laboratório encerra ao fim do curso.
+- O pipeline não gera o `.env`, não copia o `docker-compose.prod.yml`, o `Caddyfile` nem a pasta `observability/` para as EC2 e não cria os volumes do Caddy; essas etapas continuam manuais, assim como a implantação da observabilidade.
+- A ação do Infisical usada no pipeline exporta todos os segredos do ambiente `prod` para o job; separar as credenciais da AWS em uma pasta própria, com acesso restrito, é uma melhoria prevista.
+- A imagem do Caddy não tem versão fixa (`caddy:2-alpine`).
+- O plano de remoção foi gerado (`terraform plan -destroy`, 31 recursos, sem aplicar), mas o ciclo `terraform destroy` e `apply` não foi validado nesta infraestrutura. O banco seria apagado sem instantâneo final.
+- O RDS não tem backups automáticos; o único ponto de volta do banco é um instantâneo manual.
+- O Alloy monta o socket do Docker em modo somente leitura (`:ro`), que protege apenas o arquivo do socket e não impede comandos à API do Docker por quem controla o Alloy; o risco foi aceito para a entrega.
+- A retenção é curta (3 dias de métricas e 72 horas de logs) por causa da memória da EC2 de monitoramento, e o painel usa as métricas da aplicação, não as do servidor inteiro.
+
+### Divisão de tarefas
+
+A coordenação foi do Rafael, que também executou, na conta do laboratório da AWS, a implantação manual, a implantação da observabilidade nas EC2 e as paradas e partidas do ambiente. A tabela mostra a responsabilidade principal de cada área e quem revisou as solicitações de mesclagem; os números são os das solicitações em `lucifer-son/IVIS`.
+
+| Área | Execução principal | Revisão |
+|---|---|---|
+| Terraform (#11 a #15) | Rafael | João Lucas Ribeiro (#11, #14), Cosme (#12, #13), Mariana (#15) |
+| ADR-0012, proposta inicial e README da infraestrutura (#2, #3, #5, #7, #40) | Rafael | João Lucas Ribeiro (#2), Mariana (#3, #5, #7), Cosme (#40) |
+| Padronização dos ADRs (#9, #16) | Cosme | Rafael |
+| Compose e perfil de produção, teste de CORS (#17, #19, #20) | Mariana | Rafael (#17, #20), Cosme (#19), João Lucas Ribeiro (#20) |
+| Métricas no backend (#18, #21) | Cosme | Mariana (#18), João Lucas Ribeiro (#21) |
+| CI e pipeline: `ci.yml`, `deploy.yml`, plugin do Gradle e `pipefail` (#23, #31, #34, #39) | João Lucas Ribeiro | Rafael (#23), Mariana (#31, #34, #39) |
+| Observabilidade: Prometheus, Grafana, Loki, Alloy, painéis e README (#24, #36, #37, #38) | Cosme | Rafael (#24, #37), Mariana (#36, #38) |
+| Testes: regra de habilidade por nível (#26, #28) | Rafael | Mariana |
+| Migração V15 (habilidades únicas por nome e nível) | João Lucas Ribeiro | Mariana (#25, que trouxe as alterações do repositório de Engenharia de Software) |
+| `.env.exemplo` (#30, #32) | Cosme (#30), Rafael (#32) | Mariana |
+| Guia de Implantação (#29) | Rafael | João Lucas Ribeiro |
+| README de nuvem (#33, #35, #41) | Mariana | Rafael (#33, #35), Cosme (#41) |
+| Segredos (Infisical) | Rafael e João Lucas Ribeiro | não se aplica |
+| Operação do laboratório (Start Lab, parar e religar, implantação manual) | Rafael | não se aplica |
+
+Nas solicitações #1 a #41, houve 41 aprovações em 40 solicitações (a #27, uma reversão, não teve revisão; a #20 teve duas). Por revisor: Mariana 17, Rafael 9, João Lucas Cosme 8 e João Lucas Ribeiro 7. Os quatro integrantes escreveram e revisaram solicitações; a Mariana foi quem mais revisou. O histórico do repositório inclui commits anteriores ao projeto de nuvem, da disciplina de Engenharia de Software, que não entram nesta divisão.
 
 ## Verificação de dependências
 
