@@ -6,7 +6,10 @@ import MenuLateral from "./componentes/MenuSuperior.vue";
 import BarraSuperior from "./componentes/BarraSuperior.vue";
 import { useEstadoAplicacao } from "./estados/estadoAplicacao";
 import { useEstadoSessao } from "./estados/estadoSessao";
-import { requisicoesEmAndamento } from "./servicos/clienteHttp";
+import {
+  mensagemCarregamentoGlobal,
+  requisicoesEmAndamento,
+} from "./servicos/clienteHttp";
 
 const rota = useRoute();
 const carregandoGlobal = computed(() => requisicoesEmAndamento.value > 0 || navegacaoEmAndamento.value);
@@ -81,8 +84,22 @@ const titulos = computed<Record<string, string>>(() => ({
       </main>
     </div>
   </div>
-  <div v-if="carregandoGlobal" class="global-loading-overlay" role="status" aria-live="polite">
+  <div
+    v-if="carregandoGlobal"
+    class="global-loading-overlay"
+    :class="{
+      'global-loading-overlay--avaliando':
+        mensagemCarregamentoGlobal === 'Avaliando a sua entrevista',
+    }"
+    role="status"
+    aria-live="polite"
+  >
     <span class="global-loading-spinner" aria-hidden="true" />
-    <span>Carregando...</span>
+    <span class="global-loading-label">
+      <template v-if="mensagemCarregamentoGlobal === 'Avaliando a sua entrevista'">
+        Avaliando a sua<br />entrevista
+      </template>
+      <template v-else>{{ mensagemCarregamentoGlobal }}</template>
+    </span>
   </div>
 </template>

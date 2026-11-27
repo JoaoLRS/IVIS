@@ -4296,8 +4296,36 @@ input[type="radio"],
   animation: ivis-loading-spin 0.75s linear infinite;
 }
 
+.global-loading-overlay--avaliando .global-loading-spinner {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-width: 5px;
+}
+
+.global-loading-overlay--avaliando .global-loading-label {
+  position: absolute;
+  z-index: 1;
+  width: 260px;
+  font-size: 24px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 @keyframes ivis-loading-spin {
   to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+  .global-loading-overlay--avaliando .global-loading-spinner {
+    width: 240px;
+    height: 240px;
+  }
+
+  .global-loading-overlay--avaliando .global-loading-label {
+    width: 210px;
+    font-size: 20px;
+  }
 }
 
 :root,

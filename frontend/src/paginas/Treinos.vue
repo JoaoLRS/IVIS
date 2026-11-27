@@ -15,6 +15,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useEstadoAplicacao } from "../estados/estadoAplicacao";
 import CabecalhoPagina from "../componentes/CabecalhoPagina.vue";
 import Etiqueta from "../componentes/Etiqueta.vue";
+import { definirMensagemCarregamentoGlobal } from "../servicos/clienteHttp";
 
 const estado = useEstadoAplicacao();
 const roteador = useRouter();
@@ -104,12 +105,14 @@ async function encerrar() {
   if (estado.respostas.length !== totalPerguntas) return;
   processando.value = true;
   mensagemErro.value = "";
+  definirMensagemCarregamentoGlobal("Avaliando a sua entrevista");
   try {
     await estado.concluirTreino();
     await roteador.push("/feedback");
   } catch (erro) {
     mensagemErro.value = mensagemDaFalha(erro, true);
   } finally {
+    definirMensagemCarregamentoGlobal();
     processando.value = false;
   }
 }

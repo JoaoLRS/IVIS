@@ -4,7 +4,12 @@ import { ref } from "vue";
 
 let tokenAcesso: string | null = null;
 export const requisicoesEmAndamento = ref(0);
+export const mensagemCarregamentoGlobal = ref("Carregando...");
 const requisicoesVisiveis = new WeakSet<InternalAxiosRequestConfig>();
+
+export function definirMensagemCarregamentoGlobal(mensagem?: string) {
+  mensagemCarregamentoGlobal.value = mensagem ?? "Carregando...";
+}
 
 function concluirCarregamento(config?: InternalAxiosRequestConfig) {
   if (config && requisicoesVisiveis.delete(config)) {

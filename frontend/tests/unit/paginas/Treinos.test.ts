@@ -3,7 +3,13 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Treinos from "../../../src/paginas/Treinos.vue";
 import { useEstadoAplicacao } from "../../../src/estados/estadoAplicacao";
-import { enviarRespostaTreino, iniciarTreinoRemoto, type SessaoTreino } from "../../../src/servicos/treinos";
+import {
+  concluirTreinoRemoto,
+  enviarRespostaTreino,
+  iniciarTreinoRemoto,
+  type SessaoTreino,
+} from "../../../src/servicos/treinos";
+import { mensagemCarregamentoGlobal } from "../../../src/servicos/clienteHttp";
 
 const navegar = vi.fn();
 const substituir = vi.fn();
@@ -35,6 +41,8 @@ describe("página Treinos", () => {
     setActivePinia(createPinia());
     vi.mocked(iniciarTreinoRemoto).mockReset();
     vi.mocked(enviarRespostaTreino).mockReset();
+    vi.mocked(concluirTreinoRemoto).mockReset();
+    mensagemCarregamentoGlobal.value = "Carregando...";
     navegar.mockReset();
     substituir.mockReset();
   });
@@ -94,5 +102,57 @@ describe("página Treinos", () => {
     expect(contador()).toContain("4000 caracteres restantes");
     await campo.setValue("Olá!");
     expect(contador()).toContain("3996 caracteres restantes");
+  });
+
+  it("mostra avaliação no carregamento central até concluir o treino", async () => {
+    const estado = useEstadoAplicacao();
+    estado.treinoAtivo = true;
+    estado.perguntaAtual = 3;
+    estado.respostas = ["R1", "R2", "R3"];
+    estado.perguntasDoTreino = ["P1", "P2", "P3"];
+    estado.sessaoTreino = {
+      id: "treino-1",
+      tipoContexto: "HABILIDADES",
+      contexto: "Habilidades: Vue.js",
+      vagaId: null,
+      habilidades: ["Vue.js"],
+      totalPerguntas: 3,
+      perguntas: [
+        { id: "p1", numero: 1, texto: "P1", resposta: "R1" },
+        { id: "p2", numero: 2, texto: "P2", resposta: "R2" },
+        { id: "p3", numero: 3, texto: "P3", resposta: "R3" },
+      ],
+    };
+    let concluir!: (
+      treino: Awaited<ReturnType<typeof concluirTreinoRemoto>>,
+    ) => void;
+    vi.mocked(concluirTreinoRemoto).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          concluir = resolve;
+        }),
+    );
+    const pagina = mount(Treinos, { global: { stubs: { RouterLink: true } } });
+    const botao = pagina.get(".chat-composer-finished button");
+
+    await botao.trigger("click");
+
+    expect(botao.text()).toContain("Finalizar e ver feedback");
+    expect(botao.attributes("disabled")).toBeDefined();
+    expect(mensagemCarregamentoGlobal.value).toBe("Avaliando a sua entrevista");
+
+    concluir({
+      id: "treino-1",
+      titulo: "Entrevista",
+      contexto: "Habilidades: Vue.js",
+      nota: 90,
+      data: "2026-11-27T00:00:00Z",
+      pontosFortes: ["Boa resposta"],
+      pontosMelhoria: ["Aprofundar"],
+    });
+    await flushPromises();
+
+    expect(navegar).toHaveBeenCalledWith("/feedback");
+    expect(mensagemCarregamentoGlobal.value).toBe("Carregando...");
   });
 });
