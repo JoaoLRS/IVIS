@@ -4,6 +4,7 @@ import {
 } from "../funcoes/funcoes.js";
 import {
   abrirTreinoPorHabilidades,
+  conferirContadorInicialDeCaracteres,
   digitarRespostaDaEntrevista,
   enviarRespostaDaEntrevista,
   conferirProximaPerguntaDaEntrevista,
@@ -17,10 +18,19 @@ import {
 } from "../funcoes/cdu.js";
 
 describe("CDU-07 - Realizar treinamento e receber feedback", () => {
+  it("atualiza o contador de caracteres enquanto a resposta é digitada", () => {
+    prepararTreinoComIA();
+    abrirTreinoPorHabilidades();
+    iniciarEntrevistaComIA();
+    conferirContadorInicialDeCaracteres();
+    digitarRespostaDaEntrevista(1);
+  });
+
   it("preserva respostas e permite repetir pergunta e avaliação após falha da IA", () => {
     prepararTreinoComIA(null, { falharUmaVez: true });
     abrirTreinoPorHabilidades();
     iniciarEntrevistaComIA();
+    conferirContadorInicialDeCaracteres();
     digitarRespostaDaEntrevista(1);
     enviarRespostaDaEntrevista();
     conferirRespostaPreservadaAposFalha(1);
@@ -43,6 +53,7 @@ describe("CDU-07 - Realizar treinamento e receber feedback", () => {
     prepararTreinoComIA();
     abrirTreinoPorHabilidades();
     iniciarEntrevistaComIA();
+    conferirContadorInicialDeCaracteres();
     digitarRespostaDaEntrevista(1);
     enviarRespostaDaEntrevista();
     conferirProximaPerguntaDaEntrevista(2);

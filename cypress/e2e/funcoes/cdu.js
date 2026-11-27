@@ -961,6 +961,7 @@ export function conferirEntrevistaRetomada() {
   cy.wait(aliases.aguardar(aliases.retomarTreino));
   cy.contains(textos.treino.perguntaIa(2)).should("be.visible");
   cy.contains(textos.treino.respostaDemonstracao(1)).should("be.visible");
+  conferirContadorDeCaracteres(seletores.treino.limiteResposta);
 }
 
 export function conferirRetomadaSemNovoTreino() {
@@ -973,9 +974,17 @@ export function digitarRespostaDaEntrevista(numero) {
   cy.get(seletores.treino.resposta)
     .clear()
     .type(resposta);
+  conferirContadorDeCaracteres(seletores.treino.limiteResposta - resposta.length);
+}
+
+export function conferirContadorInicialDeCaracteres() {
+  conferirContadorDeCaracteres(seletores.treino.limiteResposta);
+}
+
+export function conferirContadorDeCaracteres(restantes) {
   cy.get(seletores.treino.contadorCaracteres).should(
     "contain",
-    textos.treino.caracteresRestantes(4000 - resposta.length),
+    textos.treino.caracteresRestantes(restantes),
   );
 }
 
@@ -1000,6 +1009,7 @@ export function conferirProximaPerguntaDaEntrevista(numero) {
     .its("request.body.perguntaId")
     .should("eq", `pergunta-${numero - 1}`);
   cy.contains(textos.treino.perguntaIa(numero)).should("be.visible");
+  conferirContadorDeCaracteres(seletores.treino.limiteResposta);
 }
 
 export function conferirAvaliacaoDaEntrevista() {

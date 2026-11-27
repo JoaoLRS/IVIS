@@ -15,6 +15,13 @@ import {
 } from "../funcoes/cdu.js";
 
 describe("CDU-19 - Retomar treinamento em andamento", () => {
+  it("atualiza o contador de caracteres ao retomar o treinamento", () => {
+    prepararRetomadaDaEntrevista();
+    abrirEntrevistaEmAndamento();
+    conferirEntrevistaRetomada();
+    digitarRespostaDaEntrevista(2);
+  });
+
   it("recupera as respostas após reabrir e recarregar a página e conclui o treino existente", () => {
     prepararRetomadaDaEntrevista();
     abrirEntrevistaEmAndamento();

@@ -173,6 +173,7 @@ export const seletores = {
     resposta: 'textarea[name="resposta"]',
     finalizar: ".chat-composer-finished button",
     contadorCaracteres: '.chat-composer [aria-live="polite"]',
+    limiteResposta: 4000,
     nota: ".score-ring strong",
     metaFeedback: ".feedback-meta",
   },
