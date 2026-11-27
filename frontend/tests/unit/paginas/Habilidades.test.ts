@@ -29,7 +29,8 @@ describe("página Habilidades", () => {
   it("persiste a habilidade antes de adicioná-la ao perfil", async () => {
     vi.mocked(criarHabilidade).mockResolvedValue(habilidade);
     const pagina = mount(Habilidades);
-    await pagina.get("button.btn-primary").trigger("click");
+    expect(pagina.find(".heading-action button").exists()).toBe(false);
+    await pagina.get(".profile-empty-action").trigger("click");
     const campos = pagina.findAll('[role="dialog"] input');
     await campos[0].setValue("Vue.js");
     await campos[1].setValue("Frontend");
@@ -41,6 +42,7 @@ describe("página Habilidades", () => {
       nome: "Vue.js", categoria: "Frontend", nivel: 4,
     });
     expect(useEstadoAplicacao().habilidades).toEqual([habilidade]);
+    expect(pagina.get(".heading-action button").text()).toContain("Adicionar habilidade");
     expect(pagina.emitted("notificar")?.[0]).toEqual(["Habilidade adicionada ao perfil."]);
   });
 

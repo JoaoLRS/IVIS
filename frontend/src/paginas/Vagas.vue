@@ -155,7 +155,11 @@ function treinarPara(titulo: string) {
     titulo="Vagas de interesse"
     descricao="Cadastre e organize vagas para orientar seus treinamentos de entrevista."
   >
-    <button class="btn btn-primary" @click="abrirNova">
+    <button
+      v-if="estado.vagas.length"
+      class="btn btn-primary"
+      @click="abrirNova"
+    >
       <Plus :size="16" /> Adicionar vaga
     </button>
   </CabecalhoPagina>

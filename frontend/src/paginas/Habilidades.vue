@@ -97,7 +97,11 @@ async function confirmarRemocao() {
     titulo="Minhas habilidades"
     descricao="Cadastre e mantenha atualizadas as habilidades usadas para personalizar os próximos treinamentos."
   >
-    <button class="btn btn-primary" @click="abrirNovo">
+    <button
+      v-if="estado.habilidades.length"
+      class="btn btn-primary"
+      @click="abrirNovo"
+    >
       <Plus :size="16" /> Adicionar habilidade
     </button>
   </CabecalhoPagina>

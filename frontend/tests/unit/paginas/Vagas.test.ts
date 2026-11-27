@@ -36,7 +36,8 @@ describe("página Vagas", () => {
   it("normaliza requisitos antes de salvar e usa o ID ao iniciar treino", async () => {
     vi.mocked(criarVaga).mockResolvedValue(vaga);
     const pagina = mount(Vagas);
-    await pagina.get("button.btn-primary").trigger("click");
+    expect(pagina.find(".heading-action button").exists()).toBe(false);
+    await pagina.get(".profile-empty-action").trigger("click");
     const campos = pagina.findAll('[role="dialog"] input');
     await campos[0].setValue("  Engenheira Vue  ");
     await campos[1].setValue("  Empresa  ");
@@ -49,6 +50,7 @@ describe("página Vagas", () => {
       titulo: "Engenheira Vue", empresa: "Empresa", senioridade: "Pleno",
       requisitos: ["Vue", "TypeScript"], descricao: null,
     });
+    expect(pagina.get(".heading-action button").text()).toContain("Adicionar vaga");
     await pagina.get(".job-card .btn-primary").trigger("click");
     expect(navegar).toHaveBeenCalledWith({ path: "/treinos", query: { vaga: "vaga-1" } });
   });
