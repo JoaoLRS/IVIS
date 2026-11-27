@@ -3,6 +3,7 @@ import {
   habilidadeTeste,
   prepararTelaDeHabilidades,
   prepararCadastroDeHabilidade,
+  conferirBotaoAdicionarHabilidadeOculto,
   abrirCadastroDeHabilidade,
   informarNomeDaHabilidadeCdu,
   informarCategoriaDaHabilidadeCdu,
@@ -24,6 +25,7 @@ describe("CDU-03 - Gerenciar habilidades", () => {
   it("cadastra uma habilidade no perfil", () => {
     prepararTelaDeHabilidades();
     prepararCadastroDeHabilidade();
+    conferirBotaoAdicionarHabilidadeOculto();
     abrirCadastroDeHabilidade();
     informarNomeDaHabilidadeCdu();
     informarCategoriaDaHabilidadeCdu();

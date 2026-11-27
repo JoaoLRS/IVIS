@@ -78,7 +78,14 @@ export function prepararCadastroDeHabilidade() {
 }
 
 export function abrirCadastroDeHabilidade() {
-  cy.contains(elementos.botao, textos.habilidades.adicionar).click();
+  cy.contains(
+    seletores.estadoVazio.acao,
+    textos.habilidades.adicionarPrimeira,
+  ).click();
+}
+
+export function conferirBotaoAdicionarHabilidadeOculto() {
+  cy.get(seletores.habilidade.botaoAdicionar).should("not.exist");
 }
 
 export function informarNomeDaHabilidadeCdu() {
@@ -120,6 +127,7 @@ export function conferirCadastroDeHabilidade() {
       nivel: habilidadeTeste.nivel,
     });
   cy.contains(elementos.cabecalho3, habilidadeTeste.nome).should("be.visible");
+  cy.get(seletores.habilidade.botaoAdicionar).should("be.visible");
 }
 
 export function prepararEdicaoDeHabilidade() {
@@ -183,7 +191,11 @@ export function confirmarRemocaoDeHabilidade() {
 
 export function conferirRemocaoDeHabilidade() {
   cy.wait(aliases.aguardar(aliases.removerHabilidade));
-  cy.contains(textos.habilidades.nenhuma).should("be.visible");
+  cy.contains(
+    seletores.estadoVazio.titulo,
+    textos.habilidades.nenhuma,
+  ).should("be.visible");
+  cy.get(seletores.habilidade.botaoAdicionar).should("not.exist");
 }
 
 export function prepararRecuperacaoDeAcesso() {
@@ -258,7 +270,14 @@ export function prepararCadastroDeVaga() {
 }
 
 export function abrirCadastroDeVaga() {
-  cy.contains(elementos.botao, textos.vagas.adicionar).click();
+  cy.contains(
+    seletores.estadoVazio.acao,
+    textos.vagas.adicionarPrimeira,
+  ).click();
+}
+
+export function conferirBotaoAdicionarVagaOculto() {
+  cy.get(seletores.vaga.botaoAdicionar).should("not.exist");
 }
 
 export function informarTituloDaVagaCdu() {
@@ -310,6 +329,7 @@ export function conferirCadastroDeVaga() {
       descricao: null,
     });
   cy.contains(elementos.cabecalho2, vagaTeste.titulo).should("be.visible");
+  cy.get(seletores.vaga.botaoAdicionar).should("be.visible");
 }
 
 export function prepararEdicaoDeVaga() {
@@ -369,7 +389,11 @@ export function confirmarExclusaoDeVaga() {
 
 export function conferirExclusaoDeVaga() {
   cy.wait(aliases.aguardar(aliases.arquivarVaga));
-  cy.contains(".profile-empty-state h3", textos.vagas.nenhuma).should("be.visible");
+  cy.contains(
+    seletores.estadoVazio.titulo,
+    textos.vagas.nenhuma,
+  ).should("be.visible");
+  cy.get(seletores.vaga.botaoAdicionar).should("not.exist");
   cy.get(seletores.vaga.botaoExcluir(valoresCdu.vagaAtualizada)).should("not.exist");
 }
 
@@ -945,9 +969,14 @@ export function conferirRetomadaSemNovoTreino() {
 }
 
 export function digitarRespostaDaEntrevista(numero) {
+  const resposta = textos.treino.respostaDemonstracao(numero);
   cy.get(seletores.treino.resposta)
     .clear()
-    .type(textos.treino.respostaDemonstracao(numero));
+    .type(resposta);
+  cy.get(seletores.treino.contadorCaracteres).should(
+    "contain",
+    textos.treino.caracteresRestantes(4000 - resposta.length),
+  );
 }
 
 export function enviarRespostaDaEntrevista() {

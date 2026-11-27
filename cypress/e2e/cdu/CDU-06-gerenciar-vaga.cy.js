@@ -3,6 +3,7 @@ import {
   vagaTeste,
   prepararTelaDeVagas,
   prepararCadastroDeVaga,
+  conferirBotaoAdicionarVagaOculto,
   abrirCadastroDeVaga,
   informarTituloDaVagaCdu,
   informarEmpresaDaVagaCdu,
@@ -25,6 +26,7 @@ describe("CDU-06 - Gerenciar vaga de interesse", () => {
   it("cadastra uma vaga com seus requisitos", () => {
     prepararTelaDeVagas();
     prepararCadastroDeVaga();
+    conferirBotaoAdicionarVagaOculto();
     abrirCadastroDeVaga();
     informarTituloDaVagaCdu();
     informarEmpresaDaVagaCdu();

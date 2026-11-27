@@ -269,7 +269,10 @@ export function conferirTelaMinhasHabilidades() {
 }
 
 export function abrirFormularioDeHabilidade() {
-  cy.contains("button", textos.habilidades.adicionar).click();
+  cy.contains(
+    seletores.estadoVazio.acao,
+    textos.habilidades.adicionarPrimeira,
+  ).click();
 }
 
 export function informarNomeDaHabilidade(nome = habilidadeDoCaminho.nome) {
@@ -299,6 +302,7 @@ export function conferirHabilidadeCadastrada(
 ) {
   cy.contains(classes.cartaoHabilidade, habilidade.nome).should("be.visible");
   cy.contains(classes.cartaoHabilidade, habilidade.categoria).should("be.visible");
+  cy.get(seletores.habilidade.botaoAdicionar).should("be.visible");
 }
 
 export function abrirVagasDeInteresse() {
@@ -310,7 +314,7 @@ export function conferirTelaDeVagasDeInteresse() {
 }
 
 export function abrirFormularioDeVaga() {
-  cy.contains("button", textos.vagas.adicionar).click();
+  cy.contains(seletores.estadoVazio.acao, textos.vagas.adicionarPrimeira).click();
 }
 
 export function informarTituloDaVaga(titulo = vagaDoCaminho.titulo) {
@@ -341,6 +345,7 @@ export function conferirVagaCadastrada(vaga = vagaDoCaminho) {
   cy.contains(classes.cartaoVaga, vaga.titulo)
     .should("contain", vaga.empresa)
     .and("be.visible");
+  cy.get(seletores.vaga.botaoAdicionar).should("be.visible");
 }
 
 export function abrirTelaDeTreinos() {

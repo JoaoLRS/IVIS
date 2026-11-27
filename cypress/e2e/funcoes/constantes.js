@@ -133,8 +133,12 @@ export const seletores = {
     iniciarTreinamento: ".top-menu-text-link",
     radioPerfil: '[role="radio"]',
   },
+  estadoVazio: {
+    acao: ".profile-empty-action",
+    titulo: ".profile-empty-state h3",
+  },
   habilidade: {
-    botaoAdicionar: "button:contains('Adicionar habilidade')",
+    botaoAdicionar: ".heading-action button:contains('Adicionar habilidade')",
     dialogo: '[role="dialog"]',
     nome: '[role="dialog"] input[placeholder="Ex.: Vue.js"]',
     categoria: '[role="dialog"] input[placeholder="Ex.: Front-end"]',
@@ -147,7 +151,7 @@ export const seletores = {
     botaoRemover: (nome) => `[aria-label="Remover ${nome}"]`,
   },
   vaga: {
-    botaoAdicionar: "button:contains('Adicionar vaga')",
+    botaoAdicionar: ".heading-action button:contains('Adicionar vaga')",
     dialogo: '[role="dialog"]',
     titulo:
       '[role="dialog"] input[placeholder="Ex.: Desenvolvedor(a) front-end"]',
@@ -168,6 +172,7 @@ export const seletores = {
     mensagem: ".chat-thread .chat-message",
     resposta: 'textarea[name="resposta"]',
     finalizar: ".chat-composer-finished button",
+    contadorCaracteres: '.chat-composer [aria-live="polite"]',
     nota: ".score-ring strong",
     metaFeedback: ".feedback-meta",
   },
@@ -270,17 +275,19 @@ export const textos = {
   habilidades: {
     tituloPagina: "Minhas habilidades",
     adicionar: "Adicionar habilidade",
+    adicionarPrimeira: "Adicionar primeira habilidade",
     nomeCampo: "Nome da habilidade",
     categoriaCampo: "Categoria",
     nivelCampo: "Nível atual",
     salvar: "Adicionar",
-    nenhuma: "Nenhuma habilidade cadastrada.",
+    nenhuma: "Comece pelo que você sabe fazer",
     placeholderNome: "Ex.: Vue.js",
     placeholderCategoria: "Ex.: Front-end",
   },
   vagas: {
     tituloPagina: "Vagas de interesse",
     adicionar: "Adicionar vaga",
+    adicionarPrimeira: "Adicionar primeira vaga",
     cargoCampo: "Nome do cargo",
     empresaCampo: "Empresa",
     nivelCampo: "Nível",
@@ -304,6 +311,7 @@ export const textos = {
     pergunta: (numero) => `PERGUNTA ${numero} DE 3`,
     perguntaIa: (numero) => `Pergunta da entrevista ${numero}`,
     respostaDemonstracao: (numero) => `Resposta de demonstração ${numero}`,
+    caracteresRestantes: (quantidade) => `${quantidade} caracteres restantes`,
     treinoConcluido: "ENTREVISTA CONCLUÍDA",
   },
   historico: {
